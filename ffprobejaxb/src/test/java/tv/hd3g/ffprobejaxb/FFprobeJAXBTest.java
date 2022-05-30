@@ -16,6 +16,7 @@
  */
 package tv.hd3g.ffprobejaxb;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,34 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class FFprobeJAXBTest {
-
-	private static final String baseResourceName = FFprobeJAXBTest.class.getPackageName().replace('.', '/');
-
-	private static String read(final String resourceName) throws IOException {
-
-		final var is = FFprobeJAXBTest.class.getClassLoader()
-		        .getResourceAsStream(baseResourceName + "/" + resourceName);
-		assertNotNull(is);
-		final var isr = new InputStreamReader(is);
-		final var cbuf = new char[4000];
-		int size;
-		final var sb = new StringBuilder();
-		while ((size = isr.read(cbuf)) > 0) {
-			sb.append(cbuf, 0, size);
-		}
-		return sb.toString();
-	}
 
 	static String out0;
 	static String out1;
@@ -59,10 +44,10 @@ class FFprobeJAXBTest {
 
 	@BeforeAll
 	static void load() throws IOException {
-		out0 = read("out0.xml");
-		out1 = read("out1.xml");
-		outNope = read("outNope.xml");
-		outErr = read("outErr.txt");
+		out0 = FileUtils.readFileToString(new File("examples/out0.xml"), UTF_8);
+		out1 = FileUtils.readFileToString(new File("examples/out1.xml"), UTF_8);
+		outNope = FileUtils.readFileToString(new File("examples/outNope.xml"), UTF_8);
+		outErr = FileUtils.readFileToString(new File("examples/outErr.txt"), UTF_8);
 	}
 
 	LinkedBlockingQueue<String> warns;
