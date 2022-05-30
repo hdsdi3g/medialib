@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>tv.hd3g</groupId>
+    <artifactId>processlauncher</artifactId>
+    <packaging>jar</packaging>
+
+    <name>processlauncher</name>
+	<url>https://github.com/hdsdi3g/medialib</url>
+    <description>Another lib to start process in Java</description>
+
+ 	<parent>
+		<groupId>tv.hd3g.commons</groupId>
+		<artifactId>starter-medialib</artifactId>
+		<version>8.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+	</parent>
+	
+    <dependencies>
+        <dependency>
+            <groupId>tv.hd3g.commons</groupId>
+            <artifactId>interfaces</artifactId>
+            <version>${starter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>${commons.collections4.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!---dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        <dependency-->
+        <dependency>
+            <groupId>tv.hd3g.commons</groupId>
+            <artifactId>codepolicyvalidation</artifactId>
+            <version>${codepolicyvalidation.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,11 @@
+Devices:
+ D. = Demuxing supported
+ .E = Muxing supported
+ --
+ D  dv1394          DV1394 A/V grab
+ DE fbdev           Linux framebuffer
+ D  lavfi           Libavfilter virtual input device
+ DE oss             OSS (Open Sound System) playback
+  E v4l2            Video4Linux2 output device
+ D  video4linux2,v4l2 Video4Linux2 device grab
+ D  libcdio

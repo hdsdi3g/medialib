@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>tv.hd3g</groupId>
+	<artifactId>fflauncher</artifactId>
+	<packaging>jar</packaging>
+
+	<name>fflauncher</name>
+	<url>https://github.com/hdsdi3g/medialib</url>
+	<description>Run ffmpeg and ffprobe from Java</description>
+
+	<parent>
+		<groupId>tv.hd3g.commons</groupId>
+		<artifactId>starter-medialib</artifactId>
+		<version>8.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+	</parent>
+	
+	<dependencies>
+		<dependency>
+			<groupId>tv.hd3g.commons</groupId>
+			<artifactId>interfaces</artifactId>
+			<version>${starter.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>tv.hd3g</groupId>
+			<artifactId>ffprobejaxb</artifactId>
+			<version>8.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>tv.hd3g</groupId>
+			<artifactId>processlauncher</artifactId>
+			<version>8.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>tv.hd3g.commons</groupId>
+			<artifactId>codepolicyvalidation</artifactId>
+			<version>${codepolicyvalidation.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

@@ -1,0 +1,11 @@
+ffmpeg version 3.3.3 Copyright (c) 2000-2017 the FFmpeg developers
+built with gcc 4.9.2 (Debian 4.9.2-10)
+configuration: --enable-gpl --enable-version3 --enable-nonfree --as=yasm --enable-libmp3lame --enable-libbluray --enable-libopenjpeg --enable-libtheora --enable-libvorbis --enable-libtwolame --enable-libvpx --enable-libxvid --enable-libgsm --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libschroedinger --enable-libsmbclient --enable-libspeex --enable-libssh --enable-libvo-amrwbenc --enable-libwavpack --enable-libwebp --enable-libzvbi --enable-libx264 --enable-libx265 --enable-libsmbclient --enable-libssh
+libavutil      55. 58.100 / 55. 58.100
+libavcodec     57. 89.100 / 57. 89.100
+libavformat    57. 71.100 / 57. 71.100
+libavdevice    57.  6.100 / 57.  6.100
+libavfilter     6. 82.100 /  6. 82.100
+libswscale      4.  6.100 /  4.  6.100
+libswresample   2.  7.100 /  2.  7.100
+libpostproc    54.  5.100 / 54.  5.100

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ffprobe>
+    <streams>
+        <stream index="0" codec_name="prores" codec_long_name="Apple ProRes (iCodec Pro)" profile="Standard" codec_type="video" codec_time_base="1/50" codec_tag_string="apcn" codec_tag="0x6e637061" width="720" height="576" coded_width="720" coded_height="576" has_b_frames="0" sample_aspect_ratio="59:54" display_aspect_ratio="295:216" pix_fmt="yuv422p10le" level="-99" color_range="tv" color_space="smpte170m" color_transfer="bt709" color_primaries="bt470bg" field_order="progressive" refs="1" r_frame_rate="50/1" avg_frame_rate="50/1" time_base="1/50" start_pts="0" start_time="0.000000" duration_ts="2500" duration="50.000000" bit_rate="76328266" bits_per_raw_sample="10" nb_frames="2500">
+            <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="creation_time" value="2019-11-03T15:08:36.000000Z"/>
+            <tag key="language" value="eng"/>
+            <tag key="handler_name" value="Apple Video Media Handler"/>
+            <tag key="encoder" value="Apple ProRes¬†422"/>
+            <tag key="timecode" value="00:00:00:00"/>
+        </stream>
+        <stream index="1" codec_name="pcm_s16le" codec_long_name="PCM signed 16-bit little-endian" codec_type="audio" codec_time_base="1/48000" codec_tag_string="sowt" codec_tag="0x74776f73" sample_fmt="s16" sample_rate="48000" channels="2" channel_layout="stereo" bits_per_sample="16" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/48000" start_pts="0" start_time="0.000000" duration_ts="2400000" duration="50.000000" bit_rate="1536000" nb_frames="2400000">
+            <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="creation_time" value="2019-11-03T15:08:36.000000Z"/>
+            <tag key="language" value="eng"/>
+            <tag key="handler_name" value="Apple Sound Media Handler"/>
+            <tag key="timecode" value="00:00:00:00"/>
+        </stream>
+        <stream index="2" codec_type="data" codec_tag_string="tmcd" codec_tag="0x64636d74" r_frame_rate="0/0" avg_frame_rate="50/1" time_base="1/50" start_pts="0" start_time="0.000000" duration_ts="2500" duration="50.000000" nb_frames="1">
+            <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="creation_time" value="2019-11-03T15:08:36.000000Z"/>
+            <tag key="language" value="eng"/>
+            <tag key="handler_name" value="Time Code Media Handler"/>
+            <tag key="timecode" value="00:00:00:00"/>
+        </stream>
+    </streams>
+
+    <format filename="Test.mov" nb_streams="3" nb_programs="0" format_name="mov,mp4,m4a,3gp,3g2,mj2" format_long_name="QuickTime / MOV" start_time="0.000000" duration="50.000000" size="487700244" bit_rate="78032039" probe_score="100">
+        <tag key="major_brand" value="qt  "/>
+        <tag key="minor_version" value="537199360"/>
+        <tag key="compatible_brands" value="qt  "/>
+        <tag key="creation_time" value="2019-11-03T15:08:36.000000Z"/>
+    </format>
+</ffprobe>

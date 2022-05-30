@@ -1,0 +1,4 @@
+#!/bin/sh
+# Don't forget to run ExecutableFinderTest#patchTestExec, before to run a test on linux with maven.
+
+echo "ok"
