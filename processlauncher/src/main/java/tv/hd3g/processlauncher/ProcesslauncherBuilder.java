@@ -77,7 +77,8 @@ public class ProcesslauncherBuilder {
 	}
 
 	public ProcesslauncherBuilder setEnvironmentVar(final String key, final String value) {
-		if (key.equalsIgnoreCase("path") && System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+		if (key.equalsIgnoreCase("path")
+		    && Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().indexOf("win") >= 0) {
 			environment.put("PATH", value);
 			environment.put("Path", value);
 		} else {

@@ -184,7 +184,7 @@ public class Parameters extends SimpleParameters {
 		                (list, arg) -> {
 			                if (isTaggedParameter(arg)) {
 				                final var currentVarName = extractVarNameFromTaggedParameter(arg);
-				                if (currentVarName.equals(varName)) {
+				                if (currentVarName != null && currentVarName.equals(varName)) {
 					                isDone.set(true);
 					                return Stream.concat(list.stream(), Stream.concat(Stream.concat(addBefore.stream(),
 					                        Stream

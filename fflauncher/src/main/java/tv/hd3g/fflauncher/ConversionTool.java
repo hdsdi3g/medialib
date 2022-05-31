@@ -192,7 +192,6 @@ public class ConversionTool implements ExecutableTool {
 	 * "exec -VERBOSE -i myfile -w -send &lt;%OUT%&gt;"
 	 * @param source can be another var name (mindfuck)
 	 * @param parametersBeforeInputSource can be null, and can be another var name (mindfuck)
-	 * @param parametersAfterInputSource can be null, and can be another var name (mindfuck)
 	 */
 	public ConversionTool addInputSource(final String source,
 	                                     final String varNameInParameters,
@@ -221,7 +220,6 @@ public class ConversionTool implements ExecutableTool {
 	 * For an parameters = "exec -VERBOSE &lt;%IN%&gt; -send &lt;%OUT%&gt;", you will get an updated parameters:
 	 * "exec -VERBOSE -i /myfile -w -send &lt;%OUT%&gt;"
 	 * @param parametersBeforeInputSource can be null, and can be another var name (mindfuck)
-	 * @param parametersAfterInputSource can be null, and can be another var name (mindfuck)
 	 */
 	public ConversionTool addInputSource(final File source,
 	                                     final String varNameInParameters,
@@ -278,7 +276,6 @@ public class ConversionTool implements ExecutableTool {
 	 * "exec -VERBOSE &lt;%IN%&gt; -send -o myfile -w"
 	 * @param destination can be another var name (mindfuck)
 	 * @param parametersBeforeOutputDestination can be null, and can be another var name (mindfuck)
-	 * @param parametersAfterOutputDestination can be null, and can be another var name (mindfuck)
 	 */
 	public ConversionTool addOutputDestination(final String destination,
 	                                           final String varNameInParameters,
@@ -296,7 +293,6 @@ public class ConversionTool implements ExecutableTool {
 	 * For an parameters = "exec -VERBOSE &lt;%IN%&gt; -send &lt;%OUT%&gt;", you will get an updated parameters:
 	 * "exec -VERBOSE &lt;%IN%&gt; -send -o myfile -w"
 	 * @param parametersBeforeOutputDestination can be null, and can be another var name (mindfuck)
-	 * @param parametersAfterOutputDestination can be null, and can be another var name (mindfuck)
 	 */
 	public ConversionTool addOutputDestination(final File destination,
 	                                           final String varNameInParameters,
@@ -391,8 +387,8 @@ public class ConversionTool implements ExecutableTool {
 	 * @param varName with tags
 	 * @return never null
 	 */
-	public Optional<String> getDeclaredSourceByVarName(final String var_name) {
-		return inputSources.stream().filter(paramRef -> paramRef.isVarNameInParametersEquals(var_name)).map(
+	public Optional<String> getDeclaredSourceByVarName(final String varName) {
+		return inputSources.stream().filter(paramRef -> paramRef.isVarNameInParametersEquals(varName)).map(
 		        ConversionToolParameterReference::getRessource).findFirst();
 	}
 
@@ -400,9 +396,9 @@ public class ConversionTool implements ExecutableTool {
 	 * @param varName with tags
 	 * @return never null
 	 */
-	public Optional<String> getDeclaredDestinationByVarName(final String var_name) {
+	public Optional<String> getDeclaredDestinationByVarName(final String varName) {
 		return outputExpectedDestinations.stream().filter(paramRef -> paramRef.isVarNameInParametersEquals(
-		        var_name)).map(ConversionToolParameterReference::getRessource).findFirst();
+		        varName)).map(ConversionToolParameterReference::getRessource).findFirst();
 	}
 
 	/**
@@ -553,7 +549,6 @@ public class ConversionTool implements ExecutableTool {
 
 	/**
 	 * Check read access for every files set in input.
-	 * @throws RuntimeException
 	 */
 	public ConversionTool checkSources() {
 		inputSources.forEach(s -> {
@@ -570,7 +565,6 @@ public class ConversionTool implements ExecutableTool {
 
 	/**
 	 * Check read access for every files set in output.
-	 * @throws RuntimeException
 	 */
 	public ConversionTool checkDestinations() {
 		outputExpectedDestinations.forEach(s -> {

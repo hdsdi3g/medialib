@@ -228,7 +228,6 @@ public class FFmpeg extends FFbase implements InputGeneratorsTraits {
 
 	/**
 	 * Set codec name, and if it possible, use hardware encoding.
-	 * @param destCodecName
 	 * @param outputVideoStreamIndex (-1 by default), X -&gt; -c:v:X
 	 */
 	public FFmpeg addHardwareVideoEncoding(final String destCodecName,

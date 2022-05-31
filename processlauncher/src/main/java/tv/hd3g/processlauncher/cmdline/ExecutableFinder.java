@@ -16,6 +16,7 @@
  */
 package tv.hd3g.processlauncher.cmdline;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.io.File;
@@ -66,25 +67,29 @@ public class ExecutableFinder {
 			 */
 			final var pathExt = System.getenv("PATHEXT");
 			if (pathExt.indexOf(';') >= 0) {
-				WINDOWS_EXEC_EXTENSIONS = Collections.unmodifiableList(Arrays.stream(pathExt.split(";")).map(ext -> ext
-				        .toLowerCase().substring(1)).collect(Collectors.toUnmodifiableList()));
+				WINDOWS_EXEC_EXTENSIONS = stream(pathExt.split(";"))// NOSONAR S2386
+				        .map(ext -> ext.toLowerCase().substring(1))
+				        .collect(toUnmodifiableList());
 			} else {
 				log.warn("Invalid PATHEXT env.: {}", pathExt);
-				WINDOWS_EXEC_EXTENSIONS = Collections.unmodifiableList(Arrays.asList("exe", "com", "cmd", "bat"));
+				WINDOWS_EXEC_EXTENSIONS = List.of("exe", "com", "cmd", "bat");
 			}
 		} else {
-			WINDOWS_EXEC_EXTENSIONS = Collections.unmodifiableList(Arrays.asList("exe", "com", "cmd", "bat"));
+			WINDOWS_EXEC_EXTENSIONS = List.of("exe", "com", "cmd", "bat");
 		}
 
-		if (System.getProperty("execfinder.searchdir", "").equals("") == false) {
-			GLOBAL_DECLARED_DIRS = Collections.unmodifiableList(Arrays.stream(System.getProperty("execfinder.searchdir")
-			        .split(File.pathSeparator)).map(File::new).filter(isValidDirectory).map(File::getAbsoluteFile)
-			        .collect(Collectors.toList()));
+		final var searchdir = System.getProperty("execfinder.searchdir");
+		if (searchdir != null && searchdir.equals("") == false) {
+			GLOBAL_DECLARED_DIRS = stream(searchdir.split(File.pathSeparator)) // NOSONAR S2386
+			        .map(File::new)
+			        .filter(isValidDirectory)
+			        .map(File::getAbsoluteFile)
+			        .collect(toUnmodifiableList());
 
 			log.debug("Specific executable path declared via system property: {}",
 			        () -> GLOBAL_DECLARED_DIRS.stream().map(File::getPath).collect(Collectors.joining(", ")));
 		} else {
-			GLOBAL_DECLARED_DIRS = Collections.emptyList();
+			GLOBAL_DECLARED_DIRS = List.of();
 		}
 	}
 
@@ -174,7 +179,7 @@ public class ExecutableFinder {
 	}
 
 	private boolean validExec(final File exec) {
-		if ((exec.exists() == false) || (exec.isFile() == false) || (exec.canRead() == false)) {
+		if (exec.exists() == false || exec.isFile() == false || exec.canRead() == false) {
 			return false;
 		} else {
 			return exec.canExecute();

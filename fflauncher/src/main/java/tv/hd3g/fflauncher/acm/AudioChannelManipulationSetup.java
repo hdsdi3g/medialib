@@ -234,9 +234,6 @@ public class AudioChannelManipulationSetup {
 				outputStreams.add(outputStream);
 			}
 
-			/**
-			 * @return true for cancel out stream
-			 */
 			void extractMap() {
 				final var layoutMatcher = extractFromParentheses.matcher(entry);
 				if (layoutMatcher.find()) {
