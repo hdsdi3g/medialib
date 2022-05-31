@@ -291,7 +291,6 @@ public class ProcesslauncherLifecycle {
 
 	/**
 	 * waitForEnd and checks isCorrectlyDone
-	 * @throws InvalidExecution
 	 */
 	public ProcesslauncherLifecycle checkExecution() {
 		waitForEnd();

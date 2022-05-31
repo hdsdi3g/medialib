@@ -16,14 +16,18 @@
  */
 package tv.hd3g.processlauncher.cmdline;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * It will resolve/find valid executable files in *NIX and valid executable extensions in Windows.
  * On system PATH, classpath, current dir, and local user dir (/bin).
+ * ThreadSafe
  */
 public class ExecutableFinder {
 	private static final Logger log = LogManager.getLogger();
@@ -86,18 +91,18 @@ public class ExecutableFinder {
 	/**
 	 * synchronizedList
 	 */
-	private final LinkedList<File> paths;
-	private final LinkedHashMap<String, File> declaredInConfiguration;
+	private final Deque<File> paths;
+	private final Map<String, File> declaredInConfiguration;
 	private final boolean isWindowsStylePath;
 
 	public ExecutableFinder() {
-		declaredInConfiguration = new LinkedHashMap<>();
+		declaredInConfiguration = Collections.synchronizedMap(new LinkedHashMap<>());
 		isWindowsStylePath = File.separator.equals("\\");
 
 		/**
 		 * Adds only valid dirs
 		 */
-		paths = new LinkedList<>(GLOBAL_DECLARED_DIRS);
+		paths = new ConcurrentLinkedDeque<>(GLOBAL_DECLARED_DIRS);
 
 		addLocalPath("/bin");
 		addLocalPath("/App/bin");
@@ -132,7 +137,7 @@ public class ExecutableFinder {
 	 * @return unmodifiableList
 	 */
 	public List<File> getFullPath() {
-		return Collections.unmodifiableList(paths);
+		return paths.stream().collect(toUnmodifiableList());
 	}
 
 	/**
