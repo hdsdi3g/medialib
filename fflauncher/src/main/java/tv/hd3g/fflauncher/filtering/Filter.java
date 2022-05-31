@@ -16,6 +16,8 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -134,22 +136,22 @@ public class Filter implements FilterParserDefinition {
 
 	@Override
 	public void setSourceBlocks(final List<String> sourceBlocks) {
-		this.sourceBlocks = sourceBlocks;
+		this.sourceBlocks = requireNonNull(sourceBlocks);
 	}
 
 	@Override
 	public void setDestBlocks(final List<String> destBlocks) {
-		this.destBlocks = destBlocks;
+		this.destBlocks = requireNonNull(destBlocks);
 	}
 
 	@Override
 	public void setFilterName(final String filterName) {
-		this.filterName = filterName;
+		this.filterName = requireNonNull(filterName);
 	}
 
 	@Override
 	public void setArguments(final List<FilterArgument> arguments) {
-		this.arguments = arguments;
+		this.arguments = requireNonNull(arguments);
 	}
 
 	public void addArgument(final String key, final String value) {
