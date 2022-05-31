@@ -85,6 +85,7 @@ public class FFprobeJAXB {
 			final var xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();// NOSONAR
 			xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
 			xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_SCHEMA, "");
+			xmlDocumentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 			final var xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
 			xmlDocumentBuilder.setErrorHandler(null);
 
