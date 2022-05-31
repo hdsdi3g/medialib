@@ -16,8 +16,11 @@
  */
 package tv.hd3g.fflauncher;
 
+import static java.util.Comparator.reverseOrder;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.apache.commons.io.FileUtils.forceDelete;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -478,39 +480,50 @@ public class ConversionTool implements ExecutableTool {
 	 * @param remove_all if false, remove only empty files.
 	 */
 	public ConversionTool cleanUpOutputFiles(final boolean remove_all, final boolean clean_output_directories) {
-		getOutputFiles(OutputFilePresencePolicy.MUST_EXISTS).stream().filter(file -> {
-			if (file.isFile() == false) {
-				/**
-				 * It's a dir, remove dirs ?
-				 */
-				return clean_output_directories;
-			}
-			/**
-			 * Remove only empty files
-			 */
-			return (remove_all == false && file.length() > 0) == false;
-		}).filter(file -> {
-			if (file.isFile()) {
-				log.info("Delete file \"{}\"", file);
-				if (file.delete() == false) {
-					throw new UncheckedIOException(new IOException("Can't delete file \"" + file + "\""));
-				}
-				return false;
-			}
-			return true;
-		}).map(File::toPath).flatMap(dirPath -> {
-			try {
-				return Files.walk(dirPath).sorted(Comparator.reverseOrder()).map(Path::toFile);
-			} catch (final IOException e) {
-				log.error("Can't access to {}", dirPath, e);
-				return Stream.empty();
-			}
-		}).forEach(file -> {
-			log.info("Delete \"{}\"", file);
-			if (file.delete() == false) {
-				throw new UncheckedIOException(new IOException("Can't delete \"" + file + "\""));
-			}
-		});
+		getOutputFiles(OutputFilePresencePolicy.MUST_EXISTS).stream()
+		        .filter(file -> {
+			        if (file.isFile() == false) {
+				        /**
+				         * It's a dir, remove dirs ?
+				         */
+				        return clean_output_directories;
+			        }
+			        /**
+			         * Remove only empty files
+			         */
+			        return (remove_all == false && file.length() > 0) == false;
+		        })
+		        .filter(file -> {
+			        if (file.isFile()) {
+				        log.info("Delete file \"{}\"", file);
+				        try {
+					        forceDelete(file);
+				        } catch (final IOException e) {
+					        throw new UncheckedIOException(e);
+				        }
+				        return false;
+			        }
+			        return true;
+		        })
+		        .map(File::toPath)
+		        .flatMap(dirPath -> {
+			        try (var result = Files.walk(dirPath)
+			                .sorted(reverseOrder())
+			                .map(Path::toFile)) {
+				        return result.collect(toUnmodifiableList()).stream();
+			        } catch (final IOException e) {
+				        log.error("Can't access to {}", dirPath, e);
+				        return Stream.empty();
+			        }
+		        })
+		        .forEach(file -> {
+			        log.info("Delete \"{}\"", file);
+			        try {
+				        forceDelete(file);
+			        } catch (final IOException e) {
+				        throw new UncheckedIOException(e);
+			        }
+		        });
 
 		return this;
 	}
