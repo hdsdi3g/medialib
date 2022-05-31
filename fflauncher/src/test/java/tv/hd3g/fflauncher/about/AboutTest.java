@@ -20,6 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tv.hd3g.fflauncher.about.FFAboutPixelFormat.BitDepths.BitDepths_16_16_16;
+import static tv.hd3g.fflauncher.about.FFAboutPixelFormat.BitDepths.BitDepths_8;
 
 import java.io.File;
 import java.io.IOException;
@@ -191,16 +193,18 @@ class AboutTest {
 		final var list = FFAboutPixelFormat.parsePixelsFormats(readLinesFromResource(
 		        "test-pixelsformats.txt"));
 
-		assertEquals(183, list.size());
+		assertEquals(206, list.size());
 
 		assertEquals(1, list.stream().filter(pf -> (pf.tag.equals("pal8") && pf.supportedInput
 		                                            && pf.supportedOutput == false && pf.paletted
-		                                            && pf.nbComponents == 1 && pf.bitsPerPixel == 8)).count());
+		                                            && pf.nbComponents == 1 && pf.bitsPerPixel == 8
+		                                            && pf.bitDepths == BitDepths_8)).count());
 
 		assertEquals(1, list.stream().filter(pf -> (pf.tag.equals("yuv444p16le") && pf.supportedInput
 		                                            && pf.supportedOutput && pf.paletted == false
 		                                            && pf.hardwareAccelerated == false && pf.nbComponents == 3
-		                                            && pf.bitsPerPixel == 48)).count());
+		                                            && pf.bitsPerPixel == 48
+		                                            && pf.bitDepths == BitDepths_16_16_16)).count());
 	}
 
 	@Test

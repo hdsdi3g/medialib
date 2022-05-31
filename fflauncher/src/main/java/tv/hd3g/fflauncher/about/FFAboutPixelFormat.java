@@ -18,11 +18,69 @@ package tv.hd3g.fflauncher.about;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import tv.hd3g.fflauncher.UnknownFormatException;
 
 public class FFAboutPixelFormat {
+
+	public enum BitDepths {
+
+		BitDepths_0("0"), // S115 NOSONAR
+		BitDepths_1("1"), // S115 NOSONAR
+		BitDepths_10("10"), // S115 NOSONAR
+		BitDepths_10_10_10("10-10-10"), // S115 NOSONAR
+		BitDepths_10_10_10_10("10-10-10-10"), // S115 NOSONAR
+		BitDepths_12("12"), // S115 NOSONAR
+		BitDepths_1_2_1("1-2-1"), // S115 NOSONAR
+		BitDepths_12_12_12("12-12-12"), // S115 NOSONAR
+		BitDepths_12_12_12_12("12-12-12-12"), // S115 NOSONAR
+		BitDepths_14("14"), // S115 NOSONAR
+		BitDepths_14_14_14("14-14-14"), // S115 NOSONAR
+		BitDepths_16("16"), // S115 NOSONAR
+		BitDepths_16_16("16-16"), // S115 NOSONAR
+		BitDepths_16_16_16("16-16-16"), // S115 NOSONAR
+		BitDepths_16_16_16_16("16-16-16-16"), // S115 NOSONAR
+		BitDepths_2_3_3("2-3-3"), // S115 NOSONAR
+		BitDepths_2_4_2("2-4-2"), // S115 NOSONAR
+		BitDepths_32("32"), // S115 NOSONAR
+		BitDepths_32_32_32("32-32-32"), // S115 NOSONAR
+		BitDepths_32_32_32_32("32-32-32-32"), // S115 NOSONAR
+		BitDepths_3_3_2("3-3-2"), // S115 NOSONAR
+		BitDepths_4_4_4("4-4-4"), // S115 NOSONAR
+		BitDepths_4_8_4("4-8-4"), // S115 NOSONAR
+		BitDepths_5_5_5("5-5-5"), // S115 NOSONAR
+		BitDepths_5_6_5("5-6-5"), // S115 NOSONAR
+		BitDepths_8("8"), // S115 NOSONAR
+		BitDepths_8_8("8-8"), // S115 NOSONAR
+		BitDepths_8_8_8("8-8-8"), // S115 NOSONAR
+		BitDepths_8_8_8_8("8-8-8-8"), // S115 NOSONAR
+		BitDepths_9("9"), // S115 NOSONAR
+		BitDepths_9_9_9("9-9-9"), // S115 NOSONAR
+		BitDepths_9_9_9_9("9-9-9-9"); // S115 NOSONAR
+
+		public final String tag;
+
+		BitDepths(final String tag) {
+			this.tag = tag;
+		}
+
+		@Override
+		public String toString() {
+			return tag;
+		}
+
+		public static BitDepths getFromTag(final String tag) {
+			Objects.requireNonNull(tag);
+			return Stream.of(values())
+			        .filter(bD -> bD.tag.equals(tag))
+			        .findFirst()
+			        .orElseThrow(() -> new UnknownFormatException("Unknown BIT_DEPTHS tag: " + tag));
+		}
+
+	}
 
 	static List<FFAboutPixelFormat> parsePixelsFormats(final List<String> lines) {
 		return lines.stream()
@@ -42,6 +100,7 @@ public class FFAboutPixelFormat {
 	public final boolean bitstream;
 	public final int nbComponents;
 	public final int bitsPerPixel;
+	public final BitDepths bitDepths;
 	public final String tag;
 
 	FFAboutPixelFormat(final String line) {
@@ -49,7 +108,7 @@ public class FFAboutPixelFormat {
 		final var lineBlocs = Arrays.stream(line.split(" ")).filter(lb -> lb.trim().equals("") == false).map(
 		        String::trim).collect(Collectors.toUnmodifiableList());
 
-		if (lineBlocs.size() != 4) {
+		if (lineBlocs.size() != 5) {
 			throw new UnknownFormatException("Can't parse line: \"" + line + "\"");
 		}
 
@@ -61,6 +120,7 @@ public class FFAboutPixelFormat {
 		tag = lineBlocs.get(1);
 		nbComponents = Integer.parseInt(lineBlocs.get(2));
 		bitsPerPixel = Integer.parseInt(lineBlocs.get(3));
+		bitDepths = BitDepths.getFromTag(lineBlocs.get(4));
 	}
 
 }
