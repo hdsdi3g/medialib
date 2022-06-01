@@ -18,7 +18,6 @@ package tv.hd3g.processlauncher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -98,7 +97,7 @@ class ExecutableToolRunningTest {
 		verify(lifecyle, Mockito.times(2)).getFullCommandLine();
 		verify(lifecyle, Mockito.times(2)).getEndStatus();
 		verify(lifecyle, Mockito.times(2)).getExitCode();
-		verify(textRetention, Mockito.times(1)).getStderrLines(eq(false));
+		verify(textRetention, Mockito.times(1)).getStderrLines(false);
 		verify(execTool, Mockito.times(1)).filterOutErrorLines();
 	}
 
@@ -115,7 +114,7 @@ class ExecutableToolRunningTest {
 		verify(lifecyle, Mockito.times(2)).getFullCommandLine();
 		verify(lifecyle, Mockito.times(2)).getEndStatus();
 		verify(lifecyle, Mockito.times(2)).getExitCode();
-		verify(textRetention, Mockito.times(1)).getStderrLines(eq(false));
+		verify(textRetention, Mockito.times(1)).getStderrLines(false);
 		verify(execTool, Mockito.times(1)).filterOutErrorLines();
 	}
 

@@ -135,7 +135,7 @@ class ExecutableToolTest {
 		assertTrue(lines.size() > 0);
 		assertEquals(msgs.getAllValues().size(), lines.size());
 
-		verify(log, atLeastOnce()).isEnabled(eq(ALL));
+		verify(log, atLeastOnce()).isEnabled(ALL);
 		verifyNoMoreInteractions(log);
 	}
 

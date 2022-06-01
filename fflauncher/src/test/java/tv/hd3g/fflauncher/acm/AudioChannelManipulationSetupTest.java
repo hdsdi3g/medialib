@@ -36,6 +36,8 @@ import java.util.stream.Stream;
 import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 
 import tv.hd3g.fflauncher.acm.OutputAudioStream.OutputAudioChannel;
@@ -140,45 +142,17 @@ class AudioChannelManipulationSetupTest {
 		assertTrue(outStreams.isEmpty());
 	}
 
-	@Test
-	void testGetAllOutputStreamList_PointAbsoluteSources_MissingSourceError() {
-		setup.setChannelMap(List.of("12+44"));
+	@ParameterizedTest
+	@ValueSource(strings = { "12+44", "0:5", "0:5:0+0:5:1" })
+	void testGetAllOutputStreamList_PointAbsoluteSources_MissingSourceError(final String map) {
+		setup.setChannelMap(List.of(map));
 		assertThrows(SourceNotFoundException.class, () -> setup.getAllOutputStreamList(sourcesFiles));
 	}
 
-	@Test
-	void testGetAllOutputStreamList_SourcesByRefs_MissingSourceError() {
-		setup.setChannelMap(List.of("0:5"));
-		assertThrows(SourceNotFoundException.class, () -> setup.getAllOutputStreamList(sourcesFiles));
-	}
-
-	@Test
-	void testGetAllOutputStreamList_SourcesByRefsChannels_MissingSourceError() {
-		setup.setChannelMap(List.of("0:5:0+0:5:1"));
-		assertThrows(SourceNotFoundException.class, () -> setup.getAllOutputStreamList(sourcesFiles));
-	}
-
-	@Test
-	void testGetAllOutputStreamList_PointAbsoluteSources_MissingSourceDiscardStream() {
-		setup.setChannelMap(List.of("12+44"));
-		setup.setNotFound(REMOVE_OUT_STREAM);
-		final var outStreams = setup.getAllOutputStreamList(sourcesFiles);
-		assertNotNull(outStreams);
-		assertTrue(outStreams.isEmpty());
-	}
-
-	@Test
-	void testGetAllOutputStreamList_SourcesByRefs_MissingSourceDiscardStream() {
-		setup.setChannelMap(List.of("0:5"));
-		setup.setNotFound(REMOVE_OUT_STREAM);
-		final var outStreams = setup.getAllOutputStreamList(sourcesFiles);
-		assertNotNull(outStreams);
-		assertTrue(outStreams.isEmpty());
-	}
-
-	@Test
-	void testGetAllOutputStreamList_SourcesByRefsChannels_MissingSourceDiscardStream() {
-		setup.setChannelMap(List.of("0:5:0+0:5:1"));
+	@ParameterizedTest
+	@ValueSource(strings = { "12+44", "0:5", "0:5:0+0:5:1" })
+	void testGetAllOutputStreamList_PointAbsoluteSources_MissingSourceDiscardStream(final String map) {
+		setup.setChannelMap(List.of(map));
 		setup.setNotFound(REMOVE_OUT_STREAM);
 		final var outStreams = setup.getAllOutputStreamList(sourcesFiles);
 		assertNotNull(outStreams);

@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
-class MakeTestScript {
+class MakeScriptTest {
 
 	@Test
 	void writeScript() throws IOException {

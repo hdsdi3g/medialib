@@ -64,6 +64,7 @@ class FilterParserChain extends FilterParserBaseChainFilter {
 		var isAfterSource = false;
 		var isInSourceBlocks = false;
 		var isInDestBlock = false;
+
 		for (var pos = 0; pos < content.size(); pos++) {
 			final var current = content.get(pos);
 
@@ -80,38 +81,37 @@ class FilterParserChain extends FilterParserBaseChainFilter {
 				} else if (isInSourceBlocks == false) {
 					isAfterSource = true;
 				}
-				continue;
-			}
-
-			/**
-			 * Pass the filter setup zone
-			 */
-			if (isInDestBlock == false) {
-				if (current.isBracketOpen()) {
-					isInDestBlock = true;
-				} else if (current.isBracketClose()) {
-					throw new IllegalArgumentException(INVALID_MISSING + toString());
-				} else {
-					continue;
-				}
-			}
-
-			/**
-			 * The end brackets zone
-			 */
-			if (current.isBracketOpen()) {
-				capture = new StringBuilder();
-			} else if (current.isBracketClose()) {
-				if (capture != null) {
-					list.add(capture.toString());
-					capture = null;
-				} else {
-					throw new IllegalArgumentException(INVALID_MISSING + toString());
-				}
-			} else if (capture != null) {
-				current.write(capture);
 			} else {
-				throw new IllegalArgumentException("Invalid content after dest blocks in " + toString());
+				/**
+				 * Pass the filter setup zone
+				 */
+				if (isInDestBlock == false) {
+					if (current.isBracketOpen()) {
+						isInDestBlock = true;
+					} else if (current.isBracketClose()) {
+						throw new IllegalArgumentException(INVALID_MISSING + toString());
+					} else {
+						continue;
+					}
+				}
+
+				/**
+				 * The end brackets zone
+				 */
+				if (current.isBracketOpen()) {
+					capture = new StringBuilder();
+				} else if (current.isBracketClose()) {
+					if (capture != null) {
+						list.add(capture.toString());
+						capture = null;
+					} else {
+						throw new IllegalArgumentException(INVALID_MISSING + toString());
+					}
+				} else if (capture != null) {
+					current.write(capture);
+				} else {
+					throw new IllegalArgumentException("Invalid content after dest blocks in " + toString());
+				}
 			}
 		}
 
@@ -127,7 +127,7 @@ class FilterParserChain extends FilterParserBaseChainFilter {
 
 		var isAfterSource = false;
 		var isInSourceBlocks = false;
-		for (var pos = 0; pos < content.size(); pos++) {
+		for (var pos = 0; pos < content.size(); pos++) {// NOSONAR S135
 			final var current = content.get(pos);
 
 			/**

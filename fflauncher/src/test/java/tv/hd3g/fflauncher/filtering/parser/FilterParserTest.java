@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class FilterParserTest {
 
@@ -68,9 +70,10 @@ class FilterParserTest {
 			assertEquals("c", cleaned.get(i++).toString());
 		}
 
-		@Test
-		void testGetUnescapeAndUnQuoted_quotes() {
-			final var p = new FilterParser("a 'd ee f ' b 'c'");
+		@ParameterizedTest
+		@ValueSource(strings = { "a 'd ee f ' b 'c'", "a 'd \\ee f ' b 'c'" })
+		void testGetUnescapeAndUnQuoted_quotes(final String value) {
+			final var p = new FilterParser(value);
 			final var cleaned = p.getUnescapeAndUnQuoted();
 			assertNotNull(p);
 			assertEquals(4, cleaned.size());
@@ -94,18 +97,6 @@ class FilterParserTest {
 			assertEquals("\\c", cleaned.get(i++).toString());
 		}
 
-		@Test
-		void testGetUnescapeAndUnQuoted_quotes_escaped() {
-			final var p = new FilterParser("a 'd \\ee f ' b 'c'");
-			final var cleaned = p.getUnescapeAndUnQuoted();
-			assertNotNull(p);
-			assertEquals(4, cleaned.size());
-			var i = 0;
-			assertEquals("a", cleaned.get(i++).toString());
-			assertEquals("'d ee f '", cleaned.get(i++).toString());
-			assertEquals("b", cleaned.get(i++).toString());
-			assertEquals("'c'", cleaned.get(i++).toString());
-		}
 	}
 
 	@Nested
