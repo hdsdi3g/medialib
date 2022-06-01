@@ -6,22 +6,22 @@
     <packaging>jar</packaging>
 
     <name>ffprobejaxb</name>
-	<url>https://github.com/hdsdi3g/medialib</url>
+    <url>https://github.com/hdsdi3g/medialib</url>
     <description>Import in Java Objects the struct of ffprobe XML return</description>
 
-	<parent>
-		<groupId>tv.hd3g.commons</groupId>
-		<artifactId>starter-medialib</artifactId>
-		<version>8.0.1-SNAPSHOT</version>
+    <parent>
+        <groupId>tv.hd3g.commons</groupId>
+        <artifactId>starter-medialib</artifactId>
+        <version>8.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
-	</parent>
+    </parent>
 
     <dependencies>
-		<dependency>
-			<groupId>tv.hd3g.commons</groupId>
-			<artifactId>interfaces</artifactId>
-			<version>${starter.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>tv.hd3g.commons</groupId>
+            <artifactId>interfaces</artifactId>
+            <version>${starter.version}</version>
+        </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -79,11 +79,6 @@
                     </schemas>
                 </configuration>
             </plugin>
-            <!-- plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surfire.version}</version>
-            </plugin -->
         </plugins>
     </build>
 </project>

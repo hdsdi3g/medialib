@@ -6,16 +6,16 @@
     <packaging>jar</packaging>
 
     <name>processlauncher</name>
-	<url>https://github.com/hdsdi3g/medialib</url>
+    <url>https://github.com/hdsdi3g/medialib</url>
     <description>Another lib to start process in Java</description>
 
- 	<parent>
-		<groupId>tv.hd3g.commons</groupId>
-		<artifactId>starter-medialib</artifactId>
-		<version>8.0.1-SNAPSHOT</version>
+    <parent>
+        <groupId>tv.hd3g.commons</groupId>
+        <artifactId>starter-medialib</artifactId>
+        <version>8.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
-	</parent>
-	
+    </parent>
+
     <dependencies>
         <dependency>
             <groupId>tv.hd3g.commons</groupId>
@@ -28,12 +28,6 @@
             <version>${commons.collections4.version}</version>
             <scope>test</scope>
         </dependency>
-        <!---dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
-        <dependency-->
         <dependency>
             <groupId>tv.hd3g.commons</groupId>
             <artifactId>codepolicyvalidation</artifactId>
