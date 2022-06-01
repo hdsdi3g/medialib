@@ -6,6 +6,7 @@ I.... = Supported Input  format for conversion
 ....B = Bitstream format
 FLAGS NAME            NB_COMPONENTS BITS_PER_PIXEL BIT_DEPTHS
 -----
+IO... fake                   1             1
 IO... yuv420p                3             12      8-8-8
 IO... yuyv422                3             16      8-8-8
 IO... rgb24                  3             24      8-8-8

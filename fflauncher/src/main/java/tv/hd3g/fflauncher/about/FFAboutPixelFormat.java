@@ -16,6 +16,8 @@
  */
 package tv.hd3g.fflauncher.about;
 
+import static tv.hd3g.fflauncher.about.FFAboutPixelFormat.BitDepths.Unknown;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +30,7 @@ public class FFAboutPixelFormat {
 
 	public enum BitDepths {
 
+		Unknown(""), // S115 NOSONAR
 		BitDepths_0("0"), // S115 NOSONAR
 		BitDepths_1("1"), // S115 NOSONAR
 		BitDepths_10("10"), // S115 NOSONAR
@@ -77,7 +80,7 @@ public class FFAboutPixelFormat {
 			return Stream.of(values())
 			        .filter(bD -> bD.tag.equals(tag))
 			        .findFirst()
-			        .orElseThrow(() -> new UnknownFormatException("Unknown BIT_DEPTHS tag: " + tag));
+			        .orElse(Unknown);
 		}
 
 	}
@@ -108,7 +111,7 @@ public class FFAboutPixelFormat {
 		final var lineBlocs = Arrays.stream(line.split(" ")).filter(lb -> lb.trim().equals("") == false).map(
 		        String::trim).collect(Collectors.toUnmodifiableList());
 
-		if (lineBlocs.size() != 5) {
+		if (lineBlocs.size() < 4 || lineBlocs.size() > 5) {
 			throw new UnknownFormatException("Can't parse line: \"" + line + "\"");
 		}
 
@@ -120,7 +123,11 @@ public class FFAboutPixelFormat {
 		tag = lineBlocs.get(1);
 		nbComponents = Integer.parseInt(lineBlocs.get(2));
 		bitsPerPixel = Integer.parseInt(lineBlocs.get(3));
-		bitDepths = BitDepths.getFromTag(lineBlocs.get(4));
+		if (lineBlocs.size() == 5) {
+			bitDepths = BitDepths.getFromTag(lineBlocs.get(4));
+		} else {
+			bitDepths = Unknown;
+		}
 	}
 
 }
