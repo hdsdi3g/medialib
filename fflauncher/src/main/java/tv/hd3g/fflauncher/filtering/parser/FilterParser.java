@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class FilterParser {
 
@@ -40,21 +39,21 @@ public class FilterParser {
 	 * @return full mutable lists / ordered maps
 	 */
 	public static <T extends FilterParserDefinition> List<List<T>> fullParsing(final String rawFilterChain,
-	                                                                           final Supplier<T> filterDefSupplier) {
+																			   final Supplier<T> filterDefSupplier) {
 		return new ArrayList<>(new FilterParser(rawFilterChain)
-		        .getGraphBranchs().stream()
-		        .map(graphBranch -> new ArrayList<>(graphBranch.getRawChains().stream()
-		                .map(chain -> {
-			                final var definition = filterDefSupplier.get();
-			                definition.setSourceBlocks(new ArrayList<>(chain.getSourceBlocks()));
-			                definition.setDestBlocks(new ArrayList<>(chain.getDestBlocks()));
+				.getGraphBranchs().stream()
+				.map(graphBranch -> new ArrayList<>(graphBranch.getRawChains().stream()
+						.map(chain -> {
+							final var definition = filterDefSupplier.get();
+							definition.setSourceBlocks(new ArrayList<>(chain.getSourceBlocks()));
+							definition.setDestBlocks(new ArrayList<>(chain.getDestBlocks()));
 
-			                final var filter = chain.getFilter();
-			                definition.setFilterName(filter.getFilterName());
-			                definition.setArguments(new ArrayList<>(filter.getFilterArguments()));
-			                return definition;
-		                }).collect(Collectors.toUnmodifiableList())))
-		        .collect(Collectors.toUnmodifiableList()));
+							final var filter = chain.getFilter();
+							definition.setFilterName(filter.getFilterName());
+							definition.setArguments(new ArrayList<>(filter.getFilterArguments()));
+							return definition;
+						}).toList()))
+				.toList());
 	}
 
 	/**

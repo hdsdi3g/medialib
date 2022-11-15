@@ -17,19 +17,18 @@
 package tv.hd3g.fflauncher.about;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FFAboutDevice extends FFAboutFormat {
 
 	static List<FFAboutDevice> parseDevices(final List<String> lines) {
 		return lines.stream()
-		        .map(String::trim)
-		        .filter(line -> (line.toLowerCase().startsWith("Devices:".toLowerCase()) == false))
-		        .filter(line -> (line.toLowerCase().startsWith("D. = Demuxing supported".toLowerCase()) == false))
-		        .filter(line -> (line.toLowerCase().startsWith(".E = Muxing supported".toLowerCase()) == false))
-		        .filter(line -> (line.startsWith("--") == false))
-		        .map(FFAboutDevice::new)
-		        .collect(Collectors.toUnmodifiableList());
+				.map(String::trim)
+				.filter(line -> (line.toLowerCase().startsWith("Devices:".toLowerCase()) == false))
+				.filter(line -> (line.toLowerCase().startsWith("D. = Demuxing supported".toLowerCase()) == false))
+				.filter(line -> (line.toLowerCase().startsWith(".E = Muxing supported".toLowerCase()) == false))
+				.filter(line -> (line.startsWith("--") == false))
+				.map(FFAboutDevice::new)
+				.toList();
 	}
 
 	FFAboutDevice(final String line) {

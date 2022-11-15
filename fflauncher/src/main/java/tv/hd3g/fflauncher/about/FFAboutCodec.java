@@ -30,11 +30,11 @@ public class FFAboutCodec {
 
 	static List<FFAboutCodec> parse(final List<String> lines) {
 		return lines.stream()
-		        .map(String::trim)
-		        .filter(line -> (line.toLowerCase().startsWith("codecs:") == false))
-		        .filter(line -> (line.startsWith("-------") == false))
-		        .filter(line -> (line.indexOf('=') == -1)).map(FFAboutCodec::new)
-		        .collect(Collectors.toUnmodifiableList());
+				.map(String::trim)
+				.filter(line -> (line.toLowerCase().startsWith("codecs:") == false))
+				.filter(line -> (line.startsWith("-------") == false))
+				.filter(line -> (line.indexOf('=') == -1)).map(FFAboutCodec::new)
+				.toList();
 	}
 
 	public enum CodecType {
@@ -112,9 +112,9 @@ public class FFAboutCodec {
 		 * Like "Dirac (decoders: dirac libschroedinger ) (encoders: vc2 libschroedinger )"
 		 */
 		final var raw_long_name = Arrays.stream(lineBlocs)
-		        .filter(lb -> lb.trim().equals("") == false)
-		        .skip(2)
-		        .collect(Collectors.joining(" "));
+				.filter(lb -> lb.trim().equals("") == false)
+				.skip(2)
+				.collect(Collectors.joining(" "));
 
 		final var parDecoders = "(decoders:";
 		final var decoders_tag_pos = raw_long_name.indexOf(parDecoders);
@@ -125,8 +125,8 @@ public class FFAboutCodec {
 				final var decoders_tag_end_pos = raw_long_name.indexOf(')', decoders_tag_pos);
 				negativeToOutOfBoundException(decoders_tag_end_pos, "Can't found \")\" in \"" + raw_long_name + "\"");
 				decoders = Collections.unmodifiableSet(Arrays.stream(raw_long_name.substring(decoders_tag_pos
-				                                                                             + parDecoders.length(),
-				        decoders_tag_end_pos).trim().split(" ")).distinct().collect(Collectors.toSet()));
+																							 + parDecoders.length(),
+						decoders_tag_end_pos).trim().split(" ")).distinct().collect(Collectors.toSet()));
 			} else {
 				decoders = Collections.emptySet();
 			}
@@ -135,8 +135,8 @@ public class FFAboutCodec {
 				final var encoders_tag_end_pos = raw_long_name.indexOf(')', encoders_tag_pos);
 				negativeToOutOfBoundException(encoders_tag_end_pos, "Can't found \")\" in \"" + raw_long_name + "\"");
 				encoders = Collections.unmodifiableSet(Arrays.stream(raw_long_name.substring(encoders_tag_pos
-				                                                                             + parDecoders.length(),
-				        encoders_tag_end_pos).trim().split(" ")).distinct().collect(Collectors.toSet()));
+																							 + parDecoders.length(),
+						encoders_tag_end_pos).trim().split(" ")).distinct().collect(Collectors.toSet()));
 			} else {
 				encoders = Collections.emptySet();
 			}
@@ -150,8 +150,8 @@ public class FFAboutCodec {
 	}
 
 	private static String extractLongnameFromRawLongName(final String raw_long_name,
-	                                                     final int decoders_tag_pos,
-	                                                     final int encoders_tag_pos) {
+														 final int decoders_tag_pos,
+														 final int encoders_tag_pos) {
 		if (decoders_tag_pos > -1 && encoders_tag_pos > -1) {
 			return raw_long_name.substring(0, Math.min(decoders_tag_pos - 1, encoders_tag_pos - 1));
 		} else if (decoders_tag_pos > -1) {

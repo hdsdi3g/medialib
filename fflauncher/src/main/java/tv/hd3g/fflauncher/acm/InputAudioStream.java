@@ -16,8 +16,6 @@
  */
 package tv.hd3g.fflauncher.acm;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,26 +59,26 @@ public class InputAudioStream extends ACMAudioStream {
 			final var analysis = sourcesAnalysis.get(pos);
 			final var absoluteSourceIndex = pos;
 			analysis.getAudiosStreams()
-			        .sorted((l, r) -> Integer.compare(l.getIndex(), r.getIndex()))
-			        .map(as -> {
-				        final var layout = as.getChannelLayout();
-				        if (layout == null || layout.isEmpty()) {
-					        return new InputAudioStream(ChannelLayout.getByChannelSize(as.getChannels()),
-					                absoluteSourceIndex, as.getIndex());
-				        }
-				        return new InputAudioStream(ChannelLayout.parse(layout), absoluteSourceIndex, as.getIndex());
-			        })
-			        .forEach(allSourceStreams::add);
+					.sorted((l, r) -> Integer.compare(l.getIndex(), r.getIndex()))
+					.map(as -> {
+						final var layout = as.getChannelLayout();
+						if (layout == null || layout.isEmpty()) {
+							return new InputAudioStream(ChannelLayout.getByChannelSize(as.getChannels()),
+									absoluteSourceIndex, as.getIndex());
+						}
+						return new InputAudioStream(ChannelLayout.parse(layout), absoluteSourceIndex, as.getIndex());
+					})
+					.forEach(allSourceStreams::add);
 		}
 		return Collections.unmodifiableList(allSourceStreams);
 	}
 
 	public static InputAudioStream getFromRelativeIndexes(final List<InputAudioStream> streamList,
-	                                                      final int fileIndex,
-	                                                      final int audioStreamRelativeIndex) {
+														  final int fileIndex,
+														  final int audioStreamRelativeIndex) {
 		final var streamsInFile = streamList.stream()
-		        .filter(inStream -> inStream.getFileIndex() == fileIndex)
-		        .collect(toUnmodifiableList());
+				.filter(inStream -> inStream.getFileIndex() == fileIndex)
+				.toList();
 		for (var pos = 0; pos < streamsInFile.size(); pos++) {
 			if (pos == audioStreamRelativeIndex) {
 				return streamsInFile.get(pos);
@@ -94,7 +92,7 @@ public class InputAudioStream extends ACMAudioStream {
 		private final InputAudioChannelSelector channelSelector;
 
 		SelectedInputChannel(final InputAudioStream inputAudioStream,
-		                     final InputAudioChannelSelector channelSelector) {
+							 final InputAudioChannelSelector channelSelector) {
 			this.inputAudioStream = inputAudioStream;
 			this.channelSelector = channelSelector;
 		}
@@ -110,7 +108,7 @@ public class InputAudioStream extends ACMAudioStream {
 	}
 
 	public static SelectedInputChannel getFromAbsoluteIndex(final List<InputAudioStream> streamList,
-	                                                        final int channelIndex) {
+															final int channelIndex) {
 		var totalChannelCount = 0;
 		for (final var inStream : streamList) {
 			final var layout = inStream.getLayout();
@@ -118,7 +116,7 @@ public class InputAudioStream extends ACMAudioStream {
 			final var relativeChannelIndex = channelIndex - totalChannelCount;
 			if (relativeChannelIndex < layoutSize) {
 				return inStream.new SelectedInputChannel(inStream,
-				        new InputAudioChannelSelector(relativeChannelIndex));
+						new InputAudioChannelSelector(relativeChannelIndex));
 			}
 			totalChannelCount += layoutSize;
 		}

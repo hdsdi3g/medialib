@@ -57,14 +57,15 @@ public class GenerateVideoFile {
 		ffmpeg.setOverwriteOutputFiles();
 		ffmpeg.setOnErrorDeleteOutFiles(true);
 		ffmpeg.setFilterForLinesEventsToDisplay(l -> (l.isStdErr() == false || l.isStdErr() && ffmpeg
-		        .filterOutErrorLines().test(l.getLine())));
+				.filterOutErrorLines().test(l.getLine())));
 
 		parameters.addBulkParameters("-f lavfi -i smptehdbars=duration=" + duration_in_sec + ":size=" + resolution.x
-		                             + "x" + resolution.y + ":rate=25");
+									 + "x" + resolution.y + ":rate=25");
 		parameters.addBulkParameters("-f lavfi -i sine=frequency=1000:sample_rate=48000:duration=" + duration_in_sec);
 
 		if (about.isCoderIsAvaliable("h264")) {
-			ffmpeg.addVideoCodecName("h264", -1).addCRF(1);
+			ffmpeg.addVideoCodecName("h264", -1);
+			ffmpeg.addCRF(1);
 		} else {
 			ffmpeg.addVideoCodecName("ffv1", -1);
 		}
@@ -82,8 +83,8 @@ public class GenerateVideoFile {
 	 * Stateless
 	 */
 	public FFmpeg generateBarsAnd1k(final String destination,
-	                                final int duration_in_sec,
-	                                final Point resolution) throws IOException {
+									final int duration_in_sec,
+									final Point resolution) throws IOException {
 		final var ffmpeg = internal(duration_in_sec, resolution);
 		ffmpeg.addSimpleOutputDestination(destination);
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
@@ -95,8 +96,8 @@ public class GenerateVideoFile {
 	 * Stateless
 	 */
 	public FFmpeg generateBarsAnd1k(final File destination,
-	                                final int duration_in_sec,
-	                                final Point resolution) throws IOException {
+									final int duration_in_sec,
+									final Point resolution) throws IOException {
 		final var ffmpeg = internal(duration_in_sec, resolution);
 		ffmpeg.addSimpleOutputDestination(destination);
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);

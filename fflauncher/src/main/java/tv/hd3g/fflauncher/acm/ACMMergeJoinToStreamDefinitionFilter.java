@@ -18,7 +18,6 @@ package tv.hd3g.fflauncher.acm;
 
 import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,7 +34,7 @@ class ACMMergeJoinToStreamDefinitionFilter extends ACMListIndexPositionHandler {
 	private final OutputAudioStream toOutput;
 
 	ACMMergeJoinToStreamDefinitionFilter(final List<ACMExportableMapReference> inputs,
-	                                     final OutputAudioStream toOutput) {
+										 final OutputAudioStream toOutput) {
 		this.inputs = Objects.requireNonNull(inputs);
 		this.toOutput = Objects.requireNonNull(toOutput);
 	}
@@ -53,8 +52,8 @@ class ACMMergeJoinToStreamDefinitionFilter extends ACMListIndexPositionHandler {
 	@Override
 	public String toString() {
 		final var inRefs = inputs.stream()
-		        .map(ACMExportableMapReference::toMapReferenceAsInput)
-		        .collect(joining("+"));
+				.map(ACMExportableMapReference::toMapReferenceAsInput)
+				.collect(joining("+"));
 		return inRefs + ">~" + toMapReferenceAsInput() + "(" + toOutput.getLayout() + ")";
 	}
 
@@ -69,9 +68,9 @@ class ACMMergeJoinToStreamDefinitionFilter extends ACMListIndexPositionHandler {
 			throw new IllegalArgumentException("No inputs for filter " + toOutput.toMapReferenceAsInput());
 		} else if (inChCount != outChCount) {
 			throw new IllegalArgumentException("Invalid input stream count (" +
-			                                   inChCount + ")" + " for filter "
-			                                   + toOutput.toMapReferenceAsInput() + " with expected "
-			                                   + outChCount + " audio channels");
+											   inChCount + ")" + " for filter "
+											   + toOutput.toMapReferenceAsInput() + " with expected "
+											   + outChCount + " audio channels");
 		}
 	}
 
@@ -82,8 +81,8 @@ class ACMMergeJoinToStreamDefinitionFilter extends ACMListIndexPositionHandler {
 		internalCheck();
 		final var filter = new AudioFilterAmerge(inputs.size()).toFilter();
 		filter.setSourceBlocks(inputs.stream()
-		        .map(ACMExportableMapReference::toMapReferenceAsInput)
-		        .collect(toUnmodifiableList()));
+				.map(ACMExportableMapReference::toMapReferenceAsInput)
+				.toList());
 		filter.setDestBlocks(List.of(toMapReferenceAsInput()));
 		return filter;
 	}
@@ -103,8 +102,8 @@ class ACMMergeJoinToStreamDefinitionFilter extends ACMListIndexPositionHandler {
 
 		final var filter = new AudioFilterJoin(inputs.size(), layout, unmodifiableMap(sourceByDestChannel)).toFilter();
 		filter.setSourceBlocks(inputs.stream()
-		        .map(ACMExportableMapReference::toMapReferenceAsInput)
-		        .collect(toUnmodifiableList()));
+				.map(ACMExportableMapReference::toMapReferenceAsInput)
+				.toList());
 		filter.setDestBlocks(List.of(toMapReferenceAsInput()));
 		return filter;
 	}

@@ -27,12 +27,12 @@ public class FFAboutFilter {
 
 	static List<FFAboutFilter> parseFilters(final List<String> lines) {
 		return lines.stream()
-		        .map(String::trim)
-		        .filter(line -> (line.toLowerCase().startsWith("Filters:".toLowerCase()) == false))
-		        .filter(line -> (line.startsWith("---") == false))
-		        .filter(line -> (line.indexOf('=') == -1))
-		        .map(FFAboutFilter::new)
-		        .collect(Collectors.toUnmodifiableList());
+				.map(String::trim)
+				.filter(line -> (line.toLowerCase().startsWith("Filters:".toLowerCase()) == false))
+				.filter(line -> (line.startsWith("---") == false))
+				.filter(line -> (line.indexOf('=') == -1))
+				.map(FFAboutFilter::new)
+				.toList();
 	}
 
 	/**
@@ -58,9 +58,9 @@ public class FFAboutFilter {
 	FFAboutFilter(final String line) {
 
 		final var lineBlocs = Arrays.stream(line.split(" "))
-		        .filter(lb -> lb.trim().equals("") == false)
-		        .map(String::trim)
-		        .collect(Collectors.toUnmodifiableList());
+				.filter(lb -> lb.trim().equals("") == false)
+				.map(String::trim)
+				.toList();
 
 		if (lineBlocs.size() < 4) {
 			throw new UnknownFormatException("Can't parse line: \"" + line + "\"");
@@ -68,9 +68,9 @@ public class FFAboutFilter {
 
 		tag = lineBlocs.get(1);
 		longName = lineBlocs.stream()
-		        .filter(lb -> lb.trim().equals("") == false)
-		        .skip(3)
-		        .collect(Collectors.joining(" "));
+				.filter(lb -> lb.trim().equals("") == false)
+				.skip(3)
+				.collect(Collectors.joining(" "));
 
 		timelineSupport = lineBlocs.get(0).contains("T");
 		sliceThreading = lineBlocs.get(0).contains("S");

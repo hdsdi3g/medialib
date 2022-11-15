@@ -20,13 +20,11 @@ import java.awt.Point;
 
 import tv.hd3g.fflauncher.filtering.Filter;
 
-public interface InputGeneratorsTraits {
-
-	FFbase addSimpleInputSource(final String sourceName, final String... sourceOptions);
+public interface InputGeneratorsTraits extends SimpleSourceTraits {
 
 	default void addSmptehdbarsGeneratorAsInputSource(final Point resolution,
-	                                                  final int durationInSec,
-	                                                  final String frameRate) {
+													  final int durationInSec,
+													  final String frameRate) {
 		final var f = new Filter("smptehdbars");
 		f.addArgument("duration", durationInSec);
 		f.addArgument("size", resolution.x + "x" + resolution.y);
@@ -35,8 +33,8 @@ public interface InputGeneratorsTraits {
 	}
 
 	default void addSineAudioGeneratorAsInputSource(final int frequency,
-	                                                final int durationInSec,
-	                                                final int sampleRate) {
+													final int durationInSec,
+													final int sampleRate) {
 		final var f = new Filter("sine");
 		f.addArgument("duration", durationInSec);
 		f.addArgument("frequency", frequency);

@@ -21,7 +21,6 @@ import static tv.hd3g.fflauncher.about.FFAboutPixelFormat.BitDepths.Unknown;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import tv.hd3g.fflauncher.UnknownFormatException;
@@ -78,22 +77,22 @@ public class FFAboutPixelFormat {
 		public static BitDepths getFromTag(final String tag) {
 			Objects.requireNonNull(tag);
 			return Stream.of(values())
-			        .filter(bD -> bD.tag.equals(tag))
-			        .findFirst()
-			        .orElse(Unknown);
+					.filter(bD -> bD.tag.equals(tag))
+					.findFirst()
+					.orElse(Unknown);
 		}
 
 	}
 
 	static List<FFAboutPixelFormat> parsePixelsFormats(final List<String> lines) {
 		return lines.stream()
-		        .map(String::trim)
-		        .filter(line -> (line.toLowerCase().startsWith("Pixel formats:".toLowerCase()) == false))
-		        .filter(line -> (line.contains("=") == false))
-		        .filter(line -> (line.toLowerCase().startsWith("FLAGS".toLowerCase()) == false))
-		        .filter(line -> (line.startsWith("-----") == false))
-		        .map(FFAboutPixelFormat::new)
-		        .collect(Collectors.toUnmodifiableList());
+				.map(String::trim)
+				.filter(line -> (line.toLowerCase().startsWith("Pixel formats:".toLowerCase()) == false))
+				.filter(line -> (line.contains("=") == false))
+				.filter(line -> (line.toLowerCase().startsWith("FLAGS".toLowerCase()) == false))
+				.filter(line -> (line.startsWith("-----") == false))
+				.map(FFAboutPixelFormat::new)
+				.toList();
 	}
 
 	public final boolean supportedInput;
@@ -108,8 +107,9 @@ public class FFAboutPixelFormat {
 
 	FFAboutPixelFormat(final String line) {
 
-		final var lineBlocs = Arrays.stream(line.split(" ")).filter(lb -> lb.trim().equals("") == false).map(
-		        String::trim).collect(Collectors.toUnmodifiableList());
+		final var lineBlocs = Arrays.stream(line.split(" "))
+				.filter(lb -> lb.trim().equals("") == false)
+				.map(String::trim).toList();
 
 		if (lineBlocs.size() < 4 || lineBlocs.size() > 5) {
 			throw new UnknownFormatException("Can't parse line: \"" + line + "\"");

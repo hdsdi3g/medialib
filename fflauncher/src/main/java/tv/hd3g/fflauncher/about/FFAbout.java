@@ -50,12 +50,12 @@ public class FFAbout {
 	private final ScheduledExecutorService maxExecTimeScheduler;
 
 	public FFAbout(final String execName,
-	               final ExecutableFinder executableFinder,
-	               final ScheduledExecutorService maxExecTimeScheduler) {
+				   final ExecutableFinder executableFinder,
+				   final ScheduledExecutorService maxExecTimeScheduler) {
 		this.execName = Objects.requireNonNull(execName, "\"execName\" can't to be null");
 		this.executableFinder = Objects.requireNonNull(executableFinder, "\"executableFinder\" can't to be null");
 		this.maxExecTimeScheduler = Objects.requireNonNull(maxExecTimeScheduler,
-		        "\"maxExecTimeScheduler\" can't to be null");
+				"\"maxExecTimeScheduler\" can't to be null");
 	}
 
 	private CapturedStdOutErrTextRetention internalRun(final String bulkParameters) {
@@ -84,8 +84,8 @@ public class FFAbout {
 	public synchronized FFAboutVersion getVersion() {
 		if (version == null) {
 			version = new FFAboutVersion(internalRun("-loglevel quiet -version").getStdouterrLines(false).map(
-			        String::trim)
-			        .collect(Collectors.toUnmodifiableList()));
+					String::trim)
+					.toList());
 		}
 		return version;
 	}
@@ -95,9 +95,9 @@ public class FFAbout {
 	 */
 	public synchronized List<FFAboutCodec> getCodecs() {
 		if (codecs == null) {
-			codecs = FFAboutCodec.parse(internalRun("-codecs").getStdoutLines(false).map(String::trim).collect(
-			        Collectors
-			                .toUnmodifiableList()));
+			codecs = FFAboutCodec.parse(internalRun("-codecs").getStdoutLines(false)
+					.map(String::trim)
+					.toList());
 		}
 		return codecs;
 	}
@@ -107,9 +107,9 @@ public class FFAbout {
 	 */
 	public synchronized List<FFAboutFormat> getFormats() {
 		if (formats == null) {
-			formats = FFAboutFormat.parseFormats(internalRun("-formats").getStdoutLines(false).map(String::trim)
-			        .collect(
-			                Collectors.toUnmodifiableList()));
+			formats = FFAboutFormat.parseFormats(internalRun("-formats").getStdoutLines(false)
+					.map(String::trim)
+					.toList());
 		}
 		return formats;
 	}
@@ -119,16 +119,17 @@ public class FFAbout {
 	 */
 	public synchronized List<FFAboutDevice> getDevices() {
 		if (devices == null) {
-			devices = FFAboutDevice.parseDevices(internalRun("-devices").getStdoutLines(false).map(String::trim)
-			        .collect(
-			                Collectors.toUnmodifiableList()));
+			devices = FFAboutDevice.parseDevices(internalRun("-devices").getStdoutLines(false)
+					.map(String::trim)
+					.toList());
 		}
 		return devices;
 	}
 
 	static Set<String> parseBSFS(final Stream<String> lines) {
 		return lines.map(String::trim).filter(line -> (line.toLowerCase().startsWith("Bitstream filters:"
-		        .toLowerCase()) == false)).collect(Collectors.toSet());
+				.toLowerCase()) == false))
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -147,8 +148,7 @@ public class FFAbout {
 	public synchronized FFAboutProtocols getProtocols() {
 		if (protocols == null) {
 			protocols = new FFAboutProtocols(internalRun("-protocols").getStdouterrLines(false).map(String::trim)
-			        .collect(
-			                Collectors.toUnmodifiableList()));
+					.toList());
 		}
 
 		return protocols;
@@ -160,8 +160,7 @@ public class FFAbout {
 	public synchronized List<FFAboutFilter> getFilters() {
 		if (filters == null) {
 			filters = FFAboutFilter.parseFilters(internalRun("-filters").getStdoutLines(false).map(String::trim)
-			        .collect(
-			                Collectors.toUnmodifiableList()));
+					.toList());
 		}
 		return filters;
 	}
@@ -172,14 +171,14 @@ public class FFAbout {
 	public synchronized List<FFAboutPixelFormat> getPixelFormats() {
 		if (pixelsFormats == null) {
 			pixelsFormats = FFAboutPixelFormat.parsePixelsFormats(internalRun("-pix_fmts").getStdoutLines(false).map(
-			        String::trim).collect(Collectors.toUnmodifiableList()));
+					String::trim).toList());
 		}
 		return pixelsFormats;
 	}
 
 	static Set<String> parseHWAccelerationMethods(final Stream<String> lines) {
 		return lines.map(String::trim).filter(line -> (line.toLowerCase().startsWith("Hardware acceleration methods:"
-		        .toLowerCase()) == false)).collect(Collectors.toSet());
+				.toLowerCase()) == false)).collect(Collectors.toSet());
 	}
 
 	/**
@@ -188,7 +187,7 @@ public class FFAbout {
 	public synchronized Set<String> getAvailableHWAccelerationMethods() {
 		if (hardwareAccelerationMethods == null) {
 			hardwareAccelerationMethods = parseHWAccelerationMethods(internalRun("-hwaccels").getStdoutLines(false)
-			        .map(String::trim));
+					.map(String::trim));
 		}
 		return hardwareAccelerationMethods;
 	}
@@ -217,27 +216,27 @@ public class FFAbout {
 
 	public boolean isCoderIsAvaliable(final String codec_name) {
 		return getCodecs().stream()
-		        .anyMatch(codec -> (codec.name.equalsIgnoreCase(codec_name) && codec.encodingSupported == true));
+				.anyMatch(codec -> (codec.name.equalsIgnoreCase(codec_name) && codec.encodingSupported == true));
 	}
 
 	public boolean isDecoderIsAvaliable(final String codec_name) {
 		return getCodecs().stream()
-		        .anyMatch(codec -> (codec.name.equalsIgnoreCase(codec_name) && codec.decodingSupported == true));
+				.anyMatch(codec -> (codec.name.equalsIgnoreCase(codec_name) && codec.decodingSupported == true));
 	}
 
 	public boolean isFromFormatIsAvaliable(final String demuxer_name) {
 		return getFormats().stream()
-		        .anyMatch(format -> (format.name.equalsIgnoreCase(demuxer_name) && format.demuxing == true));
+				.anyMatch(format -> (format.name.equalsIgnoreCase(demuxer_name) && format.demuxing == true));
 	}
 
 	public boolean isToFormatIsAvaliable(final String muxer_name) {
 		return getFormats().stream()
-		        .anyMatch(format -> (format.name.equalsIgnoreCase(muxer_name) && format.muxing == true));
+				.anyMatch(format -> (format.name.equalsIgnoreCase(muxer_name) && format.muxing == true));
 	}
 
 	public boolean isFilterIsAvaliable(final String filter_name) {
 		return getFilters().stream()
-		        .anyMatch(filter -> filter.getTag().equalsIgnoreCase(filter_name));
+				.anyMatch(filter -> filter.getTag().equalsIgnoreCase(filter_name));
 	}
 
 	/**
@@ -246,8 +245,8 @@ public class FFAbout {
 	 */
 	public boolean isCoderEngineIsAvaliable(final String engine_name) {
 		return getCodecs().stream()
-		        .anyMatch(codec -> (codec.encodingSupported == true
-		                            && codec.encoders.contains(engine_name)));
+				.anyMatch(codec -> (codec.encodingSupported == true
+									&& codec.encoders.contains(engine_name)));
 	}
 
 	/**
@@ -256,7 +255,7 @@ public class FFAbout {
 	 */
 	public boolean isDecoderEngineIsAvaliable(final String engine_name) {
 		return getCodecs().stream().anyMatch(codec -> (codec.decodingSupported == true && codec.decoders.contains(
-		        engine_name)));
+				engine_name)));
 	}
 
 	/**
@@ -272,11 +271,11 @@ public class FFAbout {
 			return false;
 		}
 		final var allNvRelatedCodecs = getCodecs().stream()
-		        .filter(c -> c.decoders.isEmpty() == false || c.encoders.isEmpty() == false)
-		        .flatMap(c -> Stream.concat(c.decoders.stream(), c.encoders.stream()))
-		        .distinct()
-		        .filter(c -> c.contains("nvenc") || c.contains(CUVID))
-		        .collect(Collectors.toList());
+				.filter(c -> c.decoders.isEmpty() == false || c.encoders.isEmpty() == false)
+				.flatMap(c -> Stream.concat(c.decoders.stream(), c.encoders.stream()))
+				.distinct()
+				.filter(c -> c.contains("nvenc") || c.contains(CUVID))
+				.toList();
 
 		if (allNvRelatedCodecs.stream().noneMatch(c -> c.contains("nvenc"))) {
 			log.debug("(NVIDIA) nvenc is not available in codec list");

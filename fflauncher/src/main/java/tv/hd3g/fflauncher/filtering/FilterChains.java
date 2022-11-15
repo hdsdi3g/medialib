@@ -16,8 +16,6 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,11 +66,11 @@ public class FilterChains {
 	 */
 	public List<Filter> insertFilterInChain(final Filter filter, final Filter previousFilter) {
 		final var currentChain = chain.stream()
-		        .filter(c -> c.contains(previousFilter))
-		        .findFirst()
-		        .orElseThrow(() -> new IllegalArgumentException("Can't found filter \""
-		                                                        + previousFilter
-		                                                        + "\" declared is actual chains"));
+				.filter(c -> c.contains(previousFilter))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Can't found filter \""
+																+ previousFilter
+																+ "\" declared is actual chains"));
 		final var actualPos = currentChain.indexOf(previousFilter);
 		if (actualPos + 1 == currentChain.size()) {
 			currentChain.add(filter);
@@ -140,10 +138,10 @@ public class FilterChains {
 	 */
 	public static List<FilterChains> parse(final String parameterName, final Parameters parameters) {
 		return Optional.ofNullable(parameters.getValues(parameterName))
-		        .orElse(List.of())
-		        .stream()
-		        .map(FilterChains::new)
-		        .collect(toUnmodifiableList());
+				.orElse(List.of())
+				.stream()
+				.map(FilterChains::new)
+				.toList();
 	}
 
 	/**
@@ -166,17 +164,17 @@ public class FilterChains {
 	 * @param parameterName like -vf, -af, ...
 	 */
 	public static List<FilterChains> parseFromReadyToRunParameters(final String parameterName,
-	                                                               final ConversionTool conversionTool) {
+																   final ConversionTool conversionTool) {
 		return parse(parameterName, conversionTool.getReadyToRunParameters());
 	}
 
 	@Override
 	public String toString() {
 		return chain.stream()
-		        .map(filters -> filters.stream()
-		                .map(Filter::toString)
-		                .collect(Collectors.joining(",")))
-		        .collect(Collectors.joining(";"));
+				.map(filters -> filters.stream()
+						.map(Filter::toString)
+						.collect(Collectors.joining(",")))
+				.collect(Collectors.joining(";"));
 	}
 
 	/**
@@ -190,24 +188,24 @@ public class FilterChains {
 	 * @return all non managed filters for this instance. Empty == all ok.
 	 */
 	public List<Filter> checkFiltersAvailability(final FFAbout about,
-	                                             final FilterConnectorType expectedType) {
+												 final FilterConnectorType expectedType) {
 		final var filters = about.getFilters();
 
 		final var availableFilters = filters.stream()
-		        .filter(f -> {
-			        if (expectedType == null) {
-				        return true;
-			        }
-			        return expectedType.equals(f.getSourceConnector());
-		        })
-		        .map(FFAboutFilter::getTag)
-		        .distinct()
-		        .collect(Collectors.toUnmodifiableSet());
+				.filter(f -> {
+					if (expectedType == null) {
+						return true;
+					}
+					return expectedType.equals(f.getSourceConnector());
+				})
+				.map(FFAboutFilter::getTag)
+				.distinct()
+				.collect(Collectors.toUnmodifiableSet());
 
 		return chain.stream()
-		        .flatMap(List::stream)
-		        .filter(filter -> availableFilters.contains(filter.getFilterName()) == false)
-		        .collect(Collectors.toUnmodifiableList());
+				.flatMap(List::stream)
+				.filter(filter -> availableFilters.contains(filter.getFilterName()) == false)
+				.toList();
 	}
 
 }

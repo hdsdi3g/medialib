@@ -32,13 +32,13 @@ public class FFAboutFormat {
 
 	static List<FFAboutFormat> parseFormats(final List<String> lines) {
 		return lines.stream()
-		        .map(String::trim)
-		        .filter(line -> (line.toLowerCase().startsWith("File formats:".toLowerCase()) == false))
-		        .filter(line -> (line.toLowerCase().startsWith("D. = Demuxing supported".toLowerCase()) == false))
-		        .filter(line -> (line.toLowerCase().startsWith(".E = Muxing supported".toLowerCase()) == false))
-		        .filter(line -> (line.startsWith("--") == false))
-		        .map(FFAboutFormat::new)
-		        .collect(Collectors.toUnmodifiableList());
+				.map(String::trim)
+				.filter(line -> (line.toLowerCase().startsWith("File formats:".toLowerCase()) == false))
+				.filter(line -> (line.toLowerCase().startsWith("D. = Demuxing supported".toLowerCase()) == false))
+				.filter(line -> (line.toLowerCase().startsWith(".E = Muxing supported".toLowerCase()) == false))
+				.filter(line -> (line.startsWith("--") == false))
+				.map(FFAboutFormat::new)
+				.toList();
 	}
 
 	public final boolean demuxing;
@@ -62,9 +62,9 @@ public class FFAboutFormat {
 	FFAboutFormat(final String line) {
 
 		final var lineBlocs = Arrays.stream(line.split(" "))
-		        .filter(lb -> lb.trim().equals("") == false)
-		        .map(String::trim)
-		        .collect(Collectors.toUnmodifiableList());
+				.filter(lb -> lb.trim().equals("") == false)
+				.map(String::trim)
+				.toList();
 
 		if (lineBlocs.size() < 2) {
 			throw new UnknownFormatException("Can't parse line: \"" + line + "\"");

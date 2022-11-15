@@ -72,13 +72,13 @@ public class FFprobeJAXB {
 			unmarshaller.setEventHandler(e -> {
 				final var locator = e.getLocator();
 				onWarnLog.accept("XML validation: "
-				                 + e.getMessage() + " [s"
-				                 + e.getSeverity() + "] at line "
-				                 + locator.getLineNumber() + ", column "
-				                 + locator.getColumnNumber() + " offset "
-				                 + locator.getOffset() + " node: "
-				                 + locator.getNode() + ", object "
-				                 + locator.getObject());
+								 + e.getMessage() + " [s"
+								 + e.getSeverity() + "] at line "
+								 + locator.getLineNumber() + ", column "
+								 + locator.getColumnNumber() + " offset "
+								 + locator.getOffset() + " node: "
+								 + locator.getNode() + ", object "
+								 + locator.getObject());
 				return true;
 			});
 
@@ -105,16 +105,16 @@ public class FFprobeJAXB {
 
 	public List<ChapterType> getChapters() {
 		return Optional.ofNullable(probeResult.getChapters())
-		        .map(ChaptersType::getChapter)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(ChaptersType::getChapter)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public List<StreamType> getStreams() {
 		return Optional.ofNullable(probeResult.getStreams())
-		        .map(StreamsType::getStream)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(StreamsType::getStream)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public FormatType getFormat() {
@@ -137,23 +137,23 @@ public class FFprobeJAXB {
 
 	public List<LibraryVersionType> getLibraryVersions() {
 		return Optional.ofNullable(probeResult.getLibraryVersions())
-		        .map(LibraryVersionsType::getLibraryVersion)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(LibraryVersionsType::getLibraryVersion)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public List<PixelFormatType> getPixelFormats() {
 		return Optional.ofNullable(probeResult.getPixelFormats())
-		        .map(PixelFormatsType::getPixelFormat)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(PixelFormatsType::getPixelFormat)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public List<PacketType> getPackets() {
 		return Optional.ofNullable(probeResult.getPackets())
-		        .map(PacketsType::getPacket)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(PacketsType::getPacket)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	/**
@@ -162,9 +162,9 @@ public class FFprobeJAXB {
 	 */
 	public List<Object> getFrames() {
 		return Optional.ofNullable(probeResult.getFrames())
-		        .map(FramesType::getFrameOrSubtitle)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(FramesType::getFrameOrSubtitle)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	/**
@@ -174,24 +174,24 @@ public class FFprobeJAXB {
 	 */
 	public List<Object> getPacketsAndFrames() {
 		return Optional.ofNullable(probeResult.getPacketsAndFrames())
-		        .map(PacketsAndFramesType::getPacketOrFrameOrSubtitle)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(PacketsAndFramesType::getPacketOrFrameOrSubtitle)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public List<ProgramType> getPrograms() {
 		return Optional.ofNullable(probeResult.getPrograms())
-		        .map(ProgramsType::getProgram)
-		        .map(Collections::unmodifiableList)
-		        .orElse(List.of());
+				.map(ProgramsType::getProgram)
+				.map(Collections::unmodifiableList)
+				.orElse(List.of());
 	}
 
 	public static final Predicate<StreamType> filterVideoStream = streamType -> streamType
-	        .getCodecType().equals("video");
+			.getCodecType().equals("video");
 	public static final Predicate<StreamType> filterAudioStream = streamType -> streamType
-	        .getCodecType().equals("audio");
+			.getCodecType().equals("audio");
 	public static final Predicate<StreamType> filterDataStream = streamType -> streamType
-	        .getCodecType().equals("data");
+			.getCodecType().equals("data");
 
 	public Stream<StreamType> getVideoStreams() {
 		return getStreams().stream().filter(filterVideoStream);
@@ -199,6 +199,14 @@ public class FFprobeJAXB {
 
 	public Stream<StreamType> getAudiosStreams() {
 		return getStreams().stream().filter(filterAudioStream);
+	}
+
+	public Optional<StreamType> getFirstVideoStream() {
+		return getVideoStreams()
+				.filter(vs -> vs.getDisposition().getAttachedPic() == 0)
+				.filter(vs -> vs.getDisposition().getTimedThumbnails() == 0)
+				.sorted((l, r) -> Integer.compare(r.getDisposition().getDefault(), l.getDisposition().getDefault()))
+				.findFirst();
 	}
 
 }

@@ -35,16 +35,16 @@ class FilterParserBaseChainFilter {
 	 */
 	FilterParserBaseChainFilter(final String content) {
 		this(content.chars()
-		        .mapToObj(c -> (char) c)
-		        .map(FilterParserChars::new)
-		        .collect(Collectors.toUnmodifiableList()));
+				.mapToObj(c -> (char) c)
+				.map(FilterParserChars::new)
+				.toList());
 	}
 
 	@Override
 	public String toString() {
 		return content.stream()
-		        .map(FilterParserChars::toString)
-		        .collect(Collectors.joining());
+				.map(FilterParserChars::toString)
+				.collect(Collectors.joining());
 	}
 
 	List<FilterParserChars> getContent() {

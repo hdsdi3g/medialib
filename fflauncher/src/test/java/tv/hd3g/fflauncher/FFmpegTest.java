@@ -36,10 +36,10 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
-import tv.hd3g.fflauncher.FFmpeg.FFHardwareCodec;
-import tv.hd3g.fflauncher.FFmpeg.Preset;
-import tv.hd3g.fflauncher.FFmpeg.Tune;
+import tv.hd3g.fflauncher.enums.FFHardwareCodec;
 import tv.hd3g.fflauncher.enums.FFUnit;
+import tv.hd3g.fflauncher.enums.Preset;
+import tv.hd3g.fflauncher.enums.Tune;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
@@ -74,14 +74,21 @@ class FFmpegTest {
 		final var ffmpeg = create();
 		final var header = ffmpeg.getInternalParameters().toString().length();
 
-		ffmpeg.addPreset(Preset.PLACEBO).addTune(Tune.SSIM).addBitrate(123, FFUnit.GIGA, 1);
-		ffmpeg.addBitrateControl(10, 20, 30, FFUnit.MEGA).addCRF(40).addVideoCodecName("NoPe", 2);
-		ffmpeg.addGOPControl(50, 60, 70).addIBQfactor(1.5f, 2.5f).addQMinMax(80, 90);
-		ffmpeg.addBitrate(100, FFUnit.MEGA, -1).addVideoCodecName("NoPe2", -1);
+		ffmpeg.addPreset(Preset.PLACEBO);
+		ffmpeg.addTune(Tune.SSIM);
+		ffmpeg.addBitrate(123, FFUnit.GIGA, 1);
+		ffmpeg.addBitrateControl(10, 20, 30, FFUnit.MEGA);
+		ffmpeg.addCRF(40);
+		ffmpeg.addVideoCodecName("NoPe", 2);
+		ffmpeg.addGOPControl(50, 60, 70);
+		ffmpeg.addIBQfactor(1.5f, 2.5f);
+		ffmpeg.addQMinMax(80, 90);
+		ffmpeg.addBitrate(100, FFUnit.MEGA, -1);
+		ffmpeg.addVideoCodecName("NoPe2", -1);
 
 		assertEquals(
-		        "-preset placebo -tune ssim -b:v:1 123G -minrate 10M -maxrate 20M -bufsize 30M -crf 40 -c:v:2 NoPe -bf 50 -g 60 -ref 70 -i_qfactor 1.5 -b_qfactor 2.5 -qmin 80 -qmax 90 -b:v 100M -c:v NoPe2",
-		        ffmpeg.getInternalParameters().toString().substring(header));
+				"-preset placebo -tune ssim -b:v:1 123G -minrate 10M -maxrate 20M -bufsize 30M -crf 40 -c:v:2 NoPe -bf 50 -g 60 -ref 70 -i_qfactor 1.5 -b_qfactor 2.5 -qmin 80 -qmax 90 -b:v 100M -c:v NoPe2",
+				ffmpeg.getInternalParameters().toString().substring(header));
 	}
 
 	@Test
@@ -101,10 +108,11 @@ class FFmpegTest {
 		final var cmd = ffmpeg.getInternalParameters();
 		cmd.addBulkParameters("-f lavfi -i smptehdbars=duration=" + 5 + ":size=1280x720:rate=25");
 
-		ffmpeg.addHardwareVideoEncoding("h264", -1, FFHardwareCodec.NV, about).addCRF(0);
+		ffmpeg.addHardwareVideoEncoding("h264", -1, FFHardwareCodec.NV, about);
+		ffmpeg.addCRF(0);
 		assertTrue(cmd.getValues("-c:v").stream()
-		        .findFirst()
-		        .orElseThrow(() -> new IllegalArgumentException("No codecs was added: " + cmd)).contains("nvenc"));
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("No codecs was added: " + cmd)).contains("nvenc"));
 
 		final var test_file = File.createTempFile("smptebars", ".mkv");
 		ffmpeg.addSimpleOutputDestination(test_file.getPath());
@@ -120,8 +128,9 @@ class FFmpegTest {
 		ffmpeg.setOnErrorDeleteOutFiles(true);
 
 		ffmpeg.addHardwareVideoDecoding(test_file.getPath(), probeMedia.doAnalysing(test_file.getPath()),
-		        FFHardwareCodec.NV, about);
-		ffmpeg.addHardwareVideoEncoding("h264", -1, FFHardwareCodec.NV, about).addCRF(40);
+				FFHardwareCodec.NV, about);
+		ffmpeg.addHardwareVideoEncoding("h264", -1, FFHardwareCodec.NV, about);
+		ffmpeg.addCRF(40);
 
 		final var test_file2 = File.createTempFile("smptebars", ".mkv");
 		ffmpeg.addSimpleOutputDestination(test_file2.getPath());
@@ -156,7 +165,7 @@ class FFmpegTest {
 
 		assertTrue(test_file.exists());
 
-		final var s = FFmpeg.getFirstVideoStream(probeMedia.doAnalysing(test_file.getPath())).get();
+		final var s = probeMedia.doAnalysing(test_file.getPath()).getFirstVideoStream().get();
 		assertEquals("ffv1", s.getCodecName());
 	}
 
@@ -165,14 +174,14 @@ class FFmpegTest {
 		final var ffmpeg = create();
 
 		final var files = IntStream.range(0, 8)
-		        .mapToObj(i -> {
-			        try {
-				        return File.createTempFile("temp FF name [" + i + "]", ".ext");
-			        } catch (final IOException e) {
-				        throw new UncheckedIOException(e);
-			        }
-		        })
-		        .collect(toUnmodifiableList());
+				.mapToObj(i -> {
+					try {
+						return File.createTempFile("temp FF name [" + i + "]", ".ext");
+					} catch (final IOException e) {
+						throw new UncheckedIOException(e);
+					}
+				})
+				.collect(toUnmodifiableList());
 
 		ffmpeg.addSimpleInputSource(files.get(0));
 		ffmpeg.addSimpleInputSource(files.get(1).getPath());

@@ -17,7 +17,6 @@
 package tv.hd3g.fflauncher.acm;
 
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,9 +66,9 @@ public class AudioChannelManipulation {
 		allOutputStreamList.stream().forEach(outStream -> {
 			final var layoutOutChannelSize = outStream.getLayout().getChannelSize();
 			final var allSelectedInStream = outStream.getChannels().stream()
-			        .map(OutputAudioChannel::getInputAudioStream)
-			        .distinct()
-			        .collect(toUnmodifiableList());
+					.map(OutputAudioChannel::getInputAudioStream)
+					.distinct()
+					.toList();
 			if (allSelectedInStream.size() > 1) {
 				/**
 				 * Different source mapping, no optimizations here.
@@ -104,11 +103,11 @@ public class AudioChannelManipulation {
 		});
 
 		final var toProcess = allOutputStreamList.stream()
-		        .flatMap(s -> s.getChannels().stream())
-		        .sorted()
-		        .filter(ch -> mapDirectlyMap.containsKey(ch.getOutputAudioStream()) == false
-		                      && streamRemapMap.containsKey(ch.getOutputAudioStream()) == false)
-		        .collect(toUnmodifiableList());
+				.flatMap(s -> s.getChannels().stream())
+				.sorted()
+				.filter(ch -> mapDirectlyMap.containsKey(ch.getOutputAudioStream()) == false
+							  && streamRemapMap.containsKey(ch.getOutputAudioStream()) == false)
+				.toList();
 
 		/**
 		 * Manage split operations
@@ -118,85 +117,85 @@ public class AudioChannelManipulation {
 
 		final var counter = new AtomicInteger(0);
 		toProcess.stream()
-		        .filter(ch -> ch.getInputAudioStream().getLayout().isMonoLayout() == false)
-		        .forEach(ch -> {
-			        final var optSplit = toSplit.findFirst(ch.getInputAudioStream());
-			        if (optSplit.isPresent()) {
-				        final var splitterByInStream = optSplit.get();
-				        if (splitterByInStream.getSplittedOut().containsKey(ch.getChInIndex())) {
-					        toSplit.add(new ACMSplitInStreamDefinitionFilter(ch, counter.getAndIncrement()));
-				        } else {
-					        splitterByInStream.getSplittedOut().put(ch.getChInIndex(),
-					                splitterByInStream.new SplittedOut(ch, counter.getAndIncrement()));
-				        }
-			        } else {
-				        toSplit.add(new ACMSplitInStreamDefinitionFilter(ch, counter.getAndIncrement()));
-			        }
-		        });
+				.filter(ch -> ch.getInputAudioStream().getLayout().isMonoLayout() == false)
+				.forEach(ch -> {
+					final var optSplit = toSplit.findFirst(ch.getInputAudioStream());
+					if (optSplit.isPresent()) {
+						final var splitterByInStream = optSplit.get();
+						if (splitterByInStream.getSplittedOut().containsKey(ch.getChInIndex())) {
+							toSplit.add(new ACMSplitInStreamDefinitionFilter(ch, counter.getAndIncrement()));
+						} else {
+							splitterByInStream.getSplittedOut().put(ch.getChInIndex(),
+									splitterByInStream.new SplittedOut(ch, counter.getAndIncrement()));
+						}
+					} else {
+						toSplit.add(new ACMSplitInStreamDefinitionFilter(ch, counter.getAndIncrement()));
+					}
+				});
 
 		final var mapDirectlySplited = new ArrayList<SplittedOut>();
 		amergeJoinList = new ArrayList<>();
 
 		allOutputStreamList.stream()
-		        .filter(outStream -> mapDirectlyMap.containsKey(outStream) == false
-		                             && streamRemapMap.containsKey(outStream) == false)
-		        .forEach(outStream -> {
-			        if (outStream.getLayout() == ChannelLayout.MONO) {
-				        /**
-				         * One channel: no merge/join to do
-				         */
-				        final var outChannel = outStream.getChannels().stream().findFirst().orElse(null);
-				        final var splittedOut = toSplit.search(outChannel)
-				                .orElseThrow(() -> new IllegalStateException("nCh to 1Ch, missing toSplit list item"));
-				        mapDirectlySplited.add(splittedOut);
-				        return;
-			        }
-			        /**
-			         * Merge/join channels
-			         */
-			        final var mergeJoinCurrentList = new ArrayList<ACMExportableMapReference>();
-			        outStream.getChannels().stream().sorted().forEach(channel -> {
-				        final var toMergeJoin = toSplit.search(channel)
-				                .map(ACMExportableMapReference.class::cast)
-				                .orElseGet(channel::getInputAudioStream);
-				        mergeJoinCurrentList.add(toMergeJoin);
-			        });
-			        amergeJoinList.add(new ACMMergeJoinToStreamDefinitionFilter(mergeJoinCurrentList, outStream));
-		        });
+				.filter(outStream -> mapDirectlyMap.containsKey(outStream) == false
+									 && streamRemapMap.containsKey(outStream) == false)
+				.forEach(outStream -> {
+					if (outStream.getLayout() == ChannelLayout.MONO) {
+						/**
+						 * One channel: no merge/join to do
+						 */
+						final var outChannel = outStream.getChannels().stream().findFirst().orElse(null);
+						final var splittedOut = toSplit.search(outChannel)
+								.orElseThrow(() -> new IllegalStateException("nCh to 1Ch, missing toSplit list item"));
+						mapDirectlySplited.add(splittedOut);
+						return;
+					}
+					/**
+					 * Merge/join channels
+					 */
+					final var mergeJoinCurrentList = new ArrayList<ACMExportableMapReference>();
+					outStream.getChannels().stream().sorted().forEach(channel -> {
+						final var toMergeJoin = toSplit.search(channel)
+								.map(ACMExportableMapReference.class::cast)
+								.orElseGet(channel::getInputAudioStream);
+						mergeJoinCurrentList.add(toMergeJoin);
+					});
+					amergeJoinList.add(new ACMMergeJoinToStreamDefinitionFilter(mergeJoinCurrentList, outStream));
+				});
 
 		/**
 		 * Set Index pos on items
 		 */
 		Stream.of(amergeJoinList,
-		        mapDirectlySplited,
-		        streamRemapMap.values().stream().collect(toUnmodifiableList()))
-		        .forEach(l -> {
-			        for (var pos = 0; pos < l.size(); pos++) {
-				        l.get(pos).setAbsoluteIndex(pos);
-			        }
-		        });
+				mapDirectlySplited,
+				streamRemapMap.values().stream().toList())
+				.forEach(l -> {
+					for (var pos = 0; pos < l.size(); pos++) {
+						l.get(pos).setAbsoluteIndex(pos);
+					}
+				});
 
 		/**
 		 * Filter out to map
 		 */
 		final var collectorForReferenceByOutStreams = Collectors.toUnmodifiableMap(
-		        k -> ((ACMLinkableOutStreamReference) k).getLinkableOutStreamReference(),
-		        k -> ((ACMExportableMapReference) k).toMapReferenceAsInput());
+				k -> ((ACMLinkableOutStreamReference) k).getLinkableOutStreamReference(),
+				k -> ((ACMExportableMapReference) k).toMapReferenceAsInput());
 
 		final var referenceByOutStreams = List.of(
-		        amergeJoinList.stream().collect(collectorForReferenceByOutStreams),
-		        mapDirectlySplited.stream().collect(collectorForReferenceByOutStreams),
-		        streamRemapMap.values().stream().collect(collectorForReferenceByOutStreams),
-		        mapDirectlyMap.values().stream().collect(collectorForReferenceByOutStreams));
+				amergeJoinList.stream().collect(collectorForReferenceByOutStreams),
+				mapDirectlySplited.stream().collect(collectorForReferenceByOutStreams),
+				streamRemapMap.values().stream().collect(collectorForReferenceByOutStreams),
+				mapDirectlyMap.values().stream().collect(collectorForReferenceByOutStreams));
 
 		/**
 		 * Set setMapReference for all out streams
 		 */
 		allOutputStreamList.forEach(outStream -> {
 			final var streamRefs = referenceByOutStreams.stream()
-			        .filter(ref -> ref.containsKey(outStream))
-			        .map(ref -> ref.get(outStream))
-			        .collect(Collectors.toUnmodifiableList());
+					.filter(ref -> ref.containsKey(outStream))
+					.map(ref -> ref.get(outStream))
+					.toList();
 			outStream.setMapReference(streamRefs.get(0));
 		});
 	}
@@ -270,8 +269,8 @@ public class AudioChannelManipulation {
 	public List<Parameters> getMapParameters(final List<String> prependToMapList) {
 		final var prepend = prependToMapList.stream().map(AudioChannelManipulation::getMapStreamParam);
 		return Stream.of(prepend, getMapParameters().stream())
-		        .flatMap(p -> p)
-		        .collect(toUnmodifiableList());
+				.flatMap(p -> p)
+				.toList();
 	}
 
 	/**
@@ -280,24 +279,24 @@ public class AudioChannelManipulation {
 	 * @return add non-audio sources (video, data) + getMapParameters
 	 */
 	public List<Parameters> getMapParameters(final List<FFprobeJAXB> sourceFiles,
-	                                         final BiPredicate<Integer, StreamType> addNonAudioStreamFromSources) {
+											 final BiPredicate<Integer, StreamType> addNonAudioStreamFromSources) {
 
 		final var selectedFileStreams = new LinkedHashMap<Integer, StreamType>();
 		for (var pos = 0; pos < sourceFiles.size(); pos++) {
 			final var fileIndex = pos;
 			sourceFiles.get(pos).getStreams().stream()
-			        .filter(s -> FFprobeJAXB.filterVideoStream.test(s) || FFprobeJAXB.filterDataStream.test(s))
-			        .filter(s -> addNonAudioStreamFromSources.test(fileIndex, s))
-			        .forEach(s -> selectedFileStreams.put(fileIndex, s));
+					.filter(s -> FFprobeJAXB.filterVideoStream.test(s) || FFprobeJAXB.filterDataStream.test(s))
+					.filter(s -> addNonAudioStreamFromSources.test(fileIndex, s))
+					.forEach(s -> selectedFileStreams.put(fileIndex, s));
 		}
 
 		return getMapParameters(selectedFileStreams.entrySet().stream()
-		        .map(entry -> {
-			        final var fileIndex = entry.getKey();
-			        final var streamInFile = entry.getValue();
-			        return fileIndex + ":" + streamInFile.getIndex();
-		        })
-		        .collect(toUnmodifiableList()));
+				.map(entry -> {
+					final var fileIndex = entry.getKey();
+					final var streamInFile = entry.getValue();
+					return fileIndex + ":" + streamInFile.getIndex();
+				})
+				.toList());
 	}
 
 	public FilterChains getFilterChains(final boolean useJoinInsteadOfMerge) {
@@ -310,8 +309,8 @@ public class AudioChannelManipulation {
 			amergeJoinList.forEach(s -> chain.addFilterInLastChain(s.toAmergeFilter(), true));
 		}
 		streamRemapFilterMap.values()
-		        .stream()
-		        .forEach(remapDefinitionFilter -> chain.addFilterInLastChain(remapDefinitionFilter.toFilter(), true));
+				.stream()
+				.forEach(remapDefinitionFilter -> chain.addFilterInLastChain(remapDefinitionFilter.toFilter(), true));
 		return chain;
 	}
 

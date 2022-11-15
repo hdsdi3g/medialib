@@ -16,8 +16,6 @@
  */
 package tv.hd3g.fflauncher.acm;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,11 +29,11 @@ class ACMSplitInStreamDefinitionFilter {
 	private final Map<InputAudioChannelSelector, SplittedOut> splittedOut;
 
 	ACMSplitInStreamDefinitionFilter(final OutputAudioChannel firstOutChannel,
-	                                 final int firstSplittedOutAbsolutePosIndex) {
+									 final int firstSplittedOutAbsolutePosIndex) {
 		inputAudioStream = firstOutChannel.getInputAudioStream();
 		final var firstChInIndex = firstOutChannel.getChInIndex();
 		splittedOut = new LinkedHashMap<>(Map.of(firstChInIndex,
-		        new SplittedOut(firstOutChannel, firstSplittedOutAbsolutePosIndex)));
+				new SplittedOut(firstOutChannel, firstSplittedOutAbsolutePosIndex)));
 	}
 
 	class SplittedOut extends ACMListIndexPositionHandler {
@@ -46,8 +44,8 @@ class ACMSplitInStreamDefinitionFilter {
 			this.absolutePosIndex = absolutePosIndex;
 			if (outputAudioChannel.getInputAudioStream().equals(inputAudioStream) == false) {
 				throw new IllegalArgumentException("Can't mix inputAudioStream sources ("
-				                                   + outputAudioChannel.getInputAudioStream()
-				                                   + "/" + inputAudioStream + ")");
+												   + outputAudioChannel.getInputAudioStream()
+												   + "/" + inputAudioStream + ")");
 			}
 		}
 
@@ -88,19 +86,19 @@ class ACMSplitInStreamDefinitionFilter {
 		final var inputLayoutChannelList = inputLayout.getChannelList();
 
 		final var selectedChannels = splittedOut.keySet().stream()
-		        .sorted()
-		        .map(InputAudioChannelSelector::getPosInStream)
-		        .map(inputLayoutChannelList::get)
-		        .collect(toUnmodifiableList());
+				.sorted()
+				.map(InputAudioChannelSelector::getPosInStream)
+				.map(inputLayoutChannelList::get)
+				.toList();
 
 		final var filter = new AudioFilterChannelsplit(inputLayout, selectedChannels).toFilter();
 		filter.getSourceBlocks().add(inputAudioStream.toMapReferenceAsInput());
 
 		filter.getDestBlocks().addAll(splittedOut.keySet().stream()
-		        .sorted()
-		        .map(splittedOut::get)
-		        .map(SplittedOut::toMapReferenceAsInput)
-		        .collect(toUnmodifiableList()));
+				.sorted()
+				.map(splittedOut::get)
+				.map(SplittedOut::toMapReferenceAsInput)
+				.toList());
 
 		return filter;
 	}

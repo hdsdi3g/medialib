@@ -17,16 +17,12 @@
 package tv.hd3g.fflauncher;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import tv.hd3g.fflauncher.about.FFAbout;
@@ -38,7 +34,7 @@ import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
-public class FFbase extends ConversionTool {
+public class FFbase extends ConversionTool implements SimpleSourceTraits {
 
 	private static final String IN_AUTOMATIC = "IN_AUTOMATIC_";
 	private static final String P_LOGLEVEL = "-loglevel";
@@ -117,46 +113,15 @@ public class FFbase extends ConversionTool {
 	 * Add -i parameter
 	 * Add now in current Parameters the new add var only if not exists (you should call fixIOParametredVars, if you have add manually vars in Parametres)
 	 */
-	public FFbase addSimpleInputSource(final String sourceName, final String... sourceOptions) {
-		requireNonNull(sourceName, "\"sourceName\" can't to be null");
-
-		if (sourceOptions == null) {
-			return addSimpleInputSource(sourceName, Collections.emptyList());
-		} else {
-			return addSimpleInputSource(sourceName, Arrays.stream(sourceOptions).collect(Collectors
-			        .toUnmodifiableList()));
-		}
-	}
-
-	/**
-	 * Define cmd var name like &lt;%IN_AUTOMATIC_n%&gt; with "n" the # of setted sources.
-	 * Add -i parameter
-	 * Add now in current Parameters the new add var only if not exists (you should call fixIOParametredVars, if you have add manually vars in Parametres)
-	 */
-	public FFbase addSimpleInputSource(final File file, final String... sourceOptions) {
-		requireNonNull(file, "\"file\" can't to be null");
-
-		if (sourceOptions == null) {
-			return addSimpleInputSource(file, Collections.emptyList());
-		} else {
-			return addSimpleInputSource(file, Arrays.stream(sourceOptions).collect(Collectors.toUnmodifiableList()));
-		}
-	}
-
-	/**
-	 * Define cmd var name like &lt;%IN_AUTOMATIC_n%&gt; with "n" the # of setted sources.
-	 * Add -i parameter
-	 * Add now in current Parameters the new add var only if not exists (you should call fixIOParametredVars, if you have add manually vars in Parametres)
-	 */
-	public FFbase addSimpleInputSource(final String sourceName, final List<String> sourceOptions) {
+	@Override
+	public void addSimpleInputSource(final String sourceName, final List<String> sourceOptions) {
 		requireNonNull(sourceName, "\"sourceName\" can't to be null");
 		requireNonNull(sourceOptions, "\"sourceOptions\" can't to be null");
 
 		final var varname = parameters.tagVar(IN_AUTOMATIC + inputSources.size());
 		addVarInParametersIfNotExists(varname);
 		addInputSource(sourceName, varname,
-		        Stream.concat(sourceOptions.stream(), Stream.of("-i")).collect(toUnmodifiableList()));
-		return this;
+				Stream.concat(sourceOptions.stream(), Stream.of("-i")).toList());
 	}
 
 	/**
@@ -164,15 +129,15 @@ public class FFbase extends ConversionTool {
 	 * Add -i parameter
 	 * Add now in current Parameters the new add var only if not exists (you should call fixIOParametredVars, if you have add manually vars in Parametres)
 	 */
-	public FFbase addSimpleInputSource(final File file, final List<String> sourceOptions) {
+	@Override
+	public void addSimpleInputSource(final File file, final List<String> sourceOptions) {
 		requireNonNull(file, "\"file\" can't to be null");
 		requireNonNull(sourceOptions, "\"sourceOptions\" can't to be null");
 
 		final var varname = parameters.tagVar(IN_AUTOMATIC + inputSources.size());
 		addVarInParametersIfNotExists(varname);
 		addInputSource(file, varname,
-		        Stream.concat(sourceOptions.stream(), Stream.of("-i")).collect(toUnmodifiableList()));
-		return this;
+				Stream.concat(sourceOptions.stream(), Stream.of("-i")).toList());
 	}
 
 	private void addVarInParametersIfNotExists(final String varname) {
@@ -188,12 +153,12 @@ public class FFbase extends ConversionTool {
 						parameters.addParameters(varname);
 					} else {
 						final var newList = List.of(
-						        parameters.getParameters().stream().limit(posInParams + 1L),
-						        Stream.of(varname),
-						        parameters.getParameters().stream().skip(posInParams + 1L))
-						        .stream()
-						        .flatMap(s -> s)
-						        .collect(toUnmodifiableList());
+								parameters.getParameters().stream().limit(posInParams + 1L),
+								Stream.of(varname),
+								parameters.getParameters().stream().skip(posInParams + 1L))
+								.stream()
+								.flatMap(s -> s)
+								.toList();
 						parameters.replaceParameters(newList);
 					}
 				} else {
@@ -243,20 +208,20 @@ public class FFbase extends ConversionTool {
 		getAbout(executableFinder);
 
 		final var badVideoFilters = FilterChains.merge(FilterChains.parse("-vf", this))
-		        .checkFiltersAvailability(about, FilterConnectorType.VIDEO);
+				.checkFiltersAvailability(about, FilterConnectorType.VIDEO);
 		final var badAudioFilters = FilterChains.merge(FilterChains.parse("-af", this))
-		        .checkFiltersAvailability(about, FilterConnectorType.AUDIO);
+				.checkFiltersAvailability(about, FilterConnectorType.AUDIO);
 		final var badGenericFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter", this))
-		        .checkFiltersAvailability(about);
+				.checkFiltersAvailability(about);
 		final var badGenericComplexFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter_complex", this))
-		        .checkFiltersAvailability(about);
+				.checkFiltersAvailability(about);
 
 		return Stream.of(badVideoFilters.stream(),
-		        badAudioFilters.stream(),
-		        badGenericFilterChainsLists.stream(),
-		        badGenericComplexFilterChainsLists.stream())
-		        .flatMap(s -> s)
-		        .collect(Collectors.toUnmodifiableList());
+				badAudioFilters.stream(),
+				badGenericFilterChainsLists.stream(),
+				badGenericComplexFilterChainsLists.stream())
+				.flatMap(s -> s)
+				.toList();
 	}
 
 	private static final Predicate<String> filterOutErrorLines = rawL -> {
@@ -264,19 +229,19 @@ public class FFbase extends ConversionTool {
 		if (l.startsWith("[")) {
 			return true;
 		} else if (l.startsWith("ffmpeg version")
-		           || l.startsWith("ffprobe version")
-		           || l.startsWith("built with")
-		           || l.startsWith("configuration:")
-		           || l.startsWith("Press [q]")) {
+				   || l.startsWith("ffprobe version")
+				   || l.startsWith("built with")
+				   || l.startsWith("configuration:")
+				   || l.startsWith("Press [q]")) {
 			return false;
 		} else if (l.startsWith("libavutil")
-		           || l.startsWith("libavcodec")
-		           || l.startsWith("libavformat")
-		           || l.startsWith("libavdevice")
-		           || l.startsWith("libavfilter")
-		           || l.startsWith("libswscale")
-		           || l.startsWith("libswresample")
-		           || l.startsWith("libpostproc")) {
+				   || l.startsWith("libavcodec")
+				   || l.startsWith("libavformat")
+				   || l.startsWith("libavdevice")
+				   || l.startsWith("libavfilter")
+				   || l.startsWith("libswscale")
+				   || l.startsWith("libswresample")
+				   || l.startsWith("libpostproc")) {
 			return false;
 		}
 		return true;

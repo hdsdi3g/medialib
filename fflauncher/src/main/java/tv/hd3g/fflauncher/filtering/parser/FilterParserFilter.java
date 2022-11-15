@@ -35,16 +35,16 @@ class FilterParserFilter extends FilterParserBaseChainFilter {
 
 	String getFilterName() {
 		return content.stream()
-		        .takeWhile(c -> c.isEquals() == false)
-		        .map(FilterParserChars::toString)
-		        .collect(Collectors.joining());
+				.takeWhile(c -> c.isEquals() == false)
+				.map(FilterParserChars::toString)
+				.collect(Collectors.joining());
 	}
 
 	List<FilterArgument> getFilterArguments() {
 		final var sub = content.stream()
-		        .dropWhile(c -> c.isEquals() == false)
-		        .skip(1)
-		        .collect(Collectors.toUnmodifiableList());
+				.dropWhile(c -> c.isEquals() == false)
+				.skip(1)
+				.toList();
 
 		final var entries = new ArrayList<FilterArgument>();
 		var currentParam = new ArrayList<FilterParserChars>();
