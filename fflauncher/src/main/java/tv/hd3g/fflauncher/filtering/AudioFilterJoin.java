@@ -26,7 +26,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#join
  */
-public class AudioFilterJoin {
+public class AudioFilterJoin implements FilterSupplier {
 
 	private final int inputs;
 	private final ChannelLayout channelLayout;
@@ -52,6 +52,7 @@ public class AudioFilterJoin {
 		}
 	}
 
+	@Override
 	public Filter toFilter() {
 		final var map = destChannelList.stream().map(channel -> {
 			final var dest = sourceByDestChannel.get(channel);

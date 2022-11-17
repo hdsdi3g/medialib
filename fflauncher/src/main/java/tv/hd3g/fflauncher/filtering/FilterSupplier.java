@@ -11,25 +11,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2020
+ * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
 package tv.hd3g.fflauncher.filtering;
 
-/**
- * See https://ffmpeg.org/ffmpeg-filters.html#amerge-1
- */
-public class AudioFilterAmerge implements FilterSupplier {
+public interface FilterSupplier {
 
-	private final int inputs;
-
-	public AudioFilterAmerge(final int inputs) {
-		this.inputs = inputs;
-	}
-
-	@Override
-	public Filter toFilter() {
-		return new Filter("amerge", new FilterArgument("inputs", inputs));
-	}
+	Filter toFilter();
 
 }

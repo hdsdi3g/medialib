@@ -26,7 +26,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#channelmap
  */
-public class AudioFilterChannelmap {
+public class AudioFilterChannelmap implements FilterSupplier {
 
 	private final ChannelLayout destChannelLayout;
 	private final Map<Channel, Channel> channelMap;
@@ -39,21 +39,22 @@ public class AudioFilterChannelmap {
 		this.channelMap = channelMap;
 		final var destChList = destChannelLayout.getChannelList();
 		final var invalidMapEntry = channelMap.keySet().stream()
-		        .anyMatch(c -> destChList.contains(c) == false);
+				.anyMatch(c -> destChList.contains(c) == false);
 		if (invalidMapEntry) {
 			throw new IllegalArgumentException("Invalid channelMap ("
-			                                   + channelMap + "), it contain missing channels from "
-			                                   + destChannelLayout);
+											   + channelMap + "), it contain missing channels from "
+											   + destChannelLayout);
 		}
 	}
 
+	@Override
 	public Filter toFilter() {
 		final var map = destChannelLayout.getChannelList().stream()
-		        .filter(channelMap::containsKey)
-		        .map(destCh -> channelMap.get(destCh) + "-" + destCh)
-		        .collect(joining("|"));
+				.filter(channelMap::containsKey)
+				.map(destCh -> channelMap.get(destCh) + "-" + destCh)
+				.collect(joining("|"));
 		return new Filter("channelmap",
-		        new FilterArgument("map", map),
-		        new FilterArgument("channel_layout", destChannelLayout));
+				new FilterArgument("map", map),
+				new FilterArgument("channel_layout", destChannelLayout));
 	}
 }

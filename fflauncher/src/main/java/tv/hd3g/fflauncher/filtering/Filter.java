@@ -23,15 +23,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import tv.hd3g.fflauncher.filtering.parser.FilterParser;
 import tv.hd3g.fflauncher.filtering.parser.FilterParserDefinition;
 
 /**
  * Full mutable, not thread safe.
  */
-public class Filter implements FilterParserDefinition {
+@EqualsAndHashCode
+@Getter
+public class Filter implements FilterParserDefinition, FilterAddArgumentTrait, FilterAddOptionalArgumentTrait {
 
 	private List<String> sourceBlocks;
 	private List<String> destBlocks;
@@ -84,54 +87,13 @@ public class Filter implements FilterParserDefinition {
 		}
 
 		var argumentItems = arguments.stream()
-		        .map(FilterArgument::toString)
-		        .collect(Collectors.joining(":"));
+				.map(FilterArgument::toString)
+				.collect(Collectors.joining(":"));
 		if (argumentItems.isEmpty() == false) {
 			argumentItems = "=" + argumentItems;
 		}
 
 		return sources + filterName + argumentItems + dest;
-	}
-
-	public List<String> getDestBlocks() {
-		return destBlocks;
-	}
-
-	public List<String> getSourceBlocks() {
-		return sourceBlocks;
-	}
-
-	/**
-	 * @return same as FFfilter.getTag()
-	 */
-	public String getFilterName() {
-		return filterName;
-	}
-
-	public List<FilterArgument> getArguments() {
-		return arguments;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(destBlocks, arguments, filterName, sourceBlocks);
-	}
-
-	@Override
-	public boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final var other = (Filter) obj;
-		return Objects.equals(destBlocks, other.destBlocks) && Objects.equals(arguments,
-		        other.arguments) && Objects.equals(filterName, other.filterName) && Objects.equals(
-		                sourceBlocks, other.sourceBlocks);
 	}
 
 	@Override
@@ -152,36 +114,6 @@ public class Filter implements FilterParserDefinition {
 	@Override
 	public void setArguments(final List<FilterArgument> arguments) {
 		this.arguments = requireNonNull(arguments);
-	}
-
-	public void addArgument(final String key, final String value) {
-		getArguments().add(new FilterArgument(key, value));
-	}
-
-	public void addArgument(final String key, final Number value) {
-		getArguments().add(new FilterArgument(key, value));
-	}
-
-	public void addArgument(final String key, final Enum<?> value) {
-		getArguments().add(new FilterArgument(key, value));
-	}
-
-	/**
-	 * map with toString
-	 */
-	public void addArgument(final String key, final Collection<?> values, final String join) {
-		getArguments().add(new FilterArgument(key, values, join));
-	}
-
-	/**
-	 * map with toString
-	 */
-	public void addArgument(final String key, final Stream<?> values, final String join) {
-		getArguments().add(new FilterArgument(key, values, join));
-	}
-
-	public void addArgument(final String key) {
-		getArguments().add(new FilterArgument(key));
 	}
 
 }

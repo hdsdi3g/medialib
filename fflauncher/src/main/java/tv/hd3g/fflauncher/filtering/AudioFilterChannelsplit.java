@@ -24,7 +24,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#channelsplit
  */
-public class AudioFilterChannelsplit {
+public class AudioFilterChannelsplit implements FilterSupplier {
 
 	private final ChannelLayout sourceChannelLayout;
 	private final List<Channel> sourceChannelList;
@@ -37,14 +37,15 @@ public class AudioFilterChannelsplit {
 
 		if (selectedChannels.stream().allMatch(sourceChannelList::contains) == false) {
 			throw new IllegalArgumentException("Invalid selected channel(s) from source. You can choose only on "
-			                                   + sourceChannelList);
+											   + sourceChannelList);
 		}
 	}
 
+	@Override
 	public Filter toFilter() {
 		return new Filter("channelsplit",
-		        new FilterArgument("channel_layout", sourceChannelLayout),
-		        new FilterArgument("channels", selectedChannels, "+"));
+				new FilterArgument("channel_layout", sourceChannelLayout),
+				new FilterArgument("channels", selectedChannels, "+"));
 	}
 
 }
