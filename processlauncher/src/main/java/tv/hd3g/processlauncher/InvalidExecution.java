@@ -23,16 +23,16 @@ public class InvalidExecution extends RuntimeException {
 	private final String stdErr;
 	private final transient ProcesslauncherLifecycle processlauncherLifecycle;
 
-	InvalidExecution(final ProcesslauncherLifecycle processlauncherLifecycle) {
+	public InvalidExecution(final ProcesslauncherLifecycle processlauncherLifecycle) {
 		super("Can't execute correcly " + processlauncherLifecycle.getFullCommandLine() + " ["
-		      + processlauncherLifecycle.getEndStatus() + "#" + processlauncherLifecycle.getExitCode() + "]");
+			  + processlauncherLifecycle.getEndStatus() + "#" + processlauncherLifecycle.getExitCode() + "]");
 		this.processlauncherLifecycle = processlauncherLifecycle;
 		stdErr = null;
 	}
 
-	InvalidExecution(final ProcesslauncherLifecycle processlauncherLifecycle, final String stdErr) {
+	public InvalidExecution(final ProcesslauncherLifecycle processlauncherLifecycle, final String stdErr) {
 		super("Can't execute correcly " + processlauncherLifecycle.getFullCommandLine() + " ["
-		      + processlauncherLifecycle.getEndStatus() + "#" + processlauncherLifecycle.getExitCode() + "]");
+			  + processlauncherLifecycle.getEndStatus() + "#" + processlauncherLifecycle.getExitCode() + "]");
 		this.processlauncherLifecycle = processlauncherLifecycle;
 		this.stdErr = stdErr;
 	}
@@ -48,9 +48,9 @@ public class InvalidExecution extends RuntimeException {
 	@Override
 	public String getMessage() {
 		return super.getMessage() + Optional.ofNullable(stdErr)
-		        .filter(s -> s.isEmpty() == false)
-		        .map(s -> " return \"" + s + "\"")
-		        .orElse("");
+				.filter(s -> s.isEmpty() == false)
+				.map(s -> " return \"" + s + "\"")
+				.orElse("");
 	}
 
 }

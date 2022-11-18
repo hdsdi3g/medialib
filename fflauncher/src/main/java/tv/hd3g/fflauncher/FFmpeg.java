@@ -34,6 +34,21 @@ public class FFmpeg extends FFbase implements InputGeneratorsTraits, HardwarePro
 		super(execName, parameters);
 	}
 
+	public FFmpeg setNostats() {
+		parameters.ifHasNotParameter(() -> parameters.prependParameters("-nostats"), "-nostats");
+		return this;
+	}
+
+	public FFmpeg setNoVideo() {
+		parameters.ifHasNotParameter(() -> parameters.prependParameters("-vn"), "-vn");
+		return this;
+	}
+
+	public FFmpeg setNoAudio() {
+		parameters.ifHasNotParameter(() -> parameters.prependParameters("-an"), "-an");
+		return this;
+	}
+
 	/**
 	 * Define cmd var name like &lt;%OUT_AUTOMATIC_n%&gt; with "n" the # of setted destination.
 	 * Add "-f container destination"

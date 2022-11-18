@@ -23,7 +23,7 @@ import lombok.Data;
  * No thread safe
  */
 @Data
-public class VideoFilterIdet implements FilterSupplier {
+public class VideoFilterIdet implements VideoFilterSupplier {
 
 	private float intlThres;
 	private float progThres;

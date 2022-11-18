@@ -19,7 +19,7 @@ package tv.hd3g.fflauncher.filtering;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#amerge-1
  */
-public class AudioFilterAmerge implements FilterSupplier {
+public class AudioFilterAmerge implements AudioFilterSupplier {
 
 	private final int inputs;
 

@@ -16,30 +16,6 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import static net.datafaker.Faker.instance;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import net.datafaker.Faker;
-import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
-
-class AudioFilterAMetadataTest {
-	static Faker faker = instance();
-
-	AudioFilterAMetadata f;
-	Mode mode;
-
-	@BeforeEach
-	void init() throws Exception {
-		mode = faker.options().option(Mode.class);
-		f = new AudioFilterAMetadata(mode);
-	}
-
-	@Test
-	void testToFilter() {
-		assertEquals("ametadata=mode=" + mode.toString(), f.toFilter().toString());
-	}
+public interface AudioFilterSupplier extends FilterSupplier {
 
 }

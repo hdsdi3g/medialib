@@ -19,7 +19,7 @@ package tv.hd3g.fflauncher.filtering;
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#volumedetect
  */
-public class AudioFilterVolumedetect implements FilterSupplier {
+public class AudioFilterVolumedetect implements AudioFilterSupplier {
 
 	@Override
 	public Filter toFilter() {

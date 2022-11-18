@@ -24,7 +24,7 @@ import lombok.Data;
  * lavfi.astats.*
  */
 @Data
-public class AudioFilterAstats implements FilterSupplier {
+public class AudioFilterAstats implements AudioFilterSupplier {
 
 	private int length;
 	private String metadata;

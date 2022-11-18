@@ -19,27 +19,39 @@ package tv.hd3g.fflauncher.filtering;
 import lombok.Data;
 
 /**
- * https://www.ffmpeg.org/ffmpeg-filters.html#blockdetect-1
+ * https://www.ffmpeg.org/ffmpeg-filters.html#blurdetect-1
  * No thread safe
  */
 @Data
-public class VideoFilterBlockdetect implements VideoFilterSupplier {
+public class VideoFilterBlurdetect implements VideoFilterSupplier {
 
-	private int periodMin;
-	private int periodMax;
+	private float low;
+	private float high;
+	private int radius;
+	private float blockPct;
+	private float blockWidth;
+	private float blockHeight;
 	private int planes;
 
-	public VideoFilterBlockdetect() {
-		periodMin = -1;
-		periodMax = -1;
+	public VideoFilterBlurdetect() {
+		low = -1;
+		high = -1;
+		radius = -1;
+		blockPct = -1;
+		blockWidth = -1;
+		blockHeight = -1;
 		planes = -1;
 	}
 
 	@Override
 	public Filter toFilter() {
-		final var f = new Filter("blockdetect");
-		f.addOptionalNonNegativeArgument("period_min", periodMin);
-		f.addOptionalNonNegativeArgument("period_max", periodMax);
+		final var f = new Filter("blurdetect");
+		f.addOptionalNonNegativeArgument("low", low);
+		f.addOptionalNonNegativeArgument("high", high);
+		f.addOptionalNonNegativeArgument("radius", radius);
+		f.addOptionalNonNegativeArgument("block_pct", blockPct);
+		f.addOptionalNonNegativeArgument("block_width", blockWidth);
+		f.addOptionalNonNegativeArgument("block_height", blockHeight);
 		f.addOptionalNonNegativeArgument("planes", planes);
 		return f;
 	}

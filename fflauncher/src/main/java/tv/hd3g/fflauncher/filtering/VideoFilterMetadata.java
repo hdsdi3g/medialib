@@ -16,71 +16,14 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import lombok.Data;
-
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#metadata_002c-ametadata
  * Non thread safe
  */
-@Data
-public class VideoFilterMetadata implements FilterSupplier {
-
-	public enum Mode {
-		SELECT,
-		ADD,
-		MODIFY,
-		DELETE,
-		PRINT;
-
-		@Override
-		public String toString() {
-			return name().toLowerCase();
-		}
-	}
-
-	public enum Function {
-		SAME_STR("same_str"),
-		STARTS_WITH("starts_with"),
-		LESS("less"),
-		EQUAL("equal"),
-		GREATER("greater"),
-		EXPR("expr"),
-		ENDS_WITH("ends_with");
-
-		private final String value;
-
-		Function(final String value) {
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return value;
-		}
-	}
-
-	private final Mode mode;
-	private String key;
-	private String value;
-	private Function function;
-	private String expr;
-	private String file;
-	private boolean direct;
+public class VideoFilterMetadata extends AbstractFilterMetadata implements VideoFilterSupplier {
 
 	public VideoFilterMetadata(final Mode mode) {
-		this.mode = mode;
-	}
-
-	@Override
-	public Filter toFilter() {
-		final var f = new Filter("metadata", new FilterArgument("mode", mode));
-		f.addOptionalArgument("key", key);
-		f.addOptionalArgument("value", value);
-		f.addOptionalArgument("function", function);
-		f.addOptionalArgument("expr", expr);
-		f.addOptionalArgument("file", file);
-		f.addOptionalArgument("direct", direct);
-		return f;
+		super(mode);
 	}
 
 }

@@ -17,7 +17,6 @@
 package tv.hd3g.processlauncher.cmdline;
 
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,67 +107,63 @@ public class SimpleParameters {
 	}
 
 	private final Function<String, Stream<ParameterArg>> filterAndTransformParameter = p -> p.trim()
-	        .chars()
-	        .mapToObj(i -> (char) i)// NOSONAR S1612
-	        .reduce(new ArrayList<ParameterArg>(), (list, chr) -> {
-		        if (list.isEmpty()) {
-			        /**
-			         * First entry
-			         */
-			        filterMapFirstEntry(list, chr);
-		        } else {
-			        /**
-			         * Get current entry
-			         */
-			        final var lastPos = list.size() - 1;
-			        final var lastEntry = list.get(lastPos);
+			.chars()
+			.mapToObj(i -> (char) i)// NOSONAR S1612
+			.reduce(new ArrayList<ParameterArg>(), (list, chr) -> {
+				if (list.isEmpty()) {
+					/**
+					 * First entry
+					 */
+					filterMapFirstEntry(list, chr);
+				} else {
+					/**
+					 * Get current entry
+					 */
+					final var lastPos = list.size() - 1;
+					final var lastEntry = list.get(lastPos);
 
-			        if (chr.equals(QUOTE)) {
-				        if (lastEntry.isInQuotes()) {
-					        /**
-					         * Switch off quote zone
-					         */
-					        list.add(new ParameterArg(false));
-				        } else {
-					        /**
-					         * Switch on quote zone
-					         */
-					        if (lastEntry.isEmpty()) {
-						        /**
-						         * Remove previous empty ParameterArg
-						         */
-						        list.remove(lastPos);
-					        }
-					        list.add(new ParameterArg(true));
-				        }
-			        } else if (chr.equals(SPACE)) {
-				        if (lastEntry.isInQuotes()) {
-					        /**
-					         * Add space in quotes
-					         */
-					        lastEntry.add(chr);
-				        } else {
-					        if (lastEntry.isEmpty() == false) {
-						        /**
-						         * New space -&gt; new ParameterArg (and ignore space)
-						         */
-						        list.add(new ParameterArg(false));
-					        } else {
-						        /**
-						         * Space between ParameterArgs -&gt; ignore it
-						         */
-					        }
-				        }
-			        } else {
-				        lastEntry.add(chr);
-			        }
-		        }
-		        return list;
-	        }, (list1, list2) -> {
-		        final var parameterArgs = new ArrayList<>(list1);
-		        parameterArgs.addAll(list2);
-		        return parameterArgs;
-	        }).stream();
+					if (chr.equals(QUOTE)) {
+						if (lastEntry.isInQuotes()) {
+							/**
+							 * Switch off quote zone
+							 */
+							list.add(new ParameterArg(false));
+						} else {
+							/**
+							 * Switch on quote zone
+							 */
+							if (lastEntry.isEmpty()) {
+								/**
+								 * Remove previous empty ParameterArg
+								 */
+								list.remove(lastPos);
+							}
+							list.add(new ParameterArg(true));
+						}
+					} else if (!chr.equals(SPACE) || lastEntry.isInQuotes()) {
+						/**
+						 * Add space in quotes
+						 */
+						lastEntry.add(chr);
+					} else {
+						if (lastEntry.isEmpty() == false) {
+							/**
+							 * New space -&gt; new ParameterArg (and ignore space)
+							 */
+							list.add(new ParameterArg(false));
+						} else {
+							/**
+							 * Space between ParameterArgs -&gt; ignore it
+							 */
+						}
+					}
+				}
+				return list;
+			}, (list1, list2) -> {
+				final var parameterArgs = new ArrayList<>(list1);
+				parameterArgs.addAll(list2);
+				return parameterArgs;
+			}).stream();
 
 	public SimpleParameters clear() {
 		log.trace("Clear all");
@@ -183,8 +178,8 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		return Arrays.stream(params)
-		        .filter(Objects::nonNull)
-		        .anyMatch(parameter -> parameters.contains(conformParameterKey(parameter)));
+				.filter(Objects::nonNull)
+				.anyMatch(parameter -> parameters.contains(conformParameterKey(parameter)));
 	}
 
 	/**
@@ -218,9 +213,9 @@ public class SimpleParameters {
 	public SimpleParameters addParameters(final String... params) {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 		addParameters(Arrays.stream(params)
-		        .filter(Objects::nonNull)
-		        .filter(not(String::isEmpty))
-		        .collect(toUnmodifiableList()));
+				.filter(Objects::nonNull)
+				.filter(not(String::isEmpty))
+				.toList());
 		return this;
 	}
 
@@ -232,9 +227,9 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		final var subList = params.stream()
-		        .filter(Objects::nonNull)
-		        .filter(not(String::isEmpty))
-		        .collect(toUnmodifiableList());
+				.filter(Objects::nonNull)
+				.filter(not(String::isEmpty))
+				.toList();
 		parameters.addAll(subList);
 
 		log.trace(LOG_ADD_PARAMETERS, () -> subList);
@@ -249,9 +244,9 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		final var subList = filterAndTransformParameter.apply(params)
-		        .map(ParameterArg::toString)
-		        .filter(not(String::isEmpty))
-		        .collect(toUnmodifiableList());
+				.map(ParameterArg::toString)
+				.filter(not(String::isEmpty))
+				.toList();
 
 		parameters.addAll(subList);
 
@@ -266,9 +261,9 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		final var newList = Stream.concat(
-		        params.stream().filter(Objects::nonNull),
-		        parameters.stream())
-		        .collect(toUnmodifiableList());
+				params.stream().filter(Objects::nonNull),
+				parameters.stream())
+				.toList();
 		replaceParameters(newList);
 
 		log.trace("Prepend parameters: {}", () -> params);
@@ -282,8 +277,8 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		prependParameters(Arrays.stream(params)
-		        .filter(Objects::nonNull)
-		        .collect(toUnmodifiableList()));
+				.filter(Objects::nonNull)
+				.toList());
 		return this;
 	}
 
@@ -294,9 +289,9 @@ public class SimpleParameters {
 		Objects.requireNonNull(params, PARAMS_CAN_T_TO_BE_NULL);
 
 		prependParameters(
-		        filterAndTransformParameter.apply(params)
-		                .map(ParameterArg::toString)
-		                .collect(toUnmodifiableList()));
+				filterAndTransformParameter.apply(params)
+						.map(ParameterArg::toString)
+						.toList());
 		return this;
 	}
 
@@ -307,7 +302,7 @@ public class SimpleParameters {
 
 	public static final List<Character> MUST_ESCAPE = List.of('\\', '$', '"');
 	public static final List<Character> MUST_SURROUND_QUOTE = List.of(' ', '+', ';', '&', '\'', '#', '|',
-	        '(', ')', '[', ']', '{', '}', '*', '?', '/', '.', '<', '>');
+			'(', ')', '[', ']', '{', '}', '*', '?', '/', '.', '<', '>');
 
 	/**
 	 * Mostly in Linux/Bash mode.
@@ -315,21 +310,21 @@ public class SimpleParameters {
 	 */
 	public String exportToExternalCommandLine(final String processExecFile) {
 		return processExecFile + " " + parameters.stream()
-		        .map(arg -> {
-			        var escapedChr = arg;
-			        for (final var chr : MUST_ESCAPE) {
-				        escapedChr = escapedChr.replace("" + chr, "\\" + chr);
-			        }
-			        return escapedChr;
-		        })
-		        .map(arg -> {
-			        if (MUST_SURROUND_QUOTE.stream()
-			                .anyMatch(chr -> arg.indexOf(chr) > -1)) {
-				        return "\"" + arg + "\"";
-			        }
-			        return arg;
-		        })
-		        .collect(Collectors.joining(" "));
+				.map(arg -> {
+					var escapedChr = arg;
+					for (final var chr : MUST_ESCAPE) {
+						escapedChr = escapedChr.replace("" + chr, "\\" + chr);
+					}
+					return escapedChr;
+				})
+				.map(arg -> {
+					if (MUST_SURROUND_QUOTE.stream()
+							.anyMatch(chr -> arg.indexOf(chr) > -1)) {
+						return "\"" + arg + "\"";
+					}
+					return arg;
+				})
+				.collect(Collectors.joining(" "));
 	}
 
 	/**
@@ -501,9 +496,9 @@ public class SimpleParameters {
 	 * @see getAllArgKeyValues()
 	 */
 	public void compareAndAlter(final SimpleParameters toCompare,
-	                            final ArgValueChoice argValueChoice,
-	                            final boolean removeActualMissing,
-	                            final boolean addComparedMissing) {
+								final ArgValueChoice argValueChoice,
+								final boolean removeActualMissing,
+								final boolean addComparedMissing) {
 		final var allCurrentArgsKeyValues = getAllArgKeyValues();
 		final var allComparedArgsKeyValues = toCompare.getAllArgKeyValues();
 
@@ -521,8 +516,8 @@ public class SimpleParameters {
 			if (computedKeys.contains(actualArg) == false) {
 				if (allComparedArgsKeyValues.containsKey(actualArg)) {
 					selectedValues = argValueChoice.choose(actualArg,
-					        allCurrentArgsKeyValues.get(actualArg),
-					        allComparedArgsKeyValues.get(actualArg));
+							allCurrentArgsKeyValues.get(actualArg),
+							allComparedArgsKeyValues.get(actualArg));
 				} else if (removeActualMissing == false) {
 					selectedValues = allCurrentArgsKeyValues.get(actualArg);
 				}
@@ -550,20 +545,41 @@ public class SimpleParameters {
 
 		if (addComparedMissing) {
 			allComparedArgsKeyValues.entrySet().stream()
-			        .filter(entry -> computedKeys.contains(entry.getKey()) == false)
-			        .forEach(entry -> {
-				        if (entry.getValue().isEmpty()) {
-					        newParameters.add(entry.getKey());
-				        } else {
-					        entry.getValue().forEach(v -> {
-						        newParameters.add(entry.getKey());
-						        newParameters.add(v);
-					        });
-				        }
-			        });
+					.filter(entry -> computedKeys.contains(entry.getKey()) == false)
+					.forEach(entry -> {
+						if (entry.getValue().isEmpty()) {
+							newParameters.add(entry.getKey());
+						} else {
+							entry.getValue().forEach(v -> {
+								newParameters.add(entry.getKey());
+								newParameters.add(v);
+							});
+						}
+					});
 		}
 
 		replaceParameters(newParameters);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(parameterKeysStartsWith, parameters);
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final var other = (SimpleParameters) obj;
+		return Objects.equals(parameterKeysStartsWith, other.parameterKeysStartsWith)
+			   && Objects.equals(parameters, other.parameters);
 	}
 
 }

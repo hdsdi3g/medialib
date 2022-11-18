@@ -14,19 +14,8 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
-package tv.hd3g.fflauncher.filtering;
+package tv.hd3g.fflauncher.resultparser;
 
-public class AudioFilterAMetadata extends AbstractFilterMetadata implements AudioFilterSupplier {
-
-	public AudioFilterAMetadata(final Mode mode) {
-		super(mode);
-	}
-
-	@Override
-	public Filter toFilter() {
-		final var f = super.toFilter();
-		f.setFilterName("ametadata");
-		return f;
-	}
+public record Stereo<T> (T left, T right) {
 
 }

@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import net.datafaker.Faker;
-import tv.hd3g.fflauncher.filtering.VideoFilterMetadata.Function;
-import tv.hd3g.fflauncher.filtering.VideoFilterMetadata.Mode;
+import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Function;
+import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
 
 class VideoFilterMetadataTest {
 	static Faker faker = instance();

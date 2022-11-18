@@ -67,4 +67,12 @@ public class LineEntry {
 		}
 	}
 
+	public static LineEntry makeStdOut(final String line, final ProcesslauncherLifecycle source) {
+		return new LineEntry(System.currentTimeMillis(), line, false, source);
+	}
+
+	public static LineEntry makeStdErr(final String line, final ProcesslauncherLifecycle source) {
+		return new LineEntry(System.currentTimeMillis(), line, true, source);
+	}
+
 }

@@ -22,7 +22,7 @@ import lombok.Data;
  * https://ffmpeg.org/ffmpeg-filters.html#siti-1
  */
 @Data
-public class VideoFilterSiti implements FilterSupplier {
+public class VideoFilterSiti implements VideoFilterSupplier {
 
 	private boolean printSummary;
 

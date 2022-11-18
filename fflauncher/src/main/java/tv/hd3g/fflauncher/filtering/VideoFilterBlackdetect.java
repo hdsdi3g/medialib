@@ -24,7 +24,7 @@ import lombok.Data;
  * https://www.ffmpeg.org/ffmpeg-filters.html#blackdetect
  */
 @Data
-public class VideoFilterBlackdetect implements FilterSupplier {
+public class VideoFilterBlackdetect implements VideoFilterSupplier {
 
 	private Duration blackMinDuration;
 	private float pictureBlackRatioTh;

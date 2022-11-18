@@ -24,7 +24,7 @@ import lombok.Data;
  * https://www.ffmpeg.org/ffmpeg-filters.html#phasing-detection
  */
 @Data
-public class AudioFilterAPhasemeter implements FilterSupplier {
+public class AudioFilterAPhasemeter implements AudioFilterSupplier {
 
 	private boolean phasing;
 	private float tolerance;

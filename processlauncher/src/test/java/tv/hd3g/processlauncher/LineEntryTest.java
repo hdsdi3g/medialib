@@ -123,4 +123,25 @@ class LineEntryTest {
 		verify(source, Mockito.times(2)).getLauncher();
 		verify(launcher, Mockito.times(2)).getExecutableName();
 	}
+
+	@Test
+	void testMakeStdOut() {
+		lineEntry = LineEntry.makeStdOut(line, source);
+		assertTrue(lineEntry.getDate() > 0);
+		assertTrue(lineEntry.getDate() < System.currentTimeMillis() + 100);
+		assertEquals(line, lineEntry.getLine());
+		assertEquals(source, lineEntry.getSource());
+		assertFalse(lineEntry.isStdErr());
+	}
+
+	@Test
+	void testMakeStdErr() {
+		lineEntry = LineEntry.makeStdErr(line, source);
+		assertTrue(lineEntry.getDate() > 0);
+		assertTrue(lineEntry.getDate() < System.currentTimeMillis() + 100);
+		assertEquals(line, lineEntry.getLine());
+		assertEquals(source, lineEntry.getSource());
+		assertTrue(lineEntry.isStdErr());
+	}
+
 }

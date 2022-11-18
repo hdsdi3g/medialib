@@ -26,7 +26,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#join
  */
-public class AudioFilterJoin implements FilterSupplier {
+public class AudioFilterJoin implements AudioFilterSupplier {
 
 	private final int inputs;
 	private final ChannelLayout channelLayout;
@@ -38,8 +38,8 @@ public class AudioFilterJoin implements FilterSupplier {
 	 *        input_idx is relative by Filter sources !
 	 */
 	public AudioFilterJoin(final int inputs,
-	                       final ChannelLayout channelLayout,
-	                       final Map<Channel, String> sourceByDestChannel) {
+						   final ChannelLayout channelLayout,
+						   final Map<Channel, String> sourceByDestChannel) {
 		this.inputs = inputs;
 		this.channelLayout = channelLayout;
 		this.sourceByDestChannel = sourceByDestChannel;
@@ -60,9 +60,9 @@ public class AudioFilterJoin implements FilterSupplier {
 		}).collect(Collectors.joining("|"));
 
 		return new Filter("join",
-		        new FilterArgument("inputs", inputs),
-		        new FilterArgument("channel_layout", channelLayout),
-		        new FilterArgument("map", map));
+				new FilterArgument("inputs", inputs),
+				new FilterArgument("channel_layout", channelLayout),
+				new FilterArgument("map", map));
 	}
 
 }

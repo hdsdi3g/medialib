@@ -1,0 +1,38 @@
+[Parsed_ebur128_0 @ 0x55c6a78b3c80] Summary:
+
+  Integrated loudness:
+    I:         -70.0 LUFS
+    Threshold:   0.0 LUFS
+
+  Loudness range:
+    LRA:         0.0 LU
+    Threshold:   0.0 LUFS
+    LRA low:     0.0 LUFS
+    LRA high:    0.0 LUFS
+
+  Sample peak:
+    Peak:       -inf dBFS
+
+  True peak:
+    Peak:       -inf dBFS
+[Parsed_ebur128_0 @ 0x55c6a78d7580] t: 0.106979   TARGET:-23 LUFS    M:-120.7 S:-120.7     I: -70.0 LUFS       LRA:   0.0 LU  SPK: -35.2 -35.3 dBFS  FTPK: -35.2 -35.3 dBFS  TPK: -35.2 -35.3 dBFS
+[Parsed_ebur128_0 @ 0x55c6a78d7580] t: 299.807    TARGET:-23 LUFS    M: -14.9 S: -19.4     I: -17.6 LUFS       LRA:   6.5 LU  SPK:  -1.4  -1.4 dBFS  FTPK:  -6.7  -6.7 dBFS  TPK:  -1.4  -1.4 dBFS
+[Parsed_ebur128_0 @ 0x55c6a78d7580] t: 299.907    TARGET:-23 LUFS    M: -14.4 S: -19.1     I: -17.6 LUFS       LRA:   6.5 LU  SPK:  -1.4  -1.4 dBFS  FTPK:  -6.7  -6.7 dBFS  TPK:  -1.4  -1.4 dBFS
+[Parsed_ebur128_0 @ 0x55c6a78d7580] Summary:
+
+  Integrated loudness:
+    I:         -17.6 LUFS
+    Threshold: -28.2 LUFS
+
+  Loudness range:
+    LRA:         6.5 LU
+    Threshold: -38.2 LUFS
+    LRA low:   -21.6 LUFS
+    LRA high:  -15.1 LUFS
+
+  Sample peak:
+    Peak:       -1.4 dBFS
+
+  True peak:
+    Peak:       -1.5 dBFS
+[Parsed_ebur128_0 @ 0x55c6a78d7580] t: 299.907    TARGET:-23 LUFS    M: -14.4 S: -19.1     I: -17.6 LUFS       LRA:   6.5 LU  SPK:  -1.4  -1.4 dBFS  FTPK:  -6.7  -6.7 dBFS  TPK:  -1.4  -1.4 dBFS

@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -68,7 +69,7 @@ class ExecutableToolTest {
 	}
 
 	@Test
-	void testExecute() throws InterruptedException, ExecutionException, TimeoutException {
+	void testExecute_logger() throws InterruptedException, ExecutionException, TimeoutException {
 		final var result = exec.execute(executableFinder);
 
 		final var capturedStdOutErrTextRetention = result.getTextRetention();
@@ -78,6 +79,15 @@ class ExecutableToolTest {
 		assertEquals(capturedStdOutErrTextRetention, result.checkExecutionGetText());
 		assertTrue(capturedStdOutErrTextRetention.getStdouterrLines(false)
 		        .anyMatch(line -> line.contains("version")));
+	}
+
+	@Test
+	void testExecute_stdouterrlogger() throws InterruptedException, ExecutionException, TimeoutException {
+		final var lines = new ArrayList<LineEntry>();
+		final var result = exec.execute(executableFinder, lines::add);
+		assertNotNull(result);
+		result.waitForEnd();
+		assertTrue(lines.stream().map(LineEntry::getLine).anyMatch(line -> line.contains("version")));
 	}
 
 	@Test

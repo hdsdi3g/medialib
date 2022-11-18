@@ -28,7 +28,7 @@ import lombok.Data;
  * No thread safe
  */
 @Data
-public class VideoFilterFreezedetect implements FilterSupplier {
+public class VideoFilterFreezedetect implements VideoFilterSupplier {
 
 	private float noiseToleranceRatio;
 	private int noiseToleranceDb;

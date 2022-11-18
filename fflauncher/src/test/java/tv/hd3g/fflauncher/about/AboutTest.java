@@ -55,14 +55,14 @@ class AboutTest {
 		assertEquals("gcc 4.9.2 (Debian 4.9.2-10)", v.builtWith);
 
 		Arrays.stream(
-		        "gpl version3 nonfree yasm libmp3lame libbluray libopenjpeg libtheora libvorbis libtwolame libvpx libxvid libgsm libopencore-amrnb libopencore-amrwb libopus librtmp libschroedinger libsmbclient libspeex libssh libvo-amrwbenc libwavpack libwebp libzvbi libx264 libx265 libsmbclient libssh"
-		                .split(" ")).forEach(cf -> {
-			                assertTrue(v.configuration.contains(cf), "Missing " + cf);
-		                });
+				"gpl version3 nonfree yasm libmp3lame libbluray libopenjpeg libtheora libvorbis libtwolame libvpx libxvid libgsm libopencore-amrnb libopencore-amrwb libopus librtmp libschroedinger libsmbclient libspeex libssh libvo-amrwbenc libwavpack libwebp libzvbi libx264 libx265 libsmbclient libssh"
+						.split(" ")).forEach(cf -> {
+							assertTrue(v.configuration.contains(cf), "Missing " + cf);
+						});
 
 		assertEquals(
-		        "--enable-gpl --enable-version3 --enable-nonfree --as=yasm --enable-libmp3lame --enable-libbluray --enable-libopenjpeg --enable-libtheora --enable-libvorbis --enable-libtwolame --enable-libvpx --enable-libxvid --enable-libgsm --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libschroedinger --enable-libsmbclient --enable-libspeex --enable-libssh --enable-libvo-amrwbenc --enable-libwavpack --enable-libwebp --enable-libzvbi --enable-libx264 --enable-libx265 --enable-libsmbclient --enable-libssh",
-		        v.rawConfiguration);
+				"--enable-gpl --enable-version3 --enable-nonfree --as=yasm --enable-libmp3lame --enable-libbluray --enable-libopenjpeg --enable-libtheora --enable-libvorbis --enable-libtwolame --enable-libvpx --enable-libxvid --enable-libgsm --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libschroedinger --enable-libsmbclient --enable-libspeex --enable-libssh --enable-libvo-amrwbenc --enable-libwavpack --enable-libwebp --enable-libzvbi --enable-libx264 --enable-libx265 --enable-libsmbclient --enable-libssh",
+				v.rawConfiguration);
 		assertEquals("55. 58.100 / 55. 58.100", v.libavutilVersion);
 		assertEquals("57. 89.100 / 57. 89.100", v.libavcodecVersion);
 		assertEquals("57. 71.100 / 57. 71.100", v.libavformatVersion);
@@ -78,9 +78,9 @@ class AboutTest {
 		final var list = FFAboutCodec.parse(readLinesFromResource("test-codecs.txt"));
 
 		final var test1 = list.stream().filter(c -> (c.type == CodecType.AUDIO & c.encodingSupported
-		                                             & c.decodingSupported & c.lossyCompression
-		                                             & c.name.equals("adpcm_g722"))).collect(Collectors
-		                                                     .toUnmodifiableList());
+													 & c.decodingSupported & c.lossyCompression
+													 & c.name.equals("adpcm_g722"))).collect(Collectors
+															 .toUnmodifiableList());
 
 		assertEquals(1, test1.size());
 		assertEquals("G.722 ADPCM", test1.get(0).longName);
@@ -89,8 +89,8 @@ class AboutTest {
 		assertEquals(7, list.stream().filter(c -> (c.type == CodecType.DATA)).count());
 
 		assertEquals(10, list.stream().filter(c -> (c.encodingSupported == false & c.decodingSupported == false
-		                                            & c.losslessCompression == false
-		                                            && c.lossyCompression == false)).count());
+													& c.losslessCompression == false
+													&& c.lossyCompression == false)).count());
 
 		final var t = list.stream().filter(c -> c.name.equals("dirac")).findFirst().get();
 
@@ -112,7 +112,7 @@ class AboutTest {
 		assertEquals(326, list.size());
 
 		final var test1 = list.stream().filter(f -> (f.muxing == false & f.demuxing == true & f.name.equals(
-		        "bfi"))).collect(Collectors.toUnmodifiableList());
+				"bfi"))).collect(Collectors.toUnmodifiableList());
 
 		assertEquals(1, test1.size());
 		assertEquals("Brute Force & Ignorance", test1.get(0).longName);
@@ -174,16 +174,16 @@ class AboutTest {
 		assertTrue(list.stream().anyMatch(f -> f.getTag().equals("afftfilt")));
 
 		assertEquals(3, list.stream().filter(f -> (f.getSourceConnectorsCount() == 2
-		                                           && f.getSourceConnector() == FilterConnectorType.AUDIO)).count());
+												   && f.getSourceConnector() == FilterConnectorType.AUDIO)).count());
 
 		assertEquals(1, list.stream().filter(f -> (f.getSourceConnectorsCount() == 2
-		                                           && f.getSourceConnector() == FilterConnectorType.VIDEO
-		                                           && f.getDestConnectorsCount() == 2
-		                                           && f.getDestConnector() == FilterConnectorType.VIDEO)).filter(f -> f
-		                                                   .getTag()
-		                                                   .equals("scale2ref")).filter(f -> f.getLongName().equals(
-		                                                           "Scale the input video size and/or convert the image format to the given reference."))
-		        .count());
+												   && f.getSourceConnector() == FilterConnectorType.VIDEO
+												   && f.getDestConnectorsCount() == 2
+												   && f.getDestConnector() == FilterConnectorType.VIDEO)).filter(f -> f
+														   .getTag()
+														   .equals("scale2ref")).filter(f -> f.getLongName().equals(
+																   "Scale the input video size and/or convert the image format to the given reference."))
+				.count());
 
 		assertTrue(list.get(0).toString().startsWith(list.get(0).getLongName()));
 
@@ -192,26 +192,26 @@ class AboutTest {
 	@Test
 	void testPixelFormats() {
 		final var list = FFAboutPixelFormat.parsePixelsFormats(readLinesFromResource(
-		        "test-pixelsformats.txt"));
+				"test-pixelsformats.txt"));
 
 		assertEquals(207, list.size());
 
 		assertEquals(1, list.stream().filter(pf -> (pf.tag.equals("pal8") && pf.supportedInput
-		                                            && pf.supportedOutput == false && pf.paletted
-		                                            && pf.nbComponents == 1 && pf.bitsPerPixel == 8
-		                                            && pf.bitDepths == BitDepths_8)).count());
+													&& pf.supportedOutput == false && pf.paletted
+													&& pf.nbComponents == 1 && pf.bitsPerPixel == 8
+													&& pf.bitDepths == BitDepths_8)).count());
 
 		assertEquals(1, list.stream().filter(pf -> (pf.tag.equals("yuv444p16le") && pf.supportedInput
-		                                            && pf.supportedOutput && pf.paletted == false
-		                                            && pf.hardwareAccelerated == false && pf.nbComponents == 3
-		                                            && pf.bitsPerPixel == 48
-		                                            && pf.bitDepths == BitDepths_16_16_16)).count());
+													&& pf.supportedOutput && pf.paletted == false
+													&& pf.hardwareAccelerated == false && pf.nbComponents == 3
+													&& pf.bitsPerPixel == 48
+													&& pf.bitDepths == BitDepths_16_16_16)).count());
 
 		assertEquals(1, list.stream().filter(pf -> (pf.tag.equals("fake") && pf.supportedInput
-		                                            && pf.supportedOutput && pf.paletted == false
-		                                            && pf.hardwareAccelerated == false && pf.nbComponents == 1
-		                                            && pf.bitsPerPixel == 1
-		                                            && pf.bitDepths == Unknown)).count());
+													&& pf.supportedOutput && pf.paletted == false
+													&& pf.hardwareAccelerated == false && pf.nbComponents == 1
+													&& pf.bitsPerPixel == 1
+													&& pf.bitDepths == Unknown)).count());
 	}
 
 	@Test

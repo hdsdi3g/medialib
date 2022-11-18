@@ -24,7 +24,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#channelsplit
  */
-public class AudioFilterChannelsplit implements FilterSupplier {
+public class AudioFilterChannelsplit implements AudioFilterSupplier {
 
 	private final ChannelLayout sourceChannelLayout;
 	private final List<Channel> sourceChannelList;

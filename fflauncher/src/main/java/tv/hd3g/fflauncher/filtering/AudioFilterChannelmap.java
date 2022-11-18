@@ -26,7 +26,7 @@ import tv.hd3g.fflauncher.enums.ChannelLayout;
 /**
  * See https://ffmpeg.org/ffmpeg-filters.html#channelmap
  */
-public class AudioFilterChannelmap implements FilterSupplier {
+public class AudioFilterChannelmap implements AudioFilterSupplier {
 
 	private final ChannelLayout destChannelLayout;
 	private final Map<Channel, Channel> channelMap;

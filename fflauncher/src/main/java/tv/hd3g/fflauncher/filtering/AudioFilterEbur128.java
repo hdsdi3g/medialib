@@ -26,7 +26,7 @@ import lombok.Data;
  * https://www.ffmpeg.org/ffmpeg-filters.html#ebur128-1
  */
 @Data
-public class AudioFilterEbur128 implements FilterSupplier {
+public class AudioFilterEbur128 implements AudioFilterSupplier {
 
 	public enum Framelog {
 		QUIET,

@@ -23,7 +23,7 @@ import lombok.Data;
  * No thread safe
  */
 @Data
-public class VideoFilterMEstimate implements FilterSupplier {
+public class VideoFilterMEstimate implements VideoFilterSupplier {
 
 	public enum Method {
 

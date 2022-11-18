@@ -27,7 +27,7 @@ import lombok.Data;
  * lavfi.silence_end/lavfi.silence_end.X
  */
 @Data
-public class AudioFilterSilencedetect implements FilterSupplier {
+public class AudioFilterSilencedetect implements AudioFilterSupplier {
 
 	private boolean mono;
 	private Duration duration;

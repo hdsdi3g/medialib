@@ -16,30 +16,22 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import static net.datafaker.Faker.instance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import net.datafaker.Faker;
-import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
-
-class AudioFilterAMetadataTest {
-	static Faker faker = instance();
-
-	AudioFilterAMetadata f;
-	Mode mode;
+class VideoFilterBlurdetectTest {
+	VideoFilterBlurdetect f;
 
 	@BeforeEach
 	void init() throws Exception {
-		mode = faker.options().option(Mode.class);
-		f = new AudioFilterAMetadata(mode);
+		f = new VideoFilterBlurdetect();
 	}
 
 	@Test
-	void testToFilter() {
-		assertEquals("ametadata=mode=" + mode.toString(), f.toFilter().toString());
+	void test() {
+		assertEquals("blurdetect", f.toFilter().toString());
 	}
 
 }

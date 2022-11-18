@@ -23,7 +23,7 @@ import lombok.Data;
  * No thread safe
  */
 @Data
-public class VideoFilterCropdetect implements FilterSupplier {
+public class VideoFilterCropdetect implements VideoFilterSupplier {
 
 	public enum Mode {
 		BLACK,
