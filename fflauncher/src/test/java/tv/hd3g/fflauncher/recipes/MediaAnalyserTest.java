@@ -48,6 +48,8 @@ import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.Filter;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.progress.ProgressCallback;
+import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -57,6 +59,8 @@ class MediaAnalyserTest {
 	MediaAnalyser ma;
 
 	String execName;
+	String filterName;
+
 	@Mock
 	ExecutableFinder executableFinder;
 	@Mock
@@ -74,7 +78,10 @@ class MediaAnalyserTest {
 	AudioFilterAMetadata afMt;
 	@Mock
 	Filter filter;
-	String filterName;
+	@Mock
+	ProgressListener progressListener;
+	@Mock
+	ProgressCallback progressCallback;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -100,7 +107,9 @@ class MediaAnalyserTest {
 				af,
 				vfMt,
 				afMt,
-				filter);
+				filter,
+				progressListener,
+				progressCallback);
 	}
 
 	@Test
@@ -125,7 +134,24 @@ class MediaAnalyserTest {
 	}
 
 	@Test
+	void testSetProgress() {
+		assertThrows(IllegalArgumentException.class, () -> ma.setProgress(null, progressCallback));
+		assertThrows(IllegalArgumentException.class, () -> ma.setProgress(progressListener, null));
+		ma.setProgress(null, null);
+		ma.setProgress(progressListener, progressCallback);
+	}
+
+	@Test
 	void testCreateFFmpeg() {
+		final var ffmpeg = ma.createFFmpeg();
+		assertNotNull(ffmpeg);
+		assertEquals(execName, ffmpeg.getExecutableName());
+		assertEquals(new Parameters(), ffmpeg.getInternalParameters());
+	}
+
+	@Test
+	void testCreateFFmpeg_WithProgress() {
+		ma.setProgress(progressListener, progressCallback);
 		final var ffmpeg = ma.createFFmpeg();
 		assertNotNull(ffmpeg);
 		assertEquals(execName, ffmpeg.getExecutableName());

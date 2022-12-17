@@ -32,6 +32,8 @@ import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.progress.ProgressCallback;
+import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -41,6 +43,8 @@ public class MediaAnalyser implements AddFiltersTraits {
 	private final FFAbout about;
 	private final List<AudioFilterSupplier> audioFilters;
 	private final List<VideoFilterSupplier> videoFilters;
+	private ProgressListener progressListener;
+	private ProgressCallback progressCallback;
 
 	public MediaAnalyser(final String execName, final ExecutableFinder executableFinder, final FFAbout about) {
 		this.execName = Objects.requireNonNull(execName);
@@ -70,7 +74,13 @@ public class MediaAnalyser implements AddFiltersTraits {
 		return videoFilters;
 	}
 
-	// TODO2 add progress
+	public void setProgress(final ProgressListener progressListener, final ProgressCallback progressCallback) {
+		this.progressListener = progressListener;
+		this.progressCallback = progressCallback;
+		if (progressListener == null ^ progressCallback == null) {
+			throw new IllegalArgumentException("You must set or reset both listener and callback");
+		}
+	}
 
 	/**
 	 * @return true if current ffmpeg can manage this filter. Else it don't be added on filter list.
@@ -100,6 +110,14 @@ public class MediaAnalyser implements AddFiltersTraits {
 			return true;
 		}
 		return false;
+	}
+
+	public FFmpeg createFFmpeg() {
+		final var ffmpeg = new FFmpeg(execName, new Parameters());
+		if (progressListener != null) {
+			ffmpeg.setProgressListener(progressListener, progressCallback);
+		}
+		return ffmpeg;
 	}
 
 	/**
@@ -145,10 +163,6 @@ public class MediaAnalyser implements AddFiltersTraits {
 		}
 
 		return unmodifiableList(result);
-	}
-
-	public FFmpeg createFFmpeg() {
-		return new FFmpeg(execName, new Parameters());
 	}
 
 }

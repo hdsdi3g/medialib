@@ -23,19 +23,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
@@ -48,8 +54,15 @@ class ExecutableToolTest {
 	Parameters parameters;
 	ExecutableTool exec;
 
+	@Mock
+	Consumer<ProcesslauncherBuilder> consumerLauncher;
+	@Captor
+	ArgumentCaptor<ProcesslauncherBuilder> launcherCaptor;
+
 	@BeforeEach
 	void init() throws Exception {
+		openMocks(this).close();
+
 		execName = "java";
 		executableFinder = new ExecutableFinder();
 		parameters = Parameters.of("-version");
@@ -65,7 +78,20 @@ class ExecutableToolTest {
 			public Parameters getReadyToRunParameters() {
 				return parameters;
 			}
+
+			@Override
+			public Consumer<ProcesslauncherBuilder> beforeExecute() {
+				return consumerLauncher;
+			}
 		};
+	}
+
+	@AfterEach
+	void ends() {
+		verify(consumerLauncher, times(1)).accept(launcherCaptor.capture());
+		assertNotNull(launcherCaptor.getValue());
+
+		verifyNoMoreInteractions(consumerLauncher);
 	}
 
 	@Test

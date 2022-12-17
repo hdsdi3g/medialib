@@ -40,6 +40,11 @@ public interface ExecutableTool {
 	default void beforeRun(final ProcesslauncherBuilder processBuilder) {
 	}
 
+	default Consumer<ProcesslauncherBuilder> beforeExecute() {
+		return p -> {
+		};
+	}
+
 	/**
 	 * No filter by default.
 	 * @return A filter for the error capture post-process, applied on standard error outputed by process.
@@ -56,6 +61,7 @@ public interface ExecutableTool {
 	default ExecutableToolRunning execute(final ExecutableFinder executableFinder,
 										  final Logger log,
 										  final Function<LineEntry, Level> levelMapper) {
+		final var execConsumerBuilder = beforeExecute();
 		final var executableName = getExecutableName();
 		try {
 			final var cmd = new CommandLine(executableName, getReadyToRunParameters(), executableFinder);
@@ -78,6 +84,10 @@ public interface ExecutableTool {
 				textRetention = new CapturedStdOutErrTextRetention();
 				capture.addObserver(textRetention);
 			}
+
+			if (execConsumerBuilder != null) {
+				execConsumerBuilder.accept(builder);
+			}
 			beforeRun(builder);
 			return new ExecutableToolRunning(textRetention, builder.start(), this);
 		} catch (final IOException e) {
@@ -96,6 +106,7 @@ public interface ExecutableTool {
 	 */
 	default ProcesslauncherLifecycle execute(final ExecutableFinder executableFinder,
 											 final Consumer<LineEntry> stdOutErrConsumer) {
+		final var execConsumerBuilder = beforeExecute();
 		final var executableName = getExecutableName();
 		try {
 			final var cmd = new CommandLine(executableName, getReadyToRunParameters(), executableFinder);
@@ -106,6 +117,10 @@ public interface ExecutableTool {
 				stdOutErrConsumer.accept(line);
 				return null;
 			}));
+
+			if (execConsumerBuilder != null) {
+				execConsumerBuilder.accept(builder);
+			}
 			beforeRun(builder);
 			return builder.start();
 		} catch (final IOException e) {

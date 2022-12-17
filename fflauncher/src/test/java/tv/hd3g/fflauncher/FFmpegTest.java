@@ -18,9 +18,18 @@ package tv.hd3g.fflauncher;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
 import static tv.hd3g.fflauncher.ConversionTool.PREPEND_PARAM_AT_START;
+import static tv.hd3g.fflauncher.FFmpeg.statsPeriod;
+import static tv.hd3g.fflauncher.progress.ProgressListenerSession.LOCALHOST_IPV4;
+import static tv.hd3g.processlauncher.cmdline.Parameters.bulk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,17 +43,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
+import net.datafaker.Faker;
 import tv.hd3g.fflauncher.enums.FFHardwareCodec;
 import tv.hd3g.fflauncher.enums.FFUnit;
 import tv.hd3g.fflauncher.enums.Preset;
 import tv.hd3g.fflauncher.enums.Tune;
+import tv.hd3g.fflauncher.progress.ProgressCallback;
+import tv.hd3g.fflauncher.progress.ProgressListener;
+import tv.hd3g.fflauncher.progress.ProgressListenerSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
+import tv.hd3g.processlauncher.ExecutionCallbacker;
+import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class FFmpegTest {
+	static Faker faker = net.datafaker.Faker.instance();
 
 	final ExecutableFinder executableFinder;
 	final ScheduledExecutorService maxExecTimeScheduler;
@@ -211,6 +233,75 @@ class FFmpegTest {
 		}
 
 		assertEquals(params, p.getParameters());
+	}
+
+	@Nested
+	class Progress {
+		FFmpeg f;
+		int port;
+
+		@Mock
+		ProgressListener progressListener;
+		@Mock
+		ProgressCallback progressCallback;
+		@Mock
+		ProgressListenerSession progressListenerSession;
+		@Mock
+		ProcesslauncherBuilder builder;
+		@Captor
+		ArgumentCaptor<ExecutionCallbacker> executionCallbackerCaptor;
+
+		@BeforeEach
+		void init() throws Exception {
+			openMocks(this).close();
+			f = create();
+			port = faker.random().nextInt(1, 100_000);
+
+			when(progressListener.createSession(progressCallback, statsPeriod)).thenReturn(progressListenerSession);
+			when(progressListenerSession.start()).thenReturn(port);
+		}
+
+		@AfterEach
+		void end() {
+			verifyNoMoreInteractions(progressListener, progressCallback, progressListenerSession, builder);
+		}
+
+		@Test
+		void testWithProgress() {
+			f.setProgressListener(progressListener, progressCallback);
+			f.beforeExecute().accept(builder);
+
+			verify(progressListener, times(1)).createSession(progressCallback, statsPeriod);
+			verify(progressListenerSession, times(1)).start();
+			verify(builder, times(1)).addExecutionCallbacker(executionCallbackerCaptor.capture());
+			verifyNoMoreInteractions(progressListenerSession);
+
+			executionCallbackerCaptor.getValue().onEndExecution(null);
+			verify(progressListenerSession, times(1)).manualClose();
+			assertEquals(bulk("-progress tcp://" + LOCALHOST_IPV4 + ":" + port
+							  + " -stats_period " + statsPeriod.toSeconds()),
+					f.parameters);
+		}
+
+		@Test
+		void testWithoutProgress() {// NOSONAR S2699
+			f.beforeExecute().accept(builder);
+		}
+
+		@Test
+		void testResetProgress() {// NOSONAR S2699
+			f.setProgressListener(progressListener, progressCallback);
+			f.resetProgressListener();
+			f.beforeExecute().accept(builder);
+		}
+
+		@Test
+		void testWasProgress() {
+			f.setProgressListener(progressListener, progressCallback);
+			f.parameters.addParameters("-progress", "aaa");
+			assertThrows(IllegalArgumentException.class, () -> f.beforeExecute());
+		}
+
 	}
 
 }
