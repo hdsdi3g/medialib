@@ -17,8 +17,12 @@
 package tv.hd3g.fflauncher.filtering;
 
 import java.time.Duration;
+import java.util.List;
 
 import lombok.Data;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramEvents;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramEventsExtractor;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#silencedetect
@@ -27,7 +31,7 @@ import lombok.Data;
  * lavfi.silence_end/lavfi.silence_end.X
  */
 @Data
-public class AudioFilterSilencedetect implements AudioFilterSupplier {
+public class AudioFilterSilencedetect implements AudioFilterSupplier, LavfiMtdProgramEventsExtractor {
 
 	private boolean mono;
 	private Duration duration;
@@ -47,6 +51,21 @@ public class AudioFilterSilencedetect implements AudioFilterSupplier {
 		f.addOptionalNonNegativeArgument("noise", noiseDb);
 		f.addOptionalNonNegativeArgument("noise", noiseRatio);
 		return f;
+	}
+
+	/**
+	 * frame:3306 pts:3173808 pts_time:66.121
+	 * lavfi.silence_start.1=65.1366
+	 * lavfi.silence_start.2=65.1366
+	 * frame:3332 pts:3198768 pts_time:66.641
+	 * lavfi.silence_end.1=66.6474
+	 * lavfi.silence_duration.1=1.51079
+	 * lavfi.silence_end.2=66.6474
+	 * lavfi.silence_duration.2=1.51079 *
+	 */
+	@Override
+	public LavfiMtdProgramEvents getEvents(final List<? extends LavfiRawMtdFrame> extractedRawMtdFrames) {
+		return new LavfiMtdProgramEvents(extractedRawMtdFrames, "silence");
 	}
 
 }

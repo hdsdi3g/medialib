@@ -14,15 +14,24 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
-package tv.hd3g.fflauncher.recipes;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import java.util.List;
+import java.util.Map;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
+public interface LavfiRawMtdFrame {
 
-public record MediaAnalyserResult(MediaAnalyserSession session,
-								  List<LavfiRawMtdFrame> lavfiMetadatas,
-								  Ebur128Summary ebur128Summary) {
+	String DEFAULT_KEY = "default";
+
+	int getFrame();
+
+	long getPts();
+
+	float getPtsTime();
+
+	Map<String, Map<String, String>> getValuesByFilterKeysByFilterName();
+
+	default LavfiMtdPosition getLavfiMtdPosition() {
+		return new LavfiMtdPosition(getFrame(), getPts(), getPtsTime());
+	}
 
 }

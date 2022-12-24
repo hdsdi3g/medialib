@@ -17,8 +17,12 @@
 package tv.hd3g.fflauncher.filtering;
 
 import java.time.Duration;
+import java.util.List;
 
 import lombok.Data;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramEvents;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramEventsExtractor;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#freezedetect
@@ -28,7 +32,7 @@ import lombok.Data;
  * No thread safe
  */
 @Data
-public class VideoFilterFreezedetect implements VideoFilterSupplier {
+public class VideoFilterFreezedetect implements VideoFilterSupplier, LavfiMtdProgramEventsExtractor {
 
 	private float noiseToleranceRatio;
 	private int noiseToleranceDb;
@@ -46,6 +50,18 @@ public class VideoFilterFreezedetect implements VideoFilterSupplier {
 		f.addOptionalArgument("noise", noiseToleranceDb > Integer.MIN_VALUE, "-" + Math.abs(noiseToleranceDb) + "dB");
 		f.addOptionalNonNegativeArgument("noise", noiseToleranceRatio);
 		return f;
+	}
+
+	/**
+	 * frame:66 pts:2757 pts_time:2.757
+	 * lavfi.freezedetect.freeze_start=0.757
+	 * frame:97 pts:4049 pts_time:4.049
+	 * lavfi.freezedetect.freeze_duration=3.292
+	 * lavfi.freezedetect.freeze_end=4.049
+	 */
+	@Override
+	public LavfiMtdProgramEvents getEvents(final List<? extends LavfiRawMtdFrame> extractedRawMtdFrames) {
+		return new LavfiMtdProgramEvents(extractedRawMtdFrames, "freezedetect", "freeze");
 	}
 
 }

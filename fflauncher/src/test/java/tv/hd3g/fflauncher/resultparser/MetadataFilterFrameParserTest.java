@@ -20,15 +20,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFrames;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFramesExtractor;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 class MetadataFilterFrameParserTest {
 
-	private List<LavfiMetadataFilterFrame> process(final String lines) {
+	private List<LavfiRawMtdFrame> process(final String lines) {
 		final var m = new MetadataFilterFrameParser();
 		lines.lines().forEach(m::onLine);
 		final var result = m.close();
@@ -146,6 +156,34 @@ class MetadataFilterFrameParserTest {
 				aaaa.aphasemeter.phase=1.000000
 				bbbb.aphasemeter.mono_start=11.461
 				"""));
+	}
+
+	@Mock
+	LavfiMtdProgramFramesExtractor<Object> metadataExtractor;
+	@Mock
+	LavfiMtdProgramFrames<Object> frames;
+
+	@Test
+	void testGetMetadatasForFilter() throws Exception {
+		openMocks(this).close();
+		final var m = new MetadataFilterFrameParser();
+		"""
+				frame:1022 pts:981168  pts_time:20.441
+				lavfi.aphasemeter.phase=1.000000
+				frame:1801 pts:60041   pts_time:60.041
+				lavfi.aphasemeter.phase=0.998000
+				""".lines().forEach(m::onLine);
+
+		assertThrows(IllegalStateException.class, () -> m.getMetadatasForFilter(metadataExtractor));
+		verifyNoMoreInteractions(metadataExtractor);
+		final var extractedRawMtdFrames = m.close();
+
+		when(metadataExtractor.getMetadatas(extractedRawMtdFrames)).thenReturn(frames);
+		final var result = m.getMetadatasForFilter(metadataExtractor);
+		assertNotNull(result);
+		assertEquals(frames, result);
+		verify(metadataExtractor, times(1)).getMetadatas(extractedRawMtdFrames);
+		verifyNoMoreInteractions(metadataExtractor, frames);
 	}
 
 }

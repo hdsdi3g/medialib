@@ -22,8 +22,12 @@ import static tv.hd3g.fflauncher.recipes.MediaAnalyser.splitter;
 import java.util.ArrayList;
 import java.util.List;
 
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFrames;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFramesExtractor;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
+
 public class MetadataFilterFrameParser {
-	private final List<LavfiMetadataFilterFrame> frames;
+	private final List<LavfiRawMtdFrame> frames;
 	private final List<String> bucket;
 	private LavfiMetadataFilterFrame currentFrame;
 
@@ -52,13 +56,20 @@ public class MetadataFilterFrameParser {
 		}
 	}
 
-	public List<LavfiMetadataFilterFrame> close() {
+	public List<LavfiRawMtdFrame> close() {
 		if (bucket.isEmpty() == false && currentFrame != null) {
 			currentFrame.setRawLines(bucket.stream());
 			frames.add(currentFrame);
 			bucket.clear();
 		}
 		return frames;
+	}
+
+	public <T, U extends LavfiMtdProgramFramesExtractor<T>> LavfiMtdProgramFrames<T> getMetadatasForFilter(final U metadataExtractor) {
+		if (bucket.isEmpty() == false && currentFrame != null) {
+			throw new IllegalStateException("You must close() before call this");
+		}
+		return metadataExtractor.getMetadatas(frames);
 	}
 
 	private LavfiMetadataFilterFrame parseFrameLine(final String line) {

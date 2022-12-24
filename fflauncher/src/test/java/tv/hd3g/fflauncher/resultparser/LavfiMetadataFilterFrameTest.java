@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame.DEFAULT_KEY;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -86,14 +87,33 @@ class LavfiMetadataFilterFrameTest {
 		assertNotNull(aphasemeter);
 		assertEquals("1.000000", aphasemeter.get("phase"));
 		assertEquals("25.981", aphasemeter.get("mono_end"));
+		assertEquals(2, aphasemeter.size());
 
 		final var astats = v.get("astats");
 		assertNotNull(astats);
 		assertEquals("0.000001", astats.get("1.DC_offset"));
+		assertEquals(1, astats.size());
 
 		final var filtername = v.get("filter name");
 		assertNotNull(filtername);
 		assertEquals("filter value", filtername.get("filter Key"));
+		assertEquals(1, filtername.size());
+	}
+
+	@Test
+	void testDefault() {
+		final var v = getValues(Stream.of(
+				"lavfi.blur=5.744382",
+				"lavfi.idet.repeated.bottom=3.00"));
+		final var blur = v.get("blur");
+		assertNotNull(blur);
+		assertEquals("5.744382", blur.get(DEFAULT_KEY));
+		assertEquals(1, blur.size());
+
+		final var idet = v.get("idet");
+		assertNotNull(idet);
+		assertEquals("3.00", idet.get("repeated.bottom"));
+		assertEquals(1, idet.size());
 	}
 
 }

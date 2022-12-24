@@ -14,15 +14,25 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
-package tv.hd3g.fflauncher.recipes;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
 import java.util.List;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
+public interface LavfiMtdProgramFramesExtractor<T> {
 
-public record MediaAnalyserResult(MediaAnalyserSession session,
-								  List<LavfiRawMtdFrame> lavfiMetadatas,
-								  Ebur128Summary ebur128Summary) {
+	LavfiMtdProgramFrames<T> getMetadatas(List<? extends LavfiRawMtdFrame> extractedRawMtdFrames);
 
+	/**
+	 * From a float string chain
+	 */
+	default int parseInt(final String floatString) {
+		return Math.round(Float.parseFloat(floatString));
+	}
+
+	/**
+	 * From a double string chain
+	 */
+	default long parseLong(final String doubleString) {
+		return Math.round(Double.parseDouble(doubleString));
+	}
 }

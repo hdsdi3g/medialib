@@ -28,10 +28,11 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.ToString;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 @Getter
 @ToString
-public class LavfiMetadataFilterFrame {
+public class LavfiMetadataFilterFrame implements LavfiRawMtdFrame {
 	private final int frame;
 	private final long pts;
 	private final float ptsTime;
@@ -53,10 +54,14 @@ public class LavfiMetadataFilterFrame {
 	 * lavfi.astats.1.Peak_level=-0.622282
 	 * lavfi.astats.1.Flat_factor=0.000000
 	 * lavfi.astats.1.Peak_count=2.000000
+	 * lavfi.idet.repeated.bottom=3.00
+	 * lavfi.blur=5.744382
 	 * === TO ===
 	 * [...]
 	 * aphasemeter => mono_duration => 2.94
 	 * astats => 1.Peak_level => -0.622282
+	 * idet => repeated.bottom => 3.00
+	 * blur => default => 5.744382
 	 * [...]
 	 */
 	void setRawLines(final Stream<String> sLines) {
@@ -66,13 +71,16 @@ public class LavfiMetadataFilterFrame {
 
 		valuesByFilterKeysByFilterName = lines.stream()
 				.collect(groupingBy(
-						line -> splitter(line, '.', 1).get(0),
+						line -> splitter(splitter(line, '.', 1).get(0), '=', 1).get(0),
 						HashMap::new,
 						mapping(line -> splitter(line, '='),
 								toMap(
 										line -> {
 											final var kv = line.get(0);
 											final var pos = kv.indexOf(".");
+											if (pos == -1) {
+												return DEFAULT_KEY;
+											}
 											return kv.substring(pos + 1);
 										},
 										line -> line.get(1)))));

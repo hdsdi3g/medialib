@@ -14,15 +14,12 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
-package tv.hd3g.fflauncher.recipes;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import java.util.List;
+public record LavfiMtdPosition(int frame, long pts, float ptsTime) implements Comparable<LavfiMtdPosition> {
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
-
-public record MediaAnalyserResult(MediaAnalyserSession session,
-								  List<LavfiRawMtdFrame> lavfiMetadatas,
-								  Ebur128Summary ebur128Summary) {
-
+	@Override
+	public int compareTo(final LavfiMtdPosition o) {
+		return Integer.compare(frame, o.frame);
+	}
 }
