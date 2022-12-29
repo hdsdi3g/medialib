@@ -37,6 +37,9 @@ import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
+/**
+ * ffmpeg, with filters, deep media analyser
+ */
 public class MediaAnalyser implements AddFiltersTraits {
 	private final String execName;
 	private final ExecutableFinder executableFinder;

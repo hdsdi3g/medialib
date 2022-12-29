@@ -19,17 +19,22 @@ package tv.hd3g.processlauncher;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hamcrest.MatcherAssert;
@@ -45,6 +50,7 @@ import tv.hd3g.processlauncher.demo.DemoExecExitCode;
 import tv.hd3g.processlauncher.demo.DemoExecIOText;
 import tv.hd3g.processlauncher.demo.DemoExecInteractive;
 import tv.hd3g.processlauncher.demo.DemoExecLongSleep;
+import tv.hd3g.processlauncher.demo.DemoExecLongStdOutErr;
 import tv.hd3g.processlauncher.demo.DemoExecShortSleep;
 import tv.hd3g.processlauncher.demo.DemoExecSimple;
 import tv.hd3g.processlauncher.demo.DemoExecStdinInjection;
@@ -341,6 +347,37 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		result.waitForEnd().checkExecution();
 		Thread.sleep(10);// NOSONAR
 		assertTrue(result.isCorrectlyDone());
+	}
+
+	@Test
+	void testDirectStandardOutputStdErrRetention() throws IOException, InterruptedException, ExecutionException {
+		final var ept = prepareBuilder(DemoExecLongStdOutErr.class);
+		ept.setExecutionTimeLimiter(500, TimeUnit.MILLISECONDS, scheduledThreadPool);
+
+		final var lineCount = new AtomicInteger();
+		final var endOk = new AtomicBoolean();
+		final var errors = new AtomicReference<Exception>();
+
+		final InputStreamConsumer stdOutConsumer = (processInputStream, source) -> {
+			try {
+				final var lines = IOUtils.readLines(processInputStream, StandardCharsets.UTF_8);
+				lineCount.set((int) lines.stream().filter(l -> l.equals(DemoExecLongStdOutErr.STD_OUT)).count());
+				endOk.set(lines.get(lines.size() - 1).equals(DemoExecLongStdOutErr.STD_OUT_END));
+			} catch (final IOException e) {
+				errors.set(e);
+			}
+		};
+
+		ept.setCaptureStandardOutput(new DirectStandardOutputStdErrRetention(textRetention, stdOutConsumer));
+		final var result = ept.start();
+		result.waitForEnd().checkExecution();
+		Thread.sleep(10);// NOSONAR
+		assertTrue(result.isCorrectlyDone());
+
+		assertEquals(DemoExecLongStdOutErr.STD_ERR, textRetention.getStdouterr(true, ""));
+		assertEquals(DemoExecLongStdOutErr.COUNT, lineCount.get());
+		assertTrue(endOk.get());
+		assertNull(errors.get());
 	}
 
 }

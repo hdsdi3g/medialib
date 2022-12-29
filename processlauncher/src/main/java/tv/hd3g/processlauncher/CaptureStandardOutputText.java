@@ -16,22 +16,11 @@
  */
 package tv.hd3g.processlauncher;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class CaptureStandardOutputText implements CaptureStandardOutput {
-	private static Logger log = LogManager.getLogger();
-
-	private static final AtomicLong CREATED_THREAD_COUNTER = new AtomicLong(-1);
-
 	private final CapturedStreams captureOutStreamsBehavior;
 	private final List<CapturedStdOutErrText> observers;
 
@@ -61,9 +50,9 @@ public class CaptureStandardOutputText implements CaptureStandardOutput {
 
 	@Override
 	public StreamParser stdOutStreamConsumer(final InputStream processInputStream,
-	                                         final ProcesslauncherLifecycle source) {
+											 final ProcesslauncherLifecycle source) {
 		if (captureOutStreamsBehavior.canCaptureStdout()) {
-			final var t = new StreamParser(processInputStream, false, source);
+			final var t = new StreamParser(processInputStream, false, source, observers);
 			t.start();
 			synchronized (observers) {
 				observers.forEach(o -> o.setWatchThreadStdout(t));
@@ -75,9 +64,9 @@ public class CaptureStandardOutputText implements CaptureStandardOutput {
 
 	@Override
 	public StreamParser stdErrStreamConsumer(final InputStream processInputStream,
-	                                         final ProcesslauncherLifecycle source) {
+											 final ProcesslauncherLifecycle source) {
 		if (captureOutStreamsBehavior.canCaptureStderr()) {
-			final var t = new StreamParser(processInputStream, true, source);
+			final var t = new StreamParser(processInputStream, true, source, observers);
 			t.start();
 			synchronized (observers) {
 				observers.forEach(o -> o.setWatchThreadStderr(t));
@@ -85,83 +74,6 @@ public class CaptureStandardOutputText implements CaptureStandardOutput {
 			return t;
 		}
 		return null;
-	}
-
-	public class StreamParser extends Thread {
-
-		private final InputStream processStream;
-		private final boolean isStdErr;
-		private final ProcesslauncherLifecycle source;
-
-		private StreamParser(final InputStream processStream,
-		                     final boolean isStdErr,
-		                     final ProcesslauncherLifecycle source) {
-			this.processStream = processStream;
-			this.isStdErr = isStdErr;
-			this.source = source;
-			setDaemon(true);
-			setPriority(MAX_PRIORITY);
-
-			final var execName = source.getLauncher().getExecutableName();
-			if (isStdErr) {
-				setName("Executable syserr watcher for " + execName + " TId#"
-				        + CREATED_THREAD_COUNTER.incrementAndGet());
-			} else {
-				setName("Executable sysout watcher for " + execName + " TId#"
-				        + CREATED_THREAD_COUNTER.incrementAndGet());
-			}
-		}
-
-		@Override
-		public void run() {
-			try {
-				final var reader = new BufferedReader(new InputStreamReader(processStream));
-				subRun(reader);
-			} catch (final IOException ioe) {
-				log.error("Trouble opening process streams: {}", this, ioe);
-			}
-		}
-
-		private void subRun(final BufferedReader reader) throws IOException {
-			try {
-				var line = "";
-				while ((line = reader.readLine()) != null) {
-					final var lineEntry = new LineEntry(System.currentTimeMillis(), line, isStdErr,
-					        source);
-					observers.forEach(observer -> {
-						try {
-							observer.onText(lineEntry);
-						} catch (final RuntimeException e) {
-							log.error("Can't callback process text event ", e);
-						}
-					});
-				}
-			} catch (final IOException ioe) {
-				if (ioe.getMessage().equalsIgnoreCase("Bad file descriptor")) {
-					if (log.isTraceEnabled()) {
-						log.trace("Bad file descriptor, {}", this);
-					}
-				} else if (ioe.getMessage().equalsIgnoreCase("Stream closed")) {
-					if (log.isTraceEnabled()) {
-						log.trace("Stream closed, {}", this);
-					}
-				} else {
-					throw ioe;
-				}
-			} catch (final Exception e) {
-				log.error("Trouble during process {}", this, e);
-			} finally {
-				reader.close();
-			}
-		}
-
-		public ProcesslauncherLifecycle getSource() {
-			return source;
-		}
-
-		public boolean isStdErr() {
-			return isStdErr;
-		}
 	}
 
 }

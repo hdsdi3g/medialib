@@ -128,4 +128,28 @@ public interface ExecutableTool {
 		}
 	}
 
+	/**
+	 * Text retention will be done here only for stderr!
+	 */
+	default ExecutableToolRunning executeDirectStdout(final ExecutableFinder executableFinder,
+													  final InputStreamConsumer stdOutConsumer) {
+		final var execConsumerBuilder = beforeExecute();
+		final var executableName = getExecutableName();
+		try {
+			final var cmd = new CommandLine(executableName, getReadyToRunParameters(), executableFinder);
+			final var builder = new ProcesslauncherBuilder(cmd);
+			final var textRetention = new CapturedStdOutErrTextRetention();
+			final var directStreams = new DirectStandardOutputStdErrRetention(textRetention, stdOutConsumer);
+			builder.setCaptureStandardOutput(directStreams);
+
+			if (execConsumerBuilder != null) {
+				execConsumerBuilder.accept(builder);
+			}
+			beforeRun(builder);
+			return new ExecutableToolRunning(textRetention, builder.start(), this);
+		} catch (final IOException e) {
+			throw new ProcessLifeCycleException("Can't start " + executableName, e);
+		}
+	}
+
 }

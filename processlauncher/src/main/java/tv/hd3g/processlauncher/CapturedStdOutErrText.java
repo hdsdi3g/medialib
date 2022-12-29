@@ -18,8 +18,6 @@ package tv.hd3g.processlauncher;
 
 import java.util.Optional;
 
-import tv.hd3g.processlauncher.CaptureStandardOutputText.StreamParser;
-
 public abstract class CapturedStdOutErrText {
 
 	private StreamParser watchThreadStdout;
@@ -35,7 +33,7 @@ public abstract class CapturedStdOutErrText {
 
 	public boolean isStreamsWatchIsStillAlive() {
 		return Optional.ofNullable(watchThreadStdout).map(Thread::isAlive).orElse(false) ||
-		       Optional.ofNullable(watchThreadStderr).map(Thread::isAlive).orElse(false);
+			   Optional.ofNullable(watchThreadStderr).map(Thread::isAlive).orElse(false);
 	}
 
 	/**
