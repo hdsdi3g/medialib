@@ -54,10 +54,8 @@ import org.apache.logging.log4j.Logger;
 import tv.hd3g.fflauncher.enums.OutputFilePresencePolicy;
 import tv.hd3g.processlauncher.CapturedStdOutErrToPrintStream;
 import tv.hd3g.processlauncher.ExecutableTool;
-import tv.hd3g.processlauncher.ExecutionCallbacker;
 import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
-import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 public class ConversionTool implements ExecutableTool, InternalParametersSupplier, InputSourceProviderTraits {
@@ -318,13 +316,10 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 			/**
 			 * If fail transcoding or shutdown hook, delete out files (optional)
 			 */
-			processBuilder.addExecutionCallbacker(new ExecutionCallbacker() {
-				@Override
-				public void onEndExecution(final ProcesslauncherLifecycle processlauncherLifecycle) {
-					if (processlauncherLifecycle.isCorrectlyDone() == false) {
-						log.warn("Error during execution of \"{}\", remove output files", processlauncherLifecycle);
-						cleanUpOutputFiles(true, true);
-					}
+			processBuilder.addExecutionCallbacker(lifecycle -> {
+				if (lifecycle.isCorrectlyDone() == false) {
+					log.warn("Error during execution of \"{}\", remove output files", lifecycle);
+					cleanUpOutputFiles(true, true);
 				}
 			});
 		}
