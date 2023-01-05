@@ -16,6 +16,8 @@
  */
 package tv.hd3g.fflauncher.progress;
 
+import java.net.SocketException;
+
 public interface ProgressCallback {
 
 	default void onStartProgressListener(final int localhostTcpPort) {
@@ -27,6 +29,9 @@ public interface ProgressCallback {
 	void onProgress(int localhostTcpPort, ProgressBlock progressBlock);
 
 	default void onEndProgress(final int localhostTcpPort) {
+	}
+
+	default void onConnectionReset(final int localhostTcpPort, final SocketException e) {
 	}
 
 }

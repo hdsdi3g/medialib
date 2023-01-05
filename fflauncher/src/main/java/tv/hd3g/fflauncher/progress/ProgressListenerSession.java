@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
@@ -111,6 +112,12 @@ public class ProgressListenerSession {
 						break;
 					}
 				}
+			}
+		} catch (final SocketException e) {
+			if ("Connection reset".equalsIgnoreCase(e.getMessage())) {
+				progressCallback.onConnectionReset(localport, e);
+			} else {
+				log.error("Socket error", e);
 			}
 		} catch (final IOException e) {
 			log.error("Can't listen socket", e);
