@@ -38,6 +38,7 @@ public class AudioFilterAPhasemeter implements AudioFilterSupplier,
 	private static final String APHASEMETER = "aphasemeter";
 
 	private boolean phasing;
+	private boolean video;
 	private float tolerance;
 	private int angle;
 	private Duration duration;
@@ -54,6 +55,9 @@ public class AudioFilterAPhasemeter implements AudioFilterSupplier,
 		f.addOptionalDurationSecArgument("duration", duration);
 		f.addOptionalNonNegativeArgument("tolerance", tolerance);
 		f.addOptionalNonNegativeArgument("angle", angle);
+		if (video == false) {
+			f.addArgument("video", "0");
+		}
 		return f;
 	}
 

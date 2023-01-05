@@ -51,7 +51,7 @@ class AudioFilterAPhasemeterTest {
 
 	@Test
 	void testToFilter() {
-		assertEquals("aphasemeter", f.toFilter().toString());
+		assertEquals("aphasemeter=video=0", f.toFilter().toString());
 	}
 
 	@Test
