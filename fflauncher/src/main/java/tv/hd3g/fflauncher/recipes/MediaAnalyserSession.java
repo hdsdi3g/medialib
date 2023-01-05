@@ -166,6 +166,8 @@ public class MediaAnalyserSession {
 					}
 				});
 
+		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+
 		processLifecycle.waitForEnd();
 		final var execOk = processLifecycle.isCorrectlyDone();
 		if (execOk == false) {

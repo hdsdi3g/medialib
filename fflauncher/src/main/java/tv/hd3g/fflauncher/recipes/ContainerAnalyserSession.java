@@ -22,11 +22,16 @@ import static tv.hd3g.fflauncher.FFprobe.FFPrintFormat.XML;
 import java.io.File;
 import java.io.InputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import lombok.Getter;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
 
 @Getter
 public class ContainerAnalyserSession {
+	private static Logger log = LogManager.getLogger();
+
 	private final ContainerAnalyser containerAnalyser;
 	private final String source;
 	private final File sourceFile;
@@ -55,7 +60,10 @@ public class ContainerAnalyserSession {
 		ffprobe.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
 
 		final var parser = new FFprobeResultSAX();
-		ffprobe.executeDirectStdout(containerAnalyser.getExecutableFinder(), parser).waitForEndAndCheckExecution();
+		final var runTool = ffprobe.executeDirectStdout(containerAnalyser.getExecutableFinder(), parser);
+		log.debug("Start {}", runTool.getLifecyle().getLauncher().getFullCommandLine());
+		runTool.waitForEndAndCheckExecution();
+
 		return parser.getResult(this);
 	}
 

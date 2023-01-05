@@ -57,6 +57,7 @@ import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.InvalidExecution;
 import tv.hd3g.processlauncher.LineEntry;
+import tv.hd3g.processlauncher.Processlauncher;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
@@ -82,6 +83,8 @@ class MediaAnalyserSessionTest {
 	ExecutableFinder executableFinder;
 	@Mock
 	ProcesslauncherLifecycle processLifecycle;
+	@Mock
+	Processlauncher processlauncher;
 	@Mock
 	File sourceFile;
 	@Mock
@@ -161,6 +164,8 @@ class MediaAnalyserSessionTest {
 		});
 
 		when(processLifecycle.isCorrectlyDone()).thenReturn(true);
+		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
+		when(processlauncher.getFullCommandLine()).thenReturn(faker.numerify("commandLine###"));
 
 		when(mediaAnalyser.createFFmpeg()).thenReturn(ffmpeg);
 		when(mediaAnalyser.getExecutableFinder()).thenReturn(executableFinder);
@@ -174,10 +179,12 @@ class MediaAnalyserSessionTest {
 		assertEquals("", parameters.toString());
 		verify(mediaAnalyser, atLeastOnce()).getAudioFilters();
 		verify(mediaAnalyser, atLeastOnce()).getVideoFilters();
+
 		verifyNoMoreInteractions(
 				mediaAnalyser,
 				executableFinder,
 				processLifecycle,
+				processlauncher,
 				sourceFile,
 				ffmpeg,
 				aF,
@@ -269,6 +276,9 @@ class MediaAnalyserSessionTest {
 		assertEquals(ebur128event, ebur128StrErrFilterEventCaptor.getValue().toString());
 		verify(rawStdErrEventConsumer, times(1)).accept(eq(s), rawStdErrFilterEventCaptor.capture());
 		assertEquals(rawEvent, rawStdErrFilterEventCaptor.getValue().toString());
+
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
@@ -289,6 +299,8 @@ class MediaAnalyserSessionTest {
 				vFilterValue + ",metadata=mode=print:file=-"),
 				parameters.getParameters());
 		parameters.clear();
+
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
@@ -311,6 +323,9 @@ class MediaAnalyserSessionTest {
 				vFilterValue + ",metadata=mode=print:file=-"),
 				parameters.getParameters());
 		parameters.clear();
+
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
@@ -360,6 +375,8 @@ class MediaAnalyserSessionTest {
 
 		verify(ffprobeResult, times(1)).getAudiosStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
@@ -389,6 +406,8 @@ class MediaAnalyserSessionTest {
 
 		verify(ffprobeResult, times(1)).getAudiosStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test

@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -55,6 +56,8 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobePacket;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.processlauncher.ExecutableToolRunning;
+import tv.hd3g.processlauncher.Processlauncher;
+import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
 class ContainerAnalyserSessionTest {
@@ -85,6 +88,10 @@ class ContainerAnalyserSessionTest {
 	ExecutableFinder executableFinder;
 	@Mock
 	ExecutableToolRunning executableToolRunning;
+	@Mock
+	ProcesslauncherLifecycle processLifecycle;
+	@Mock
+	Processlauncher processlauncher;
 	String source;
 	File sourceFile;
 
@@ -94,11 +101,22 @@ class ContainerAnalyserSessionTest {
 		source = faker.numerify("source###");
 		sourceFile = new File(source);
 		cas = new ContainerAnalyserSession(containerAnalyser, source, sourceFile);
+
+		when(executableToolRunning.getLifecyle()).thenReturn(processLifecycle);
+		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
+		when(processlauncher.getFullCommandLine()).thenReturn(faker.numerify("commandLine###"));
+
 	}
 
 	@AfterEach
 	void end() {
-		verifyNoMoreInteractions(containerAnalyser, ffprobe, executableFinder, executableToolRunning);
+		verifyNoMoreInteractions(
+				containerAnalyser,
+				ffprobe,
+				executableFinder,
+				executableToolRunning,
+				processLifecycle,
+				processlauncher);
 	}
 
 	@Test
@@ -123,6 +141,10 @@ class ContainerAnalyserSessionTest {
 		verify(containerAnalyser, times(1)).getExecutableFinder();
 		verify(containerAnalyser, times(1)).createFFprobe();
 		verify(executableToolRunning, times(1)).waitForEndAndCheckExecution();
+
+		verify(executableToolRunning, atLeastOnce()).getLifecyle();
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
@@ -148,6 +170,10 @@ class ContainerAnalyserSessionTest {
 		verify(containerAnalyser, times(1)).getExecutableFinder();
 		verify(containerAnalyser, times(1)).createFFprobe();
 		verify(executableToolRunning, times(1)).waitForEndAndCheckExecution();
+
+		verify(executableToolRunning, atLeastOnce()).getLifecyle();
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
 
 	@Test
