@@ -17,7 +17,6 @@
 package tv.hd3g.fflauncher.recipes;
 
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
-import static tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode.PRINT;
 
 import java.io.File;
 import java.util.Collections;
@@ -30,11 +29,9 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
-import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.MetadataFilterFrameParser;
@@ -49,8 +46,6 @@ public class MediaAnalyserSession {
 	private final MediaAnalyser mediaAnalyser;
 	private final List<AudioFilterSupplier> audioFilters;
 	private final List<VideoFilterSupplier> videoFilters;
-	private final AudioFilterAMetadata aMetadata;
-	private final VideoFilterMetadata vMetadata;
 	private final String source;
 	private final File sourceFile;
 
@@ -68,10 +63,6 @@ public class MediaAnalyserSession {
 
 		audioFilters = Collections.unmodifiableList(mediaAnalyser.getAudioFilters());
 		videoFilters = Collections.unmodifiableList(mediaAnalyser.getVideoFilters());
-		aMetadata = new AudioFilterAMetadata(PRINT);
-		aMetadata.setFile("-");
-		vMetadata = new VideoFilterMetadata(PRINT);
-		vMetadata.setFile("-");
 
 		ebur128EventConsumer = (m, event) -> log.trace("On ebur128: {} on {}", event, m);
 		rawStdErrEventConsumer = (m, event) -> log.trace("On rawStd: {} on {}", event, m);
@@ -122,7 +113,6 @@ public class MediaAnalyserSession {
 					.addAll(audioFilters.stream()
 							.map(FilterSupplier::toFilter)
 							.toList());
-			chain.addFilterInLastChain(aMetadata.toFilter(), false);
 			chain.pushFilterChainTo("-af", ffmpeg);
 		} else {
 			ffmpeg.setNoAudio();
@@ -134,7 +124,6 @@ public class MediaAnalyserSession {
 					.addAll(videoFilters.stream()
 							.map(FilterSupplier::toFilter)
 							.toList());
-			chain.addFilterInLastChain(vMetadata.toFilter(), false);
 			chain.pushFilterChainTo("-vf", ffmpeg);
 		} else {
 			ffmpeg.setNoVideo();

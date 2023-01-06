@@ -266,9 +266,9 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(List.of(
 				"-af",
-				aFilterValue + ",ametadata=mode=print:file=-",
+				aFilterValue,
 				"-vf",
-				vFilterValue + ",metadata=mode=print:file=-"),
+				vFilterValue),
 				parameters.getParameters());
 		parameters.clear();
 
@@ -294,9 +294,9 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(List.of(
 				"-af",
-				aFilterValue + ",ametadata=mode=print:file=-",
+				aFilterValue,
 				"-vf",
-				vFilterValue + ",metadata=mode=print:file=-"),
+				vFilterValue),
 				parameters.getParameters());
 		parameters.clear();
 
@@ -318,9 +318,9 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(List.of(
 				"-af",
-				aFilterValue + ",ametadata=mode=print:file=-",
+				aFilterValue,
 				"-vf",
-				vFilterValue + ",metadata=mode=print:file=-"),
+				vFilterValue),
 				parameters.getParameters());
 		parameters.clear();
 
@@ -369,7 +369,7 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(List.of(
 				"-vf",
-				vFilterValue + ",metadata=mode=print:file=-"),
+				vFilterValue),
 				parameters.getParameters());
 		parameters.clear();
 
@@ -400,7 +400,7 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(List.of(
 				"-af",
-				aFilterValue + ",ametadata=mode=print:file=-"),
+				aFilterValue),
 				parameters.getParameters());
 		parameters.clear();
 

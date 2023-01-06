@@ -60,6 +60,7 @@ class MediaAnalyserTest {
 
 	String execName;
 	String filterName;
+	String filterNameMtd;
 
 	@Mock
 	ExecutableFinder executableFinder;
@@ -79,6 +80,8 @@ class MediaAnalyserTest {
 	@Mock
 	Filter filter;
 	@Mock
+	Filter filterMtd;
+	@Mock
 	ProgressListener progressListener;
 	@Mock
 	ProgressCallback progressCallback;
@@ -90,11 +93,18 @@ class MediaAnalyserTest {
 		sSource = faker.numerify("source###");
 		ma = new MediaAnalyser(execName, executableFinder, about);
 		filterName = faker.numerify("filterName###");
+		filterNameMtd = faker.numerify("filterMtd###");
 
 		when(about.isFilterIsAvaliable(filterName)).thenReturn(true);
+		when(about.isFilterIsAvaliable(filterNameMtd)).thenReturn(true);
+
 		when(af.toFilter()).thenReturn(filter);
 		when(vf.toFilter()).thenReturn(filter);
 		when(filter.getFilterName()).thenReturn(filterName);
+
+		when(vfMt.toFilter()).thenReturn(filterMtd);
+		when(afMt.toFilter()).thenReturn(filterMtd);
+		when(filterMtd.getFilterName()).thenReturn(filterNameMtd);
 	}
 
 	@AfterEach
@@ -108,6 +118,7 @@ class MediaAnalyserTest {
 				vfMt,
 				afMt,
 				filter,
+				filterMtd,
 				progressListener,
 				progressCallback);
 	}
@@ -219,13 +230,21 @@ class MediaAnalyserTest {
 	@Test
 	void testAddFilterVideoFilterSupplier_metadata() {
 		assertTrue(ma.addFilter(vfMt));
-		assertTrue(ma.getVideoFilters().isEmpty());
+		assertEquals(List.of(vfMt), ma.getVideoFilters());
+
+		verify(about, times(1)).isFilterIsAvaliable(filterNameMtd);
+		verify(vfMt, times(1)).toFilter();
+		verify(filterMtd, times(1)).getFilterName();
 	}
 
 	@Test
 	void testAddFilterAudioFilterSupplier_metadata() {
 		assertTrue(ma.addFilter(afMt));
-		assertTrue(ma.getAudioFilters().isEmpty());
+		assertEquals(List.of(afMt), ma.getAudioFilters());
+
+		verify(about, times(1)).isFilterIsAvaliable(filterNameMtd);
+		verify(afMt, times(1)).toFilter();
+		verify(filterMtd, times(1)).getFilterName();
 	}
 
 	@Test

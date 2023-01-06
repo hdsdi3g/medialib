@@ -28,9 +28,7 @@ import java.util.function.Function;
 
 import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.about.FFAbout;
-import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
-import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
@@ -90,9 +88,6 @@ public class MediaAnalyser implements AddFiltersTraits {
 	 */
 	@Override
 	public boolean addFilter(final VideoFilterSupplier vf) {
-		if (vf instanceof VideoFilterMetadata) {
-			return true;
-		}
 		if (about.isFilterIsAvaliable(vf.toFilter().getFilterName())) {
 			videoFilters.add(vf);
 			return true;
@@ -105,9 +100,6 @@ public class MediaAnalyser implements AddFiltersTraits {
 	 */
 	@Override
 	public boolean addFilter(final AudioFilterSupplier af) {
-		if (af instanceof AudioFilterAMetadata) {
-			return true;
-		}
 		if (about.isFilterIsAvaliable(af.toFilter().getFilterName())) {
 			audioFilters.add(af);
 			return true;
