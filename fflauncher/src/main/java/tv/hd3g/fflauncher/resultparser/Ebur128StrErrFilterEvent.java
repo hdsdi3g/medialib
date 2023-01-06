@@ -62,7 +62,7 @@ public class Ebur128StrErrFilterEvent {
 	}
 
 	private float extractValue(final String rawValue) {
-		if (rawValue == null) {
+		if (rawValue == null || rawValue.equalsIgnoreCase("nan")) {
 			return NEGATIVE_INFINITY;
 		}
 		return Float.valueOf(MediaAnalyser.splitter(rawValue, ' ', 2).get(0));
@@ -73,7 +73,22 @@ public class Ebur128StrErrFilterEvent {
 			return new Stereo<>(NEGATIVE_INFINITY, NEGATIVE_INFINITY);
 		}
 		final var items = MediaAnalyser.splitter(rawValue, ' ');
-		return new Stereo<>(Float.valueOf(items.get(0)), Float.valueOf(items.get(1)));
+
+		float l;
+		if (items.get(0).equalsIgnoreCase("nan")) {
+			l = NEGATIVE_INFINITY;
+		} else {
+			l = Float.valueOf(items.get(0));
+		}
+
+		float r;
+		if (items.get(1).equalsIgnoreCase("nan")) {
+			r = NEGATIVE_INFINITY;
+		} else {
+			r = Float.valueOf(items.get(1));
+		}
+
+		return new Stereo<>(l, r);
 	}
 
 }

@@ -24,7 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class RawStdErrEventParser {
+	private static Logger log = LogManager.getLogger();
+
 	private final Set<String> summaryZoneHeaders = Set.of(
 			"Integrated loudness",
 			"I",
@@ -56,9 +61,12 @@ public class RawStdErrEventParser {
 		if (line.isEmpty()) {
 			return;
 		}
-		if (line.startsWith("[Parsed_") && line.contains(" @ 0x") && line.contains("]")) {
+
+		log.trace("RawStdErrEvent line: {}", line);
+
+		if (line.startsWith("[Parsed_") && line.contains(" @ ") && line.contains("]")) {
 			/**
-			 * [Parsed_XXXXXXX_0 @ 0x0000000000000] Something
+			 * [Parsed_XXXXXXX_0 @ 0000000000000] Something
 			 */
 			if (inEbur128SummaryZone) {
 				/**
@@ -70,7 +78,7 @@ public class RawStdErrEventParser {
 
 			if (line.startsWith("[Parsed_ebur128_") && line.endsWith("] Summary:")) {
 				/**
-				 * [Parsed_ebur128_0 @ 0x55c6a78b3c80] Summary:
+				 * [Parsed_ebur128_0 @ 55c6a78b3c80] Summary:
 				 */
 				inEbur128SummaryZone = true;
 			} else {
@@ -81,6 +89,7 @@ public class RawStdErrEventParser {
 			if (summaryZoneHeaders.contains(entry.get(0))) {
 				rawSummaryZone.add(entry);
 			} else {
+				closeSummaryZone();
 				inEbur128SummaryZone = false;
 			}
 		}
