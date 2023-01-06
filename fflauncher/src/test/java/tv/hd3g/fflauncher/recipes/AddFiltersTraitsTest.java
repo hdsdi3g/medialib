@@ -160,6 +160,18 @@ class AddFiltersTraitsTest {
 		}
 
 		@Test
+		void testAddFilterAMetadata() {
+			assertEquals(f, f.addFilterAMetadata(filter -> fSupplier.set(filter)));
+			checkAudioFilter();
+		}
+
+		@Test
+		void testAddFilterMetadata() {
+			assertEquals(f, f.addFilterMetadata(filter -> fSupplier.set(filter)));
+			checkVideoFilter();
+		}
+
+		@Test
 		void testAddFilterSiti() {
 			assertEquals(f, f.addFilterSiti(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
@@ -262,6 +274,18 @@ class AddFiltersTraitsTest {
 		void testAddFilterEbur128() {
 			assertEquals(f, f.addFilterEbur128(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
+		}
+
+		@Test
+		void testAddFilterAMetadata() {
+			assertEquals(f, f.addFilterAMetadata(filter -> fSupplier.set(filter)));
+			checkNoAudioFilter();
+		}
+
+		@Test
+		void testAddFilterMetadata() {
+			assertEquals(f, f.addFilterMetadata(filter -> fSupplier.set(filter)));
+			checkNoVideoFilter();
 		}
 
 		@Test

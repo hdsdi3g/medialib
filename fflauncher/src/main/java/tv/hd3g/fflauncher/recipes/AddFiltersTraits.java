@@ -16,11 +16,15 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
+import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata;
+import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterAPhasemeter;
 import tv.hd3g.fflauncher.filtering.AudioFilterAstats;
 import tv.hd3g.fflauncher.filtering.AudioFilterEbur128;
+import tv.hd3g.fflauncher.filtering.AudioFilterEbur128.Peak;
 import tv.hd3g.fflauncher.filtering.AudioFilterSilencedetect;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.AudioFilterVolumedetect;
@@ -32,6 +36,7 @@ import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect.Mode;
 import tv.hd3g.fflauncher.filtering.VideoFilterFreezedetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterIdet;
 import tv.hd3g.fflauncher.filtering.VideoFilterMEstimate;
+import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSiti;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 
@@ -46,11 +51,15 @@ public interface AddFiltersTraits {
 	}
 
 	default AddFiltersTraits addFilterAstats(final Consumer<AudioFilterAstats> filterifPresent) {
-		return addOptionalFilter(new AudioFilterAstats(), filterifPresent);
+		final var f = new AudioFilterAstats();
+		f.setSelectedMetadatas();
+		return addOptionalFilter(f, filterifPresent);
 	}
 
 	default AddFiltersTraits addFilterSilencedetect(final Consumer<AudioFilterSilencedetect> filterifPresent) {
-		return addOptionalFilter(new AudioFilterSilencedetect(), filterifPresent);
+		final var f = new AudioFilterSilencedetect();
+		f.setMono(true);
+		return addOptionalFilter(f, filterifPresent);
 	}
 
 	default AddFiltersTraits addFilterVolumedetect(final Consumer<AudioFilterVolumedetect> filterifPresent) {
@@ -58,7 +67,9 @@ public interface AddFiltersTraits {
 	}
 
 	default AddFiltersTraits addFilterEbur128(final Consumer<AudioFilterEbur128> filterifPresent) {
-		return addOptionalFilter(new AudioFilterEbur128(), filterifPresent);
+		final var f = new AudioFilterEbur128();
+		f.setPeakMode(Set.of(Peak.SAMPLE, Peak.TRUE));
+		return addOptionalFilter(f, filterifPresent);
 	}
 
 	default AddFiltersTraits addFilterSiti(final Consumer<VideoFilterSiti> filterifPresent) {
@@ -92,6 +103,18 @@ public interface AddFiltersTraits {
 
 	default AddFiltersTraits addFilterMEstimate(final Consumer<VideoFilterMEstimate> filterifPresent) {
 		return addOptionalFilter(new VideoFilterMEstimate(), filterifPresent);
+	}
+
+	default AddFiltersTraits addFilterMetadata(final Consumer<VideoFilterMetadata> filterifPresent) {
+		final var vMetadata = new VideoFilterMetadata(AbstractFilterMetadata.Mode.PRINT);
+		vMetadata.setFile("-");
+		return addOptionalFilter(vMetadata, filterifPresent);
+	}
+
+	default AddFiltersTraits addFilterAMetadata(final Consumer<AudioFilterAMetadata> filterifPresent) {
+		final var aMetadata = new AudioFilterAMetadata(AbstractFilterMetadata.Mode.PRINT);
+		aMetadata.setFile("-");
+		return addOptionalFilter(aMetadata, filterifPresent);
 	}
 
 	default <T extends AudioFilterSupplier> AddFiltersTraits addOptionalFilter(final T filter,
