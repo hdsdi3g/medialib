@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 class FFprobeJAXBTest {
 
+	private static final String OUT0_SUMMARY = "QuickTime / MOV, 00:00:50, 465 MB, video: prores 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/rng:TV/spce:SMPTE170M/tsfer:BT709/prim:BT470BG (2500 frms), audio: pcm_s16le stereo @ 48000 Hz [1536 kbps], data: tmcd (Time Code Media Handler) 00:00:00:00";
 	static String out0;
 	static String out1;
 	static String outNope;
@@ -139,7 +140,7 @@ class FFprobeJAXBTest {
 	@Test
 	void testGetVideoStreams() {
 		final var streams = ffprobeJAXB.getVideoStreams()
-		        .collect(toUnmodifiableList());
+				.collect(toUnmodifiableList());
 		assertEquals(1, streams.size());
 		assertEquals("video", streams.get(0).getCodecType());
 	}
@@ -147,8 +148,19 @@ class FFprobeJAXBTest {
 	@Test
 	void testGetAudiosStreams() {
 		final var streams = ffprobeJAXB.getAudiosStreams()
-		        .collect(toUnmodifiableList());
+				.collect(toUnmodifiableList());
 		assertEquals(1, streams.size());
 		assertEquals("audio", streams.get(0).getCodecType());
 	}
+
+	@Test
+	void testGetMediaSummary() {
+		assertEquals(OUT0_SUMMARY, ffprobeJAXB.getMediaSummary().toString());
+	}
+
+	@Test
+	void testToString() {
+		assertEquals(OUT0_SUMMARY, ffprobeJAXB.toString());
+	}
+
 }

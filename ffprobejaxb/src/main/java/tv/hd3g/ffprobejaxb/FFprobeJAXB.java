@@ -121,6 +121,15 @@ public class FFprobeJAXB {
 		return probeResult.getFormat();
 	}
 
+	public MediaSummary getMediaSummary() {
+		return MediaSummary.create(this);
+	}
+
+	@Override
+	public String toString() {
+		return getMediaSummary().toString();
+	}
+
 	/**
 	 * @return nullable
 	 */
