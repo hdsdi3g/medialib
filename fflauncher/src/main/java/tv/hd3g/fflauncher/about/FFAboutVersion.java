@@ -19,6 +19,7 @@ package tv.hd3g.fflauncher.about;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,8 +28,10 @@ import org.apache.logging.log4j.Logger;
 
 public class FFAboutVersion {
 
+	private static final String FFPLAY_VERSION = "ffplay version ";
+	private static final String FFPROBE_VERSION = "ffprobe version ";
+	private static final String FFMPEG_VERSION = "ffmpeg version ";
 	private static final String HEADER_CONFIGURATION = "configuration:";
-
 	private static final Logger log = LogManager.getLogger();
 
 	/**
@@ -85,14 +88,32 @@ public class FFAboutVersion {
 	public final String libpostprocVersion;
 
 	FFAboutVersion(final List<String> processResult) {
-		headerVersion = processResult.stream().filter(l -> l.startsWith("ffmpeg version ")).findFirst().orElse(
-		        "ffmpeg version ?").substring("ffmpeg version ".length()).trim();
+		headerVersion = processResult.stream()
+				.filter(l -> l.startsWith(FFMPEG_VERSION)
+							 || l.startsWith(FFPROBE_VERSION)
+							 || l.startsWith(FFPLAY_VERSION))
+				.findFirst()
+				.map(l -> {
+					if (l.startsWith(FFMPEG_VERSION)) {
+						return l.substring(FFMPEG_VERSION.length());
+					}
+					if (l.startsWith(FFPROBE_VERSION)) {
+						return l.substring(FFPROBE_VERSION.length());
+					}
+					if (l.startsWith(FFPLAY_VERSION)) {
+						return l.substring(FFPLAY_VERSION.length());
+					}
+					return null;
+				})
+				.filter(Objects::nonNull)
+				.map(String::trim)
+				.orElse("?");
 
 		builtWith = processResult.stream().filter(l -> l.startsWith("built with ")).findFirst().orElse("built with ?")
-		        .substring("built with ".length()).trim();
+				.substring("built with ".length()).trim();
 
 		rawConfiguration = processResult.stream().filter(l -> l.startsWith(HEADER_CONFIGURATION)).findFirst().orElse(
-		        HEADER_CONFIGURATION).substring(HEADER_CONFIGURATION.length()).trim();
+				HEADER_CONFIGURATION).substring(HEADER_CONFIGURATION.length()).trim();
 
 		configuration = Collections.unmodifiableSet(Arrays.stream(rawConfiguration.split(" ")).map(c -> {
 			if (c.startsWith("--enable-")) {
