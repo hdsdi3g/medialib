@@ -121,8 +121,16 @@ class ProgressBlockTest {
 
 	@Test
 	void testGetOutTimeMs() {
-		assertEquals(Duration.ofMillis(26 * 60 * 1000 + 22 * 1000 + 993), bSimpleLines.getOutTimeMs());
-		assertEquals(Duration.ofMillis(5 * 3600 * 1000 + 43 * 60 * 1000 + 53 * 1000 + 313), bFullLines.getOutTimeMs());
+		assertEquals(1582993, bSimpleLines.getOutTimeMs());
+		assertEquals(20633313, bFullLines.getOutTimeMs());
+	}
+
+	@Test
+	void testGetOutTimeDuration() {
+		assertEquals(Duration.ofMillis(1 * 1000 + 582),
+				bSimpleLines.getOutTimeDuration());
+		assertEquals(Duration.ofMillis(20 * 1000 + 633),
+				bFullLines.getOutTimeDuration());
 	}
 
 	@Test

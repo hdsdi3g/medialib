@@ -126,8 +126,12 @@ public class ProgressBlock {
 		return Long.valueOf(items.getOrDefault("out_time_us", "0"));
 	}
 
-	public Duration getOutTimeMs() {
-		return Duration.ofMillis(Long.valueOf(items.getOrDefault("out_time_ms", "0")));
+	public long getOutTimeMs() {
+		return Long.valueOf(items.getOrDefault("out_time_ms", "0"));
+	}
+
+	public Duration getOutTimeDuration() {
+		return Duration.ofMillis(Long.valueOf(items.getOrDefault("out_time_us", "0")) / 1000l);
 	}
 
 	public String getOutTime() {
