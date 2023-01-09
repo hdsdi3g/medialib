@@ -11,21 +11,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2022
+ * Copyright (C) hdsdi3g for hd3g.tv 2023
  *
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import java.util.List;
-
-import tv.hd3g.fflauncher.resultparser.MetadataFilterFrameParser;
-
-public class Utility {
-
-	public static List<LavfiRawMtdFrame> getFramesFromString(final String rawLines) {
-		final var parser = new MetadataFilterFrameParser();
-		rawLines.lines().forEach(parser::onLine);
-		return parser.close();
-	}
+public record LavfiMtdValue<T> (int frame, long pts, float ptsTime, T value) {
 
 }

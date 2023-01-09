@@ -16,24 +16,14 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame.DEFAULT_KEY;
-
-import java.util.List;
-import java.util.Optional;
-
 import lombok.Data;
-import tv.hd3g.fflauncher.filtering.VideoFilterBlockdetect.LavfiMtdBlockdetect;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFrames;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFramesExtractor;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#blockdetect-1
  * No thread safe
  */
 @Data
-public class VideoFilterBlockdetect implements VideoFilterSupplier,
-									LavfiMtdProgramFramesExtractor<LavfiMtdBlockdetect> {
+public class VideoFilterBlockdetect implements VideoFilterSupplier {
 
 	private int periodMin;
 	private int periodMax;
@@ -52,21 +42,6 @@ public class VideoFilterBlockdetect implements VideoFilterSupplier,
 		f.addOptionalNonNegativeArgument("period_max", periodMax);
 		f.addOptionalNonNegativeArgument("planes", planes);
 		return f;
-	}
-
-	/**
-	 * frame:111 pts:4632 pts_time:4.632
-	 * lavfi.block=2.204194
-	 */
-	@Override
-	public LavfiMtdProgramFrames<LavfiMtdBlockdetect> getMetadatas(final List<? extends LavfiRawMtdFrame> extractedRawMtdFrames) {
-		return new LavfiMtdProgramFrames<>(extractedRawMtdFrames, "block",
-				rawFrames -> Optional.ofNullable(rawFrames.get(DEFAULT_KEY))
-						.map(Float::parseFloat)
-						.map(LavfiMtdBlockdetect::new));
-	}
-
-	public record LavfiMtdBlockdetect(float block) {
 	}
 
 }

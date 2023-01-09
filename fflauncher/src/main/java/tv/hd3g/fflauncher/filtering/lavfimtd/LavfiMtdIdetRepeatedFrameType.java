@@ -11,16 +11,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2022
+ * Copyright (C) hdsdi3g for hd3g.tv 2023
  *
  */
-package tv.hd3g.fflauncher.recipes;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
-
-public record MediaAnalyserResult(MediaAnalyserSession session,
-								  LavfiMetadataFilterParser lavfiMetadatas,
-								  Ebur128Summary ebur128Summary) {
-
+public enum LavfiMtdIdetRepeatedFrameType {
+	TOP,
+	BOTTOM,
+	NEITHER;
 }

@@ -17,25 +17,11 @@
 package tv.hd3g.fflauncher.filtering;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static tv.hd3g.fflauncher.filtering.lavfimtd.Utility.getFramesFromString;
-
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
-
 class VideoFilterFreezedetectTest {
-
-	private static final String RAW_LINES = """
-			frame:66 pts:2757 pts_time:2.757
-			lavfi.freezedetect.freeze_start=0.757
-			frame:97 pts:4049 pts_time:4.049
-			lavfi.freezedetect.freeze_duration=3.292
-			lavfi.freezedetect.freeze_end=4.049
-			""";
 
 	VideoFilterFreezedetect f;
 
@@ -53,12 +39,4 @@ class VideoFilterFreezedetectTest {
 		assertEquals("freezedetect=noise=-5dB", f.toFilter().toString());
 	}
 
-	@Test
-	void testGetEvents() {
-		final var events = f.getEvents(getFramesFromString(RAW_LINES));
-		assertNotNull(events);
-		assertEquals(List.of(
-				new LavfiMtdEvent("freeze", null, 0.757f, 4.049f)),
-				events.getEvents());
-	}
 }

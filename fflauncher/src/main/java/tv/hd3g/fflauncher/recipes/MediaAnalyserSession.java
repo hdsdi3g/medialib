@@ -33,8 +33,8 @@ import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.MetadataFilterFrameParser;
 import tv.hd3g.fflauncher.resultparser.RawStdErrEventParser;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
@@ -133,7 +133,7 @@ public class MediaAnalyserSession {
 
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
 
-		final var metadataFilterFrameParser = new MetadataFilterFrameParser();
+		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
 		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
 			if (event.getFilterName().equals("ebur128")) {
 				ebur128EventConsumer.accept(this, new Ebur128StrErrFilterEvent(event.getLineValue()));
@@ -148,7 +148,7 @@ public class MediaAnalyserSession {
 					final var line = lineEntry.getLine();
 					log.trace("Line: {}", line);
 					if (lineEntry.isStdErr() == false) {
-						metadataFilterFrameParser.onLine(line);
+						lavfiMetadataFilterParser.addLavfiRawLine(line);
 					} else {
 						rawStdErrEventParser.onLine(line);
 						stdErrLinesBucket.add(line.trim());
@@ -164,7 +164,7 @@ public class MediaAnalyserSession {
 			throw new InvalidExecution(processLifecycle, stdErr);
 		}
 
-		return new MediaAnalyserResult(this, metadataFilterFrameParser.close(), rawStdErrEventParser.close());
+		return new MediaAnalyserResult(this, lavfiMetadataFilterParser.close(), rawStdErrEventParser.close());
 	}
 
 	public String getSource() {

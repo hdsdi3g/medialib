@@ -16,9 +16,23 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import java.time.Duration;
+
 /**
- * @param scope can be channel name, or null
+ * @param scope can be channel name/pos, or null
  */
-public record LavfiMtdEvent(String name, String scope, float start, float end) {
+public record LavfiMtdEvent(String name, String scope, Duration start, Duration end) {
+
+	LavfiMtdEvent(final String name, final String scope, final float start, final float end) {
+		this(name, scope, secFloatToDuration(start), secFloatToDuration(end));
+	}
+
+	LavfiMtdEvent(final String name, final String scope, final Duration start, final float end) {
+		this(name, scope, start, secFloatToDuration(end));
+	}
+
+	private static Duration secFloatToDuration(final float value) {
+		return Duration.ofMillis(Math.round(value * 1000f));
+	}
 
 }

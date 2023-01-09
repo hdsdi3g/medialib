@@ -11,28 +11,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2022
+ * Copyright (C) hdsdi3g for hd3g.tv 2023
  *
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import java.util.List;
-
-public interface LavfiMtdProgramFramesExtractor<T> {
-
-	LavfiMtdProgramFrames<T> getMetadatas(List<? extends LavfiRawMtdFrame> extractedRawMtdFrames);
-
-	/**
-	 * From a float string chain
-	 */
-	default int parseInt(final String floatString) {
-		return Math.round(Float.parseFloat(floatString));
-	}
-
-	/**
-	 * From a double string chain
-	 */
-	default long parseLong(final String doubleString) {
-		return Math.round(Double.parseDouble(doubleString));
-	}
+record LavfiMtdEventFrameDef(LavfiMtdEventFrameType type, String scope, String time) {
 }

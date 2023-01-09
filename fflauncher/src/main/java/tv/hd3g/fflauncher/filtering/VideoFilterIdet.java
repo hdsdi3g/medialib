@@ -16,21 +16,14 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import java.util.List;
-import java.util.Optional;
-
 import lombok.Data;
-import tv.hd3g.fflauncher.filtering.VideoFilterIdet.LavfiMtdIdet;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFrames;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFramesExtractor;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#idet
  * No thread safe
  */
 @Data
-public class VideoFilterIdet implements VideoFilterSupplier, LavfiMtdProgramFramesExtractor<LavfiMtdIdet> {
+public class VideoFilterIdet implements VideoFilterSupplier {
 
 	private float intlThres;
 	private float progThres;
@@ -53,94 +46,6 @@ public class VideoFilterIdet implements VideoFilterSupplier, LavfiMtdProgramFram
 		f.addOptionalNonNegativeArgument("prog_thres", progThres);
 		f.addOptionalNonNegativeArgument("half_life", halfLife);
 		return f;
-	}
-
-	/**
-	 * frame:119 pts:4966 pts_time:4.966
-	 * -
-	 * lavfi.idet.repeated.current_frame=neither
-	 * lavfi.idet.repeated.neither=115.00
-	 * lavfi.idet.repeated.top=2.00
-	 * lavfi.idet.repeated.bottom=3.00
-	 * -
-	 * lavfi.idet.single.current_frame=progressive
-	 * lavfi.idet.single.tff=0.00
-	 * lavfi.idet.single.bff=0.00
-	 * lavfi.idet.single.progressive=40.00
-	 * lavfi.idet.single.undetermined=80.00
-	 * -
-	 * lavfi.idet.multiple.current_frame=progressive
-	 * lavfi.idet.multiple.tff=0.00
-	 * lavfi.idet.multiple.bff=0.00
-	 * lavfi.idet.multiple.progressive=120.00
-	 * lavfi.idet.multiple.undetermined=0.00
-	 */
-	@Override
-	public LavfiMtdProgramFrames<LavfiMtdIdet> getMetadatas(final List<? extends LavfiRawMtdFrame> extractedRawMtdFrames) {
-		return new LavfiMtdProgramFrames<>(extractedRawMtdFrames, "idet",
-				rawFrames -> {
-					try {
-						final var single = new LavfiMtdIdetFrame(
-								LavfiMtdIdetSingleFrameType.valueOf(
-										rawFrames.get("single.current_frame").toUpperCase()),
-								parseInt(rawFrames.get("single.tff")),
-								parseInt(rawFrames.get("single.bff")),
-								parseInt(rawFrames.get("single.progressive")),
-								parseInt(rawFrames.get("single.undetermined")));
-						final var multiple = new LavfiMtdIdetFrame(
-								LavfiMtdIdetSingleFrameType.valueOf(
-										rawFrames.get("multiple.current_frame").toUpperCase()),
-								parseInt(rawFrames.get("multiple.tff")),
-								parseInt(rawFrames.get("multiple.bff")),
-								parseInt(rawFrames.get("multiple.progressive")),
-								parseInt(rawFrames.get("multiple.undetermined")));
-						final var repeated = new LavfiMtdIdetRepeatedFrame(
-								LavfiMtdIdetRepeatedFrameType.valueOf(
-										rawFrames.get("repeated.current_frame").toUpperCase()),
-								parseInt(rawFrames.get("repeated.neither")),
-								parseInt(rawFrames.get("repeated.top")),
-								parseInt(rawFrames.get("repeated.bottom")));
-						return Optional.ofNullable(new LavfiMtdIdet(single, multiple, repeated));
-					} catch (final NullPointerException e) {
-						return Optional.empty();
-					}
-
-				});
-	}
-
-	public enum LavfiMtdIdetSingleFrameType {
-		/** top field first */
-		TFF,
-		/** bottom field first */
-		BFF,
-		PROGRESSIVE,
-		UNDETERMINED;
-	}
-
-	public enum LavfiMtdIdetRepeatedFrameType {
-		TOP,
-		BOTTOM,
-		NEITHER;
-	}
-
-	public record LavfiMtdIdetRepeatedFrame(LavfiMtdIdetRepeatedFrameType currentFrame,
-											int neither,
-											int top,
-											int bottom) {
-	}
-
-	public record LavfiMtdIdetFrame(LavfiMtdIdetSingleFrameType currentFrame,
-									/** top field first */
-									int tff,
-									/** bottom field first */
-									int bff,
-									int progressive,
-									int undetermined) {
-	}
-
-	public record LavfiMtdIdet(LavfiMtdIdetFrame single,
-							   LavfiMtdIdetFrame multiple,
-							   LavfiMtdIdetRepeatedFrame repeated) {
 	}
 
 }

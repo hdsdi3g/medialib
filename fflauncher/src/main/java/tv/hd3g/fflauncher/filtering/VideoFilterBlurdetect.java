@@ -16,23 +16,14 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
-import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame.DEFAULT_KEY;
-
-import java.util.List;
-import java.util.Optional;
-
 import lombok.Data;
-import tv.hd3g.fflauncher.filtering.VideoFilterBlurdetect.LavfiMtdBlurdetect;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFrames;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdProgramFramesExtractor;
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 
 /**
  * https://www.ffmpeg.org/ffmpeg-filters.html#blurdetect-1
  * No thread safe
  */
 @Data
-public class VideoFilterBlurdetect implements VideoFilterSupplier, LavfiMtdProgramFramesExtractor<LavfiMtdBlurdetect> {
+public class VideoFilterBlurdetect implements VideoFilterSupplier {
 
 	private float low;
 	private float high;
@@ -63,21 +54,6 @@ public class VideoFilterBlurdetect implements VideoFilterSupplier, LavfiMtdProgr
 		f.addOptionalNonNegativeArgument("block_height", blockHeight);
 		f.addOptionalNonNegativeArgument("planes", planes);
 		return f;
-	}
-
-	/**
-	 * frame:114 pts:4757 pts_time:4.757
-	 * lavfi.blur=5.744382
-	 */
-	@Override
-	public LavfiMtdProgramFrames<LavfiMtdBlurdetect> getMetadatas(final List<? extends LavfiRawMtdFrame> extractedRawMtdFrames) {
-		return new LavfiMtdProgramFrames<>(extractedRawMtdFrames, "blur",
-				rawFrames -> Optional.ofNullable(rawFrames.get(DEFAULT_KEY))
-						.map(Float::parseFloat)
-						.map(LavfiMtdBlurdetect::new));
-	}
-
-	public record LavfiMtdBlurdetect(float blur) {
 	}
 
 }

@@ -33,6 +33,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -52,6 +53,8 @@ import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.Filter;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
@@ -72,7 +75,6 @@ class MediaAnalyserSessionTest {
 	String aFilterValue;
 	String vFilterValue;
 	String sourceFilePath;
-	String lavfiFrame;
 	String ebur128Result;
 	String ebur128event;
 	String rawEvent;
@@ -128,7 +130,6 @@ class MediaAnalyserSessionTest {
 
 		when(ffmpeg.getInternalParameters()).thenReturn(parameters);
 
-		lavfiFrame = "[LavfiMetadataFilterFrame(frame=1022, pts=981168, ptsTime=20.441, valuesByFilterKeysByFilterName={aphasemeter={phase=1.000000, mono_start=18.461}})]";
 		rawEvent = "RawStdErrFilterEvent(filterName=raw, filterChainPos=0, lineValue=t: 2.80748 a: 12 b: 34)";
 		ebur128Result = "Ebur128Summary(integrated=-17.6, integratedThreshold=-28.2, loudnessRange=6.5, loudnessRangeThreshold=-38.2, loudnessRangeLow=-21.6, loudnessRangeHigh=-15.1, samplePeak=-1.4, truePeak=-1.5)";
 		ebur128event = "Ebur128StrErrFilterEvent(t=1.80748, target=-23.0, m=-25.5, s=-120.7, i=-19.2, lra=0.0, spk=Stereo[left=-5.5, right=-5.6], ftpk=Stereo[left=-19.1, right=-21.6], tpk=Stereo[left=-5.5, right=-5.6])";
@@ -261,7 +262,7 @@ class MediaAnalyserSessionTest {
 
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
-		assertEquals(lavfiFrame, result.lavfiMetadatas().toString());
+		checkMetadatas(result);
 		assertEquals(s, result.session());
 
 		assertEquals(List.of(
@@ -313,7 +314,7 @@ class MediaAnalyserSessionTest {
 
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
-		assertEquals(lavfiFrame, result.lavfiMetadatas().toString());
+		checkMetadatas(result);
 		assertEquals(s, result.session());
 
 		assertEquals(List.of(
@@ -364,7 +365,8 @@ class MediaAnalyserSessionTest {
 
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
-		assertEquals(lavfiFrame, result.lavfiMetadatas().toString());
+		checkMetadatas(result);
+
 		assertEquals(s, result.session());
 
 		assertEquals(List.of(
@@ -395,7 +397,7 @@ class MediaAnalyserSessionTest {
 
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
-		assertEquals(lavfiFrame, result.lavfiMetadatas().toString());
+		checkMetadatas(result);
 		assertEquals(s, result.session());
 
 		assertEquals(List.of(
@@ -430,6 +432,17 @@ class MediaAnalyserSessionTest {
 		s = new MediaAnalyserSession(mediaAnalyser, null, sourceFile);
 		assertEquals(sourceFilePath, s.toString());
 		verify(sourceFile, times(1)).getPath();
+	}
+
+	void checkMetadatas(final MediaAnalyserResult result) {
+		assertEquals(1, result.lavfiMetadatas().getEventCount());
+		assertEquals(1, result.lavfiMetadatas().getReportCount());
+		assertEquals(List.of(
+				new LavfiMtdValue<>(1022, 981168l, 20.441f, 1f)),
+				result.lavfiMetadatas().getAPhaseMeterReport());
+		assertEquals(List.of(
+				new LavfiMtdEvent("mono", null, Duration.ofMillis(18461), Duration.ZERO)),
+				result.lavfiMetadatas().getMonoEvents());
 	}
 
 }
