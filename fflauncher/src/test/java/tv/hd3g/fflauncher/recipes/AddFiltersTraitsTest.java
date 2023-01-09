@@ -17,6 +17,7 @@
 package tv.hd3g.fflauncher.recipes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +42,6 @@ import net.datafaker.Faker;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
 import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect;
-import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect.Mode;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 
 class AddFiltersTraitsTest {
@@ -61,8 +61,6 @@ class AddFiltersTraitsTest {
 	VideoFilterSupplier videoFilterSupplier;
 	@Mock
 	AudioFilterSupplier audioFilterSupplier;
-	@Mock
-	Mode mode;
 
 	AtomicReference<FilterSupplier> fSupplier;
 
@@ -89,7 +87,7 @@ class AddFiltersTraitsTest {
 
 	@AfterEach
 	void end() {
-		verifyNoMoreInteractions(vfFunction, afFunction, videoFilterSupplier, audioFilterSupplier, mode);
+		verifyNoMoreInteractions(vfFunction, afFunction, videoFilterSupplier, audioFilterSupplier);
 	}
 
 	private void checkVideoFilter() {
@@ -197,10 +195,10 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterCropdetect() {
-			assertEquals(f, f.addFilterCropdetect(mode, filter -> fSupplier.set(filter)));
+			assertEquals(f, f.addFilterCropdetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 			final var crop = (VideoFilterCropdetect) videoFilterSupplierCaptor.getValue();
-			assertEquals(mode, crop.getMode());
+			assertFalse(crop.isModeMvedges());
 		}
 
 		@Test
@@ -314,10 +312,10 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterCropdetect() {
-			assertEquals(f, f.addFilterCropdetect(mode, filter -> fSupplier.set(filter)));
+			assertEquals(f, f.addFilterCropdetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 			final var crop = (VideoFilterCropdetect) videoFilterSupplierCaptor.getValue();
-			assertEquals(mode, crop.getMode());
+			assertFalse(crop.isModeMvedges());
 		}
 
 		@Test

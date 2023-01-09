@@ -32,21 +32,11 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiRawMtdFrame;
 @Data
 public class VideoFilterCropdetect implements VideoFilterSupplier, LavfiMtdProgramFramesExtractor<LavfiMtdCropdetect> {
 
-	public enum Mode {
-		BLACK,
-		/**
-		 * You should use "-flags2 +export_mvs" before "-i file" with this mode.
-		 * OR "mestimate" filter before this filter.
-		 */
-		MVEDGES;
-
-		@Override
-		public String toString() {
-			return name().toLowerCase();
-		}
-	}
-
-	private final Mode mode;
+	/**
+	 * You should use "-flags2 +export_mvs" before "-i file" with this mode.
+	 * OR "mestimate" filter before this filter.
+	 */
+	private boolean modeMvedges;
 	private int limit;
 	private int round;
 	private int skip;
@@ -58,8 +48,7 @@ public class VideoFilterCropdetect implements VideoFilterSupplier, LavfiMtdProgr
 	/**
 	 * set -1 to default
 	 */
-	public VideoFilterCropdetect(final Mode mode) {
-		this.mode = mode;
+	public VideoFilterCropdetect() {
 		limit = -1;
 		round = -1;
 		skip = -1;
@@ -71,7 +60,8 @@ public class VideoFilterCropdetect implements VideoFilterSupplier, LavfiMtdProgr
 
 	@Override
 	public Filter toFilter() {
-		final var f = new Filter("cropdetect", new FilterArgument("mode", mode));
+		final var f = new Filter("cropdetect");
+		f.addOptionalArgument("mode", modeMvedges, "mvedges");
 		f.addOptionalNonNegativeArgument("limit", limit);
 		f.addOptionalNonNegativeArgument("round", round);
 		f.addOptionalNonNegativeArgument("skip", skip);

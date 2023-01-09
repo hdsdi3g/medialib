@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect.LavfiMtdCropdetect;
-import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect.Mode;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdPosition;
 
 class VideoFilterCropdetectTest {
@@ -56,17 +55,15 @@ class VideoFilterCropdetectTest {
 			""";
 
 	VideoFilterCropdetect f;
-	Mode mode;
 
 	@BeforeEach
 	void init() throws Exception {
-		mode = faker.options().option(Mode.class);
-		f = new VideoFilterCropdetect(mode);
+		f = new VideoFilterCropdetect();
 	}
 
 	@Test
 	void testToFilter() {
-		assertEquals("cropdetect=mode=" + mode.toString(), f.toFilter().toString());
+		assertEquals("cropdetect", f.toFilter().toString());
 	}
 
 	@Test

@@ -32,7 +32,6 @@ import tv.hd3g.fflauncher.filtering.VideoFilterBlackdetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterBlockdetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterBlurdetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect;
-import tv.hd3g.fflauncher.filtering.VideoFilterCropdetect.Mode;
 import tv.hd3g.fflauncher.filtering.VideoFilterFreezedetect;
 import tv.hd3g.fflauncher.filtering.VideoFilterIdet;
 import tv.hd3g.fflauncher.filtering.VideoFilterMEstimate;
@@ -88,9 +87,8 @@ public interface AddFiltersTraits {
 		return addOptionalFilter(new VideoFilterBlackdetect(), filterifPresent);
 	}
 
-	default AddFiltersTraits addFilterCropdetect(final Mode mode,
-												 final Consumer<VideoFilterCropdetect> filterifPresent) {
-		return addOptionalFilter(new VideoFilterCropdetect(mode), filterifPresent);
+	default AddFiltersTraits addFilterCropdetect(final Consumer<VideoFilterCropdetect> filterifPresent) {
+		return addOptionalFilter(new VideoFilterCropdetect(), filterifPresent);
 	}
 
 	default AddFiltersTraits addFilterBlockdetect(final Consumer<VideoFilterBlockdetect> filterifPresent) {
