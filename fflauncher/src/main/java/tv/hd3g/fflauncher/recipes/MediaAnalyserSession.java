@@ -136,7 +136,7 @@ public class MediaAnalyserSession {
 		final var metadataFilterFrameParser = new MetadataFilterFrameParser();
 		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
 			if (event.getFilterName().equals("ebur128")) {
-				ebur128EventConsumer.accept(this, new Ebur128StrErrFilterEvent(event.getContent()));
+				ebur128EventConsumer.accept(this, new Ebur128StrErrFilterEvent(event.getLineValue()));
 			} else {
 				rawStdErrEventConsumer.accept(this, event);
 			}

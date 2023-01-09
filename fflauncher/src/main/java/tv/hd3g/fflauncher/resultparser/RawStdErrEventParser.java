@@ -80,10 +80,10 @@ public class RawStdErrEventParser {
 				/**
 				 * [Parsed_ebur128_0 @ 55c6a78b3c80] Summary:
 				 */
-				inEbur128SummaryZone = true;
-			} else {
-				onRawStdErrEvent.accept(new RawStdErrFilterEvent(line));
-			}
+					inEbur128SummaryZone = true;
+				} else {
+					onRawStdErrEvent.accept(new RawStdErrFilterEvent(line));
+				}
 		} else if (inEbur128SummaryZone) {
 			final var entry = splitter(line, ':');
 			if (summaryZoneHeaders.contains(entry.get(0))) {

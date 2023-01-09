@@ -20,8 +20,6 @@ import static java.lang.Float.NEGATIVE_INFINITY;
 import static net.datafaker.Faker.instance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,21 +53,19 @@ class Ebur128StrErrFilterEventTest {
 		ftpk = new Stereo<>(faker.random().nextFloat(), faker.random().nextFloat());
 		tpk = new Stereo<>(faker.random().nextFloat(), faker.random().nextFloat());
 
-		fe = new Ebur128StrErrFilterEvent(Map.of(
-				"t", String.valueOf(t),
-				"TARGET", target + " LUFS",
-				"M", String.valueOf(m),
-				"S", String.valueOf(s),
-				"I", i + " LUFS",
-				"LRA", lra + " LU",
-				"SPK", spk.left() + " " + spk.right() + " dBFS",
-				"FTPK", ftpk.left() + " " + ftpk.right() + " dBFS",
-				"TPK", tpk.left() + " " + tpk.right() + " dBFS"));
+		fe = new Ebur128StrErrFilterEvent(
+				"t: " + t + "    TARGET:" + target
+										  + " LUFS    M: " + m + " S:" + s
+										  + "     I: " + i + " LUFS       LRA:   " + lra
+										  + " LU  SPK:  " + spk.left() + "  " + spk.right()
+										  + " dBFS  FTPK: " + ftpk.left() + " " + ftpk.right()
+										  + " dBFS  TPK:  " + tpk.left() + "  " + tpk.right() + " dBFS");
+
 	}
 
 	@Test
 	void testCheckNull() {
-		fe = new Ebur128StrErrFilterEvent(Map.of());
+		fe = new Ebur128StrErrFilterEvent("");
 		assertEquals(NEGATIVE_INFINITY, fe.getT());
 		assertEquals(NEGATIVE_INFINITY, fe.getTarget());
 		assertEquals(NEGATIVE_INFINITY, fe.getM());

@@ -129,7 +129,7 @@ class MediaAnalyserSessionTest {
 		when(ffmpeg.getInternalParameters()).thenReturn(parameters);
 
 		lavfiFrame = "[LavfiMetadataFilterFrame(frame=1022, pts=981168, ptsTime=20.441, valuesByFilterKeysByFilterName={aphasemeter={phase=1.000000, mono_start=18.461}})]";
-		rawEvent = "RawStdErrFilterEvent(filterName=raw, filterChainPos=0, content={t=2.80748, a=12, b=34})";
+		rawEvent = "RawStdErrFilterEvent(filterName=raw, filterChainPos=0, lineValue=t: 2.80748 a: 12 b: 34)";
 		ebur128Result = "Ebur128Summary(integrated=-17.6, integratedThreshold=-28.2, loudnessRange=6.5, loudnessRangeThreshold=-38.2, loudnessRangeLow=-21.6, loudnessRangeHigh=-15.1, samplePeak=-1.4, truePeak=-1.5)";
 		ebur128event = "Ebur128StrErrFilterEvent(t=1.80748, target=-23.0, m=-25.5, s=-120.7, i=-19.2, lra=0.0, spk=Stereo[left=-5.5, right=-5.6], ftpk=Stereo[left=-19.1, right=-21.6], tpk=Stereo[left=-5.5, right=-5.6])";
 

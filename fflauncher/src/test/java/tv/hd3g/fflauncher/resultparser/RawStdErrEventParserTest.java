@@ -59,10 +59,10 @@ class RawStdErrEventParserTest {
 
 		assertEquals(2999, events.size());
 		assertEquals(
-				"RawStdErrFilterEvent(filterName=ebur128, filterChainPos=0, content={t=0.106979, TARGET=-23 LUFS, M=-120.7, S=-120.7, I=-70.0 LUFS, LRA=0.0 LU, SPK=-35.2 -35.3 dBFS, FTPK=-35.2 -35.3 dBFS, TPK=-35.2 -35.3 dBFS})",
+				"RawStdErrFilterEvent(filterName=ebur128, filterChainPos=0, lineValue=t: 0.106979   TARGET:-23 LUFS    M:-120.7 S:-120.7     I: -70.0 LUFS       LRA:   0.0 LU  SPK: -35.2 -35.3 dBFS  FTPK: -35.2 -35.3 dBFS  TPK: -35.2 -35.3 dBFS)",
 				events.get(0).toString());
 		assertEquals(
-				"RawStdErrFilterEvent(filterName=ebur128, filterChainPos=0, content={t=299.907, TARGET=-23 LUFS, M=-14.4, S=-19.1, I=-17.6 LUFS, LRA=6.5 LU, SPK=-1.4  -1.4 dBFS, FTPK=-6.7  -6.7 dBFS, TPK=-1.4  -1.4 dBFS})",
+				"RawStdErrFilterEvent(filterName=ebur128, filterChainPos=0, lineValue=t: 299.907    TARGET:-23 LUFS    M: -14.4 S: -19.1     I: -17.6 LUFS       LRA:   6.5 LU  SPK:  -1.4  -1.4 dBFS  FTPK:  -6.7  -6.7 dBFS  TPK:  -1.4  -1.4 dBFS)",
 				events.get(2998).toString());
 	}
 

@@ -59,8 +59,8 @@ class RawStdErrFilterEventTest {
 	@Test
 	void testGetContent() {
 		assertEquals(
-				"{t=1.80748, TARGET=-23 LUFS, M=-25.5, S=-120.7, I=-19.2 LUFS, LRA=0.0 LU, SPK=-5.5  -5.6 dBFS, FTPK=-19.1 -21.6 dBFS, TPK=-5.5  -5.6 dBFS}",
-				fe.getContent().toString());
+				"t: 1.80748    TARGET:-23 LUFS    M: -25.5 S:-120.7     I: -19.2 LUFS       LRA:   0.0 LU  SPK:  -5.5  -5.6 dBFS  FTPK: -19.1 -21.6 dBFS  TPK:  -5.5  -5.6 dBFS",
+				fe.getLineValue());
 	}
 
 	@Test

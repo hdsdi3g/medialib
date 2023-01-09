@@ -17,8 +17,9 @@
 package tv.hd3g.fflauncher.resultparser;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
+import static java.util.Objects.requireNonNull;
 
-import java.util.Map;
+import java.util.HashMap;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -39,17 +40,45 @@ public class Ebur128StrErrFilterEvent {
 	private final Stereo<Float> tpk;
 
 	/**
-	 * t => 2.10748
-	 * TARGET => -23 LUFS
-	 * M => -18.5
-	 * S => -120.7
-	 * I => -19.5 LUFS
-	 * LRA => 0.0 LU
-	 * SPK => -5.5 -5.6 dBFS
-	 * FTPK => -5.5 -5.6 dBFS
-	 * TPK => -5.5 -5.6 dBFS
+	 * @param lineValue "t: 0.707479 TARGET:-23 LUFS M: -24.4 S:-120.7 ...."
 	 */
-	public Ebur128StrErrFilterEvent(final Map<String, String> content) {
+	public Ebur128StrErrFilterEvent(final String lineValue) {
+		final var content = new HashMap<String, String>();
+
+		final var dataItems = MediaAnalyser.splitter(lineValue, ':');
+		/**
+		 * t
+		 * 1.80748 TARGET
+		 * -23 LUFS M
+		 * -25.5 S
+		 * -120.7 I
+		 * -19.2 LUFS LRA
+		 * 0.0 LU SPK
+		 * -5.5 -5.6 dBFS FTPK
+		 * -19.1 -21.6 dBFS TPK
+		 * -5.5 -5.6 dBFS
+		 */
+		String key = null;
+		String value = null;
+		String entry;
+		int lastSpacePos;
+		for (var pos = 0; pos < dataItems.size(); pos++) {
+			entry = dataItems.get(pos);
+			if (pos == 0) {
+				/** First */
+				key = entry;
+			} else if (pos + 1 == dataItems.size()) {
+				/** Last */
+				content.put(requireNonNull(key), entry.trim());
+			} else {
+				lastSpacePos = entry.lastIndexOf(" ");
+				value = entry.substring(0, lastSpacePos);
+				content.put(requireNonNull(key), value.trim());
+				key = entry.substring(lastSpacePos + 1);
+			}
+
+		}
+
 		t = extractValue(content.get("t"));
 		target = extractValue(content.get("TARGET"));
 		m = extractValue(content.get("M"));
