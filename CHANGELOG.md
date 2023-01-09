@@ -1,5 +1,29 @@
 # All Medialib projects upgrades needs
 
+## 10.1.0
+
+Correct bugs:
+
+Better behavior with Progress if ffmpeg crash on boot: catch SocketException #32
+
+Add missing video boolean option for aphasemeter filter (by default ignore video output) #30
+
+Display ffmpeg and ffprobe command lines on run MediaAnalyser/ContainerAnalyser
+
+Correct parse and detection on ebur128 stderr output (nan values and missing summary) #35
+
+Remove metadata filters added by default in MediaAnalyser
+
+Add better created/configured filters in AddFiltersTraits
+
+Create FFprobeJAXB MediaSummary #28
+
+Correct #27 manage FFAboutVersion with ffprobe and ffplay
+
+ProgressBlock don't show correct "getOutTimeMs"
+
+Correct Cropdetect filter, remove default mode=black #36
+
 ## 10.0.0
 
 Change parent deps from parent to starter, add explicit deps to hamcrest and lombok: resolve #15
