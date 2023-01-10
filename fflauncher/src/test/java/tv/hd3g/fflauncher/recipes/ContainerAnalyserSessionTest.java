@@ -22,6 +22,7 @@ import static org.apache.commons.io.FileUtils.openInputStream;
 import static org.apache.commons.io.IOUtils.buffer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,17 +37,24 @@ import static tv.hd3g.fflauncher.FFprobe.FFPrintFormat.XML;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.STEREO;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.I;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.P;
+import static tv.hd3g.fflauncher.recipes.ContainerAnalyserSession.importFromOffline;
+import static tv.hd3g.processlauncher.LineEntry.makeStdErr;
+import static tv.hd3g.processlauncher.LineEntry.makeStdOut;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 import net.datafaker.Faker;
@@ -56,6 +64,7 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobePacket;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 import tv.hd3g.processlauncher.ExecutableToolRunning;
+import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.Processlauncher;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
@@ -94,6 +103,8 @@ class ContainerAnalyserSessionTest {
 	Processlauncher processlauncher;
 	String source;
 	File sourceFile;
+	@Captor
+	ArgumentCaptor<Consumer<LineEntry>> lineEntryCaptor;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -105,7 +116,6 @@ class ContainerAnalyserSessionTest {
 		when(executableToolRunning.getLifecyle()).thenReturn(processLifecycle);
 		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
 		when(processlauncher.getFullCommandLine()).thenReturn(faker.numerify("commandLine###"));
-
 	}
 
 	@AfterEach
@@ -177,9 +187,9 @@ class ContainerAnalyserSessionTest {
 	}
 
 	@Test
-	void testOfflineProcess() throws IOException {
+	void testImportFromOffline() throws IOException {
 		try (var ffprobeStdOut = openExampleFile()) {
-			final var result = cas.offlineProcess(ffprobeStdOut);
+			final var result = importFromOffline(ffprobeStdOut);
 
 			assertEquals(2522, result.audioFrames().size());
 			final var audioPktSizeStats = result.audioFrames().stream()
@@ -215,7 +225,7 @@ class ContainerAnalyserSessionTest {
 
 			assertEquals(List.of(), result.olderAudioConsts());
 			assertEquals(List.of(), result.olderVideoConsts());
-			assertEquals(cas, result.session());
+			assertNull(result.session());
 		}
 	}
 
@@ -223,4 +233,38 @@ class ContainerAnalyserSessionTest {
 	void testProcess_NoSourceFile() {
 		assertThrows(IllegalArgumentException.class, () -> new ContainerAnalyserSession(containerAnalyser, null, null));
 	}
+
+	@Test
+	void testExtract() {
+		when(containerAnalyser.createFFprobe()).thenReturn(ffprobe);
+		when(containerAnalyser.getExecutableFinder()).thenReturn(executableFinder);
+		when(ffprobe.execute(eq(executableFinder), any())).thenReturn(processLifecycle);
+		when(processLifecycle.isCorrectlyDone()).thenReturn(true);
+
+		final var sysOutList = new ArrayList<String>();
+		cas.extract(sysOutList::add);
+
+		verify(ffprobe, times(1)).setHidebanner();
+		verify(ffprobe, times(1)).setShowFrames();
+		verify(ffprobe, times(1)).setShowPackets();
+		verify(ffprobe, times(1)).setPrintFormat(XML);
+		verify(ffprobe, times(1)).addSimpleInputSource(source);
+		verify(ffprobe, times(1)).fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
+		verify(ffprobe, times(1)).execute(eq(executableFinder), lineEntryCaptor.capture());
+
+		lineEntryCaptor.getValue().accept(makeStdErr(faker.numerify("stderr###"), processLifecycle));
+		final var lineOut = faker.numerify("stdout###");
+		lineEntryCaptor.getValue().accept(makeStdOut(lineOut, processLifecycle));
+
+		assertEquals(List.of(lineOut), sysOutList);
+
+		verify(containerAnalyser, times(1)).getExecutableFinder();
+		verify(containerAnalyser, times(1)).createFFprobe();
+
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(processLifecycle, atLeastOnce()).isCorrectlyDone();
+		verify(processLifecycle, atLeastOnce()).waitForEnd();
+	}
+
 }

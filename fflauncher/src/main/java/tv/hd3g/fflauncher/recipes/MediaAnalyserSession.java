@@ -22,13 +22,18 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
@@ -84,7 +89,7 @@ public class MediaAnalyserSession {
 
 	}
 
-	public MediaAnalyserResult process() {
+	private FFmpeg prepareFFmpeg() {
 		if (audioFilters.isEmpty() && videoFilters.isEmpty()) {
 			throw new IllegalArgumentException("No filters are sets");
 		}
@@ -132,6 +137,16 @@ public class MediaAnalyserSession {
 		ffmpeg.addSimpleOutputDestination("-", "null");
 
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
+		return ffmpeg;
+	}
+
+	/**
+	 * @param oLavfiLinesToMerge Sometimes ffmpeg ametadata and metadata must output lines to somewhere.
+	 *        One can be stdout, but not the both.
+	 *        So, if a metadata output to a file, this file can be read *after* the process with the Supplier.
+	 */
+	public MediaAnalyserResult process(final Optional<Supplier<Stream<String>>> oLavfiLinesToMerge) {
+		final var ffmpeg = prepareFFmpeg();
 
 		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
 		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
@@ -164,7 +179,56 @@ public class MediaAnalyserSession {
 			throw new InvalidExecution(processLifecycle, stdErr);
 		}
 
+		oLavfiLinesToMerge.stream()
+				.flatMap(Supplier::get)
+				.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
+
 		return new MediaAnalyserResult(this, lavfiMetadataFilterParser.close(), rawStdErrEventParser.close());
+	}
+
+	public static MediaAnalyserResult importFromOffline(final Stream<String> stdOutLines,
+														final Stream<String> stdErrLines,
+														final Consumer<Ebur128StrErrFilterEvent> ebur128EventConsumer,
+														final Consumer<RawStdErrFilterEvent> rawStdErrEventConsumer) {
+		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
+		stdOutLines.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
+
+		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
+			if (event.getFilterName().equals("ebur128")) {
+				ebur128EventConsumer.accept(new Ebur128StrErrFilterEvent(event.getLineValue()));
+			} else {
+				rawStdErrEventConsumer.accept(event);
+			}
+		});
+		stdErrLines.forEach(rawStdErrEventParser::onLine);
+
+		return new MediaAnalyserResult(null, lavfiMetadataFilterParser.close(), rawStdErrEventParser.close());
+	}
+
+	public void extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {
+		final var ffmpeg = prepareFFmpeg();
+
+		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
+		final var processLifecycle = ffmpeg.execute(mediaAnalyser.getExecutableFinder(),
+				lineEntry -> {
+					final var line = lineEntry.getLine();
+					log.trace("Line: {}", line);
+					if (lineEntry.isStdErr() == false) {
+						sysOut.accept(line);
+					} else {
+						sysErr.accept(line);
+						stdErrLinesBucket.add(line.trim());
+					}
+				});
+
+		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+
+		processLifecycle.waitForEnd();
+		final var execOk = processLifecycle.isCorrectlyDone();
+		if (execOk == false) {
+			final var stdErr = stdErrLinesBucket.stream().collect(Collectors.joining("|"));
+			throw new InvalidExecution(processLifecycle, stdErr);
+		}
 	}
 
 	public String getSource() {

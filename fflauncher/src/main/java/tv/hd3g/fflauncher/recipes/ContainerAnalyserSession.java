@@ -21,12 +21,17 @@ import static tv.hd3g.fflauncher.FFprobe.FFPrintFormat.XML;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
+import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
+import tv.hd3g.processlauncher.InvalidExecution;
 
 @Getter
 public class ContainerAnalyserSession {
@@ -45,7 +50,7 @@ public class ContainerAnalyserSession {
 		this.sourceFile = sourceFile;
 	}
 
-	public ContainerAnalyserResult process() {
+	private FFprobe prepareFFprobe() {
 		final var ffprobe = containerAnalyser.createFFprobe();
 		ffprobe.setHidebanner();
 		ffprobe.setShowFrames();
@@ -58,6 +63,11 @@ public class ContainerAnalyserSession {
 			ffprobe.addSimpleInputSource(sourceFile);
 		}
 		ffprobe.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
+		return ffprobe;
+	}
+
+	public ContainerAnalyserResult process() {
+		final var ffprobe = prepareFFprobe();
 
 		final var parser = new FFprobeResultSAX();
 		final var runTool = ffprobe.executeDirectStdout(containerAnalyser.getExecutableFinder(), parser);
@@ -67,11 +77,36 @@ public class ContainerAnalyserSession {
 		return parser.getResult(this);
 	}
 
-	public ContainerAnalyserResult offlineProcess(final InputStream ffprobeStdOut) {
+	public static ContainerAnalyserResult importFromOffline(final InputStream ffprobeStdOut) {
 		final var parser = new FFprobeResultSAX();
 		parser.onProcessStart(ffprobeStdOut, null);
 		parser.onClose(null);
-		return parser.getResult(this);
+		return parser.getResult(null);
+	}
+
+	public void extract(final Consumer<String> sysOut) {
+		final var ffprobe = prepareFFprobe();
+
+		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
+		final var processLifecycle = ffprobe.execute(containerAnalyser.getExecutableFinder(),
+				lineEntry -> {
+					final var line = lineEntry.getLine();
+					log.trace("Line: {}", line);
+					if (lineEntry.isStdErr() == false) {
+						sysOut.accept(line);
+					} else {
+						stdErrLinesBucket.add(line.trim());
+					}
+				});
+
+		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+
+		processLifecycle.waitForEnd();
+		final var execOk = processLifecycle.isCorrectlyDone();
+		if (execOk == false) {
+			final var stdErr = stdErrLinesBucket.stream().collect(Collectors.joining("|"));
+			throw new InvalidExecution(processLifecycle, stdErr);
+		}
 	}
 
 }

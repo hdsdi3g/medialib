@@ -20,6 +20,7 @@ import static net.datafaker.Faker.instance;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,10 +35,12 @@ import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.ffmpeg.ffprobe.StreamType;
@@ -54,6 +57,7 @@ import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.Filter;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
+import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
@@ -67,6 +71,30 @@ import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class MediaAnalyserSessionTest {
 	static Faker faker = instance();
+
+	final Optional<Supplier<Stream<String>>> emptyLavfiLinesToMerge = Optional.empty();
+	final static String SYSOUT = """
+			frame:1022 pts:981168 pts_time:20.441
+			lavfi.aphasemeter.phase=1.000000
+			lavfi.aphasemeter.mono_start=18.461
+			""";
+	final static String SYSERR = """
+			[Parsed_ebur128_0 @ 0x0000000000000] t: 1.80748    TARGET:-23 LUFS    M: -25.5 S:-120.7     I: -19.2 LUFS       LRA:   0.0 LU  SPK:  -5.5  -5.6 dBFS  FTPK: -19.1 -21.6 dBFS  TPK:  -5.5  -5.6 dBFS
+			[Parsed_raw_0 @ 0x0000000000000] t: 2.80748 a: 12 b: 34
+			[Parsed_ebur128_0 @ 0x55c6a78b3c80] Summary:
+			Integrated loudness:
+			  I:         -17.6 LUFS
+			  Threshold: -28.2 LUFS
+				Loudness range:
+			  LRA:         6.5 LU
+			  Threshold: -38.2 LUFS
+			  LRA low:   -21.6 LUFS
+			  LRA high:  -15.1 LUFS
+				Sample peak:
+			  Peak:       -1.4 dBFS
+				True peak:
+			  Peak:       -1.5 dBFS
+			""";
 
 	MediaAnalyserSession s;
 
@@ -107,6 +135,10 @@ class MediaAnalyserSessionTest {
 	BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer;
 	@Mock
 	BiConsumer<MediaAnalyserSession, RawStdErrFilterEvent> rawStdErrEventConsumer;
+	@Mock
+	Consumer<Ebur128StrErrFilterEvent> ebur128EventSingleConsumer;
+	@Mock
+	Consumer<RawStdErrFilterEvent> rawStdErrEventSingleConsumer;
 	@Captor
 	ArgumentCaptor<Ebur128StrErrFilterEvent> ebur128StrErrFilterEventCaptor;
 	@Captor
@@ -136,31 +168,8 @@ class MediaAnalyserSessionTest {
 
 		when(ffmpeg.execute(eq(executableFinder), any())).thenAnswer(invocation -> {
 			final Consumer<LineEntry> consumer = invocation.getArgument(1, Consumer.class);
-			consumer.accept(LineEntry.makeStdOut("frame:1022 pts:981168 pts_time:20.441", processLifecycle));
-			consumer.accept(LineEntry.makeStdOut("lavfi.aphasemeter.phase=1.000000", processLifecycle));
-			consumer.accept(LineEntry.makeStdOut("lavfi.aphasemeter.mono_start=18.461", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr(
-					"[Parsed_ebur128_0 @ 0x0000000000000] t: 1.80748    TARGET:-23 LUFS    M: -25.5 S:-120.7     I: -19.2 LUFS       LRA:   0.0 LU  SPK:  -5.5  -5.6 dBFS  FTPK: -19.1 -21.6 dBFS  TPK:  -5.5  -5.6 dBFS",
-					processLifecycle));
-			consumer.accept(LineEntry.makeStdErr(
-					"[Parsed_raw_0 @ 0x0000000000000] t: 2.80748 a: 12 b: 34",
-					processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("[Parsed_ebur128_0 @ 0x55c6a78b3c80] Summary:", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("Integrated loudness:", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  I:         -17.6 LUFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  Threshold: -28.2 LUFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("Loudness range:", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  LRA:         6.5 LU", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  Threshold: -38.2 LUFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  LRA low:   -21.6 LUFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  LRA high:  -15.1 LUFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("Sample peak:", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  Peak:       -1.4 dBFS", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("True peak:", processLifecycle));
-			consumer.accept(LineEntry.makeStdErr("  Peak:       -1.5 dBFS", processLifecycle));
+			SYSOUT.lines().forEach(l -> consumer.accept(LineEntry.makeStdOut(l, processLifecycle)));
+			SYSERR.lines().forEach(l -> consumer.accept(LineEntry.makeStdErr(l, processLifecycle)));
 			return processLifecycle;
 		});
 
@@ -195,7 +204,9 @@ class MediaAnalyserSessionTest {
 				ffprobeResult,
 				streamType,
 				ebur128EventConsumer,
-				rawStdErrEventConsumer);
+				rawStdErrEventConsumer,
+				ebur128EventSingleConsumer,
+				rawStdErrEventSingleConsumer);
 	}
 
 	@Test
@@ -215,7 +226,7 @@ class MediaAnalyserSessionTest {
 		when(mediaAnalyser.getAudioFilters()).thenReturn(List.of());
 		when(mediaAnalyser.getVideoFilters()).thenReturn(List.of());
 		s = new MediaAnalyserSession(mediaAnalyser, source, sourceFile);
-		assertThrows(IllegalArgumentException.class, () -> s.process());
+		assertThrows(IllegalArgumentException.class, () -> s.process(emptyLavfiLinesToMerge));
 	}
 
 	private void checksProcessBase() {
@@ -255,7 +266,8 @@ class MediaAnalyserSessionTest {
 	void testProcess() {
 		s.setEbur128EventConsumer(ebur128EventConsumer);
 		s.setRawStdErrEventConsumer(rawStdErrEventConsumer);
-		final var result = s.process();
+
+		final var result = s.process(emptyLavfiLinesToMerge);
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
@@ -285,7 +297,7 @@ class MediaAnalyserSessionTest {
 	@Test
 	void testProcess_notDone() {
 		when(processLifecycle.isCorrectlyDone()).thenReturn(false);
-		assertThrows(InvalidExecution.class, () -> s.process());
+		assertThrows(InvalidExecution.class, () -> s.process(emptyLavfiLinesToMerge));
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
@@ -307,7 +319,7 @@ class MediaAnalyserSessionTest {
 	@Test
 	void testProcess_FileInput() {
 		s = new MediaAnalyserSession(mediaAnalyser, null, sourceFile);
-		final var result = s.process();
+		final var result = s.process(emptyLavfiLinesToMerge);
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(sourceFile);
@@ -334,7 +346,7 @@ class MediaAnalyserSessionTest {
 		s.setFFprobeResult(ffprobeResult);
 
 		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.empty());
-		assertThrows(IllegalStateException.class, () -> s.process());
+		assertThrows(IllegalStateException.class, () -> s.process(emptyLavfiLinesToMerge));
 		verify(ffprobeResult, times(1)).getAudiosStreams();
 	}
 
@@ -344,7 +356,7 @@ class MediaAnalyserSessionTest {
 
 		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.of(streamType));
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.empty());
-		assertThrows(IllegalStateException.class, () -> s.process());
+		assertThrows(IllegalStateException.class, () -> s.process(emptyLavfiLinesToMerge));
 		verify(ffprobeResult, times(1)).getAudiosStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 	}
@@ -358,7 +370,7 @@ class MediaAnalyserSessionTest {
 		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.empty());
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.ofNullable(streamType));
 
-		final var result = s.process();
+		final var result = s.process(emptyLavfiLinesToMerge);
 
 		checksProcess_NoAF();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
@@ -390,7 +402,7 @@ class MediaAnalyserSessionTest {
 		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.of(streamType));
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.empty());
 
-		final var result = s.process();
+		final var result = s.process(emptyLavfiLinesToMerge);
 
 		checksProcess_NoVF();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
@@ -408,6 +420,38 @@ class MediaAnalyserSessionTest {
 
 		verify(ffprobeResult, times(1)).getAudiosStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+	}
+
+	@Test
+	void testProcess_with_LavfiLinesToMerge() {
+		final var added = """
+				frame:119 pts:4966 pts_time:4.966
+				lavfi.siti.si=11.67
+				lavfi.siti.ti=5.60
+				""".lines();
+		final var result = s.process(Optional.ofNullable(() -> added));
+
+		checksProcess();
+		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+
+		assertNotNull(result);
+		assertEquals(ebur128Result, result.ebur128Summary().toString());
+
+		assertEquals(1, result.lavfiMetadatas().getEventCount());
+		assertEquals(2, result.lavfiMetadatas().getReportCount());
+		assertEquals(List.of(
+				new LavfiMtdValue<>(1022, 981168l, 20.441f, 1f)),
+				result.lavfiMetadatas().getAPhaseMeterReport());
+		assertEquals(List.of(
+				new LavfiMtdEvent("mono", null, Duration.ofMillis(18461), Duration.ZERO)),
+				result.lavfiMetadatas().getMonoEvents());
+		assertEquals(List.of(
+				new LavfiMtdValue<>(119, 4966l, 4.966f, new LavfiMtdSiti(11.67f, 5.6f))),
+				result.lavfiMetadatas().getSitiReport());
+
+		parameters.clear();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 	}
@@ -443,6 +487,49 @@ class MediaAnalyserSessionTest {
 		assertEquals(List.of(
 				new LavfiMtdEvent("mono", null, Duration.ofMillis(18461), Duration.ZERO)),
 				result.lavfiMetadatas().getMonoEvents());
+	}
+
+	@Test
+	void testImportFromOffline() {
+		final var result = MediaAnalyserSession.importFromOffline(
+				SYSOUT.lines(), SYSERR.lines(), ebur128EventSingleConsumer, rawStdErrEventSingleConsumer);
+
+		assertNotNull(result);
+		assertEquals(ebur128Result, result.ebur128Summary().toString());
+		checkMetadatas(result);
+		assertNull(result.session());
+
+		verify(ebur128EventSingleConsumer, times(1)).accept(ebur128StrErrFilterEventCaptor.capture());
+		assertEquals(ebur128event, ebur128StrErrFilterEventCaptor.getValue().toString());
+		verify(rawStdErrEventSingleConsumer, times(1)).accept(rawStdErrFilterEventCaptor.capture());
+		assertEquals(rawEvent, rawStdErrFilterEventCaptor.getValue().toString());
+	}
+
+	@Test
+	void testExtract() {
+		s.setEbur128EventConsumer(ebur128EventConsumer);
+		s.setRawStdErrEventConsumer(rawStdErrEventConsumer);
+
+		final var sysOutList = new ArrayList<String>();
+		final var sysErrList = new ArrayList<String>();
+		s.extract(sysOutList::add, sysErrList::add);
+
+		checksProcess();
+		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+
+		assertEquals(List.of(
+				"-af",
+				aFilterValue,
+				"-vf",
+				vFilterValue),
+				parameters.getParameters());
+		parameters.clear();
+
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+
+		assertEquals(SYSOUT.lines().toList(), sysOutList);
+		assertEquals(SYSERR.lines().toList(), sysErrList);
 	}
 
 }
