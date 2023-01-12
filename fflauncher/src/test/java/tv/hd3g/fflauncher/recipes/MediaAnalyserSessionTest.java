@@ -53,8 +53,11 @@ import org.mockito.Mock;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.FFmpeg;
+import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
+import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
@@ -159,6 +162,8 @@ class MediaAnalyserSessionTest {
 		when(vF.toFilter()).thenReturn(vFilter);
 		when(aFilter.toString()).thenReturn(aFilterValue);
 		when(vFilter.toString()).thenReturn(vFilterValue);
+		when(aFilter.getFilterName()).thenReturn(aFilterValue);
+		when(vFilter.getFilterName()).thenReturn(vFilterValue);
 
 		when(ffmpeg.getInternalParameters()).thenReturn(parameters);
 
@@ -530,6 +535,42 @@ class MediaAnalyserSessionTest {
 
 		assertEquals(SYSOUT.lines().toList(), sysOutList);
 		assertEquals(SYSERR.lines().toList(), sysErrList);
+	}
+
+	@Test
+	void testGetAudioFilters() {
+		assertEquals(List.of(aF), s.getAudioFilters());
+		verify(aF, times(1)).toFilter();
+		verify(aFilter, times(1)).getFilterName();
+	}
+
+	@Test
+	void testGetVideoFilters() {
+		assertEquals(List.of(vF), s.getVideoFilters());
+		verify(vF, times(1)).toFilter();
+		verify(vFilter, times(1)).getFilterName();
+	}
+
+	@Test
+	void testGetAudioFilters_withMetadataFilter() {
+		when(mediaAnalyser.getAudioFilters())
+				.thenReturn(List.of(aF, new AudioFilterAMetadata(Mode.PRINT)));
+		s = new MediaAnalyserSession(mediaAnalyser, source, sourceFile);
+
+		assertEquals(List.of(aF), s.getAudioFilters());
+		verify(aF, times(1)).toFilter();
+		verify(aFilter, times(1)).getFilterName();
+	}
+
+	@Test
+	void testGetVideoFilters_withMetadataFilter() {
+		when(mediaAnalyser.getVideoFilters())
+				.thenReturn(List.of(vF, new VideoFilterMetadata(Mode.PRINT)));
+		s = new MediaAnalyserSession(mediaAnalyser, source, sourceFile);
+
+		assertEquals(List.of(vF), s.getVideoFilters());
+		verify(vF, times(1)).toFilter();
+		verify(vFilter, times(1)).getFilterName();
 	}
 
 }

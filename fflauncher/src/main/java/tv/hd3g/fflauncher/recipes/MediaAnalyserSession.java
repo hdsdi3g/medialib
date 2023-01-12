@@ -247,4 +247,22 @@ public class MediaAnalyserSession {
 			return sourceFile.getPath();
 		}
 	}
+
+	/**
+	 * @return unmodifiable list w/o ametadata filter
+	 */
+	public List<AudioFilterSupplier> getAudioFilters() {
+		return audioFilters.stream()
+				.filter(f -> f.toFilter().getFilterName().equals("ametadata") == false)
+				.toList();
+	}
+
+	/**
+	 * @return unmodifiable list w/o metadata filter
+	 */
+	public List<VideoFilterSupplier> getVideoFilters() {
+		return videoFilters.stream()
+				.filter(f -> f.toFilter().getFilterName().equals("metadata") == false)
+				.toList();
+	}
 }
