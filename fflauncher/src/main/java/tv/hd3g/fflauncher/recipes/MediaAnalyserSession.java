@@ -45,7 +45,7 @@ import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.InvalidExecution;
 
-public class MediaAnalyserSession {
+public class MediaAnalyserSession extends BaseAnalyserSession {
 	private static Logger log = LogManager.getLogger();
 
 	private final MediaAnalyser mediaAnalyser;
@@ -137,6 +137,7 @@ public class MediaAnalyserSession {
 		ffmpeg.addSimpleOutputDestination("-", "null");
 
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
+		applyMaxExecTime(ffmpeg);
 		return ffmpeg;
 	}
 
@@ -265,4 +266,5 @@ public class MediaAnalyserSession {
 				.filter(f -> f.toFilter().getFilterName().equals("metadata") == false)
 				.toList();
 	}
+
 }

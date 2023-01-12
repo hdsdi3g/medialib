@@ -34,7 +34,7 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
 import tv.hd3g.processlauncher.InvalidExecution;
 
 @Getter
-public class ContainerAnalyserSession {
+public class ContainerAnalyserSession extends BaseAnalyserSession {
 	private static Logger log = LogManager.getLogger();
 
 	private final ContainerAnalyser containerAnalyser;
@@ -63,6 +63,7 @@ public class ContainerAnalyserSession {
 			ffprobe.addSimpleInputSource(sourceFile);
 		}
 		ffprobe.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
+		applyMaxExecTime(ffprobe);
 		return ffprobe;
 	}
 
