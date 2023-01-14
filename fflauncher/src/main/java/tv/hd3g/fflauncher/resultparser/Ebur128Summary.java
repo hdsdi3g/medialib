@@ -49,6 +49,21 @@ public class Ebur128Summary {
 		truePeak = NEGATIVE_INFINITY;
 	}
 
+	private static final boolean isNegativeInfinity(final float value) {
+		return Float.compare(value, NEGATIVE_INFINITY) == 0;
+	}
+
+	public boolean isEmpty() {
+		return isNegativeInfinity(integrated)
+			   && isNegativeInfinity(integratedThreshold)
+			   && isNegativeInfinity(loudnessRange)
+			   && isNegativeInfinity(loudnessRangeThreshold)
+			   && isNegativeInfinity(loudnessRangeLow)
+			   && isNegativeInfinity(loudnessRangeHigh)
+			   && isNegativeInfinity(samplePeak)
+			   && isNegativeInfinity(truePeak);
+	}
+
 	/**
 	 * @param rawSummaryZone Like [["Threshold", " 0.0 LUFS"], ["Peak", " -inf dBFS"], ["Sample peak"]]...
 	 */

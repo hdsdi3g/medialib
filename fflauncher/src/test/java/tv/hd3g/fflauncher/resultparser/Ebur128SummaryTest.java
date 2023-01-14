@@ -154,4 +154,32 @@ class Ebur128SummaryTest {
 		assertEquals(truePeak, s.getTruePeak());
 	}
 
+	@Test
+	void testIsEmpty_empty() {
+		assertTrue(new Ebur128Summary().isEmpty());
+	}
+
+	@Test
+	void testIsEmpty_full() {
+		assertFalse(s.isEmpty());
+	}
+
+	private void checkPartialEmpty(final String... values) {
+		s = new Ebur128Summary();
+		s.setRawLines(List.of(
+				List.of(values)));
+		assertFalse(s.isEmpty());
+	}
+
+	@Test
+	void testIsEmpty_partial() {
+		checkPartialEmpty("I", "-17.6 LUFS");
+		checkPartialEmpty("Threshold", "-28.2 LUFS");
+		checkPartialEmpty("LRA", "6.5 LU");
+		checkPartialEmpty("Threshold", "-38.2 LUFS");
+		checkPartialEmpty("LRA low", "-21.6 LUFS");
+		checkPartialEmpty("LRA high", "-15.1 LUFS");
+		checkPartialEmpty("Peak", "-1.5 -dBFS");
+	}
+
 }

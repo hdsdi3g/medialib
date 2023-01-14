@@ -16,11 +16,25 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import java.util.Optional;
+
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
 
 public record MediaAnalyserResult(MediaAnalyserSession session,
 								  LavfiMetadataFilterParser lavfiMetadatas,
 								  Ebur128Summary ebur128Summary) {
+
+	public boolean isEmpty() {
+		final var lavfiMetadatasPresence = Optional.ofNullable(lavfiMetadatas)
+				.map(l -> l.getReportCount() > 0 || l.getEventCount() > 0)
+				.orElse(false);
+
+		final var ebur128SummaryPresence = Optional.ofNullable(ebur128Summary)
+				.map(em -> em.isEmpty() == false)
+				.orElse(false);
+
+		return lavfiMetadatasPresence == false && ebur128SummaryPresence == false;
+	}
 
 }

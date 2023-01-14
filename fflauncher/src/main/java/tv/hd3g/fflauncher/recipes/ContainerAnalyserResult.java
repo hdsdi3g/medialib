@@ -17,6 +17,7 @@
 package tv.hd3g.fflauncher.recipes;
 
 import java.util.List;
+import java.util.Optional;
 
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrameConst;
@@ -33,4 +34,19 @@ public record ContainerAnalyserResult(ContainerAnalyserSession session,
 									  List<FFprobeVideoFrameConst> olderVideoConsts,
 									  List<FFprobeAudioFrameConst> olderAudioConsts) {
 
+	private static <T> boolean isNotNullAndNotEmpty(final List<T> list) {
+		return Optional.ofNullable(list)
+				.map(l -> l.isEmpty() == false)
+				.orElse(false);
+	}
+
+	public boolean isEmpty() {
+		return isNotNullAndNotEmpty(packets) == false
+			   && isNotNullAndNotEmpty(audioFrames) == false
+			   && isNotNullAndNotEmpty(videoFrames) == false
+			   && videoConst == null
+			   && audioConst == null
+			   && isNotNullAndNotEmpty(olderVideoConsts) == false
+			   && isNotNullAndNotEmpty(olderAudioConsts) == false;
+	}
 }
