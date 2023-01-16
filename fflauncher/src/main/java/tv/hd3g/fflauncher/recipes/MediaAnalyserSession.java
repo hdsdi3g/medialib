@@ -57,6 +57,8 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 	private FFprobeJAXB ffprobeResult;
 	private BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer;
 	private BiConsumer<MediaAnalyserSession, RawStdErrFilterEvent> rawStdErrEventConsumer;
+	private String pgmFFDuration;
+	private String pgmFFStartTime;
 
 	MediaAnalyserSession(final MediaAnalyser mediaAnalyser, final String source, final File sourceFile) {
 		this.mediaAnalyser = mediaAnalyser;
@@ -87,6 +89,14 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		this.rawStdErrEventConsumer = Objects.requireNonNull(rawStdErrEventConsumer,
 				"\"rawStdErrEventConsumer\" can't to be null");
 
+	}
+
+	public void setPgmFFDuration(final String pgmFFDuration) {
+		this.pgmFFDuration = pgmFFDuration;
+	}
+
+	public void setPgmFFStartTime(final String pgmFFStartTime) {
+		this.pgmFFStartTime = pgmFFStartTime;
 	}
 
 	private FFmpeg prepareFFmpeg() {
@@ -135,6 +145,13 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		}
 
 		ffmpeg.addSimpleOutputDestination("-", "null");
+
+		if (pgmFFDuration != null && pgmFFDuration.isEmpty() == false) {
+			ffmpeg.addDuration(pgmFFDuration);
+		}
+		if (pgmFFStartTime != null && pgmFFStartTime.isEmpty() == false) {
+			ffmpeg.addStartPosition(pgmFFStartTime);
+		}
 
 		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
 		applyMaxExecTime(ffmpeg);

@@ -33,7 +33,12 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
-public class FFmpeg extends FFbase implements InputGeneratorsTraits, HardwareProcessTraits, VideoOutputTrait {
+public class FFmpeg extends FFbase implements
+					InputGeneratorsTraits,
+					HardwareProcessTraits,
+					VideoOutputTrait,
+					TemporalProcessTraits {
+
 	public static final Duration statsPeriod = Duration.ofSeconds(1);
 
 	private int deviceIdToUse = -1;

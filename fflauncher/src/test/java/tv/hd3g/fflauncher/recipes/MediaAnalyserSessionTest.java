@@ -573,4 +573,31 @@ class MediaAnalyserSessionTest {
 		verify(vFilter, times(1)).getFilterName();
 	}
 
+	@Test
+	void testProcess_setPgmFFDuration() {
+		final var pgmFFDuration = faker.numerify("duration###");
+		s.setPgmFFDuration(pgmFFDuration);
+		s.process(emptyLavfiLinesToMerge);
+
+		checksProcess();
+		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).addDuration(pgmFFDuration);
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		parameters.clear();
+	}
+
+	@Test
+	void testProcess_setStartPosition() {
+		final var pgmFFStartTime = faker.numerify("duration###");
+		s.setPgmFFStartTime(pgmFFStartTime);
+		s.process(emptyLavfiLinesToMerge);
+
+		checksProcess();
+		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).addStartPosition(pgmFFStartTime);
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		parameters.clear();
+	}
 }
