@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -129,73 +130,73 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterPhasemeter() {
-			assertEquals(f, f.addFilterPhasemeter(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterPhasemeter(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterAstats() {
-			assertEquals(f, f.addFilterAstats(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterAstats(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterSilencedetect() {
-			assertEquals(f, f.addFilterSilencedetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterSilencedetect(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterVolumedetect() {
-			assertEquals(f, f.addFilterVolumedetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterVolumedetect(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterEbur128() {
-			assertEquals(f, f.addFilterEbur128(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterEbur128(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterAMetadata() {
-			assertEquals(f, f.addFilterAMetadata(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterAMetadata(filter -> fSupplier.set(filter)));
 			checkAudioFilter();
 		}
 
 		@Test
 		void testAddFilterMetadata() {
-			assertEquals(f, f.addFilterMetadata(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterMetadata(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterSiti() {
-			assertEquals(f, f.addFilterSiti(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterSiti(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterIdet() {
-			assertEquals(f, f.addFilterIdet(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterIdet(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterFreezedetect() {
-			assertEquals(f, f.addFilterFreezedetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterFreezedetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterBlackdetect() {
-			assertEquals(f, f.addFilterBlackdetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterBlackdetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterCropdetect() {
-			assertEquals(f, f.addFilterCropdetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterCropdetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 			final var crop = (VideoFilterCropdetect) videoFilterSupplierCaptor.getValue();
 			assertFalse(crop.isModeMvedges());
@@ -203,32 +204,32 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterBlockdetect() {
-			assertEquals(f, f.addFilterBlockdetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterBlockdetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterBlurdetect() {
-			assertEquals(f, f.addFilterBlurdetect(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterBlurdetect(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddFilterMEstimate() {
-			assertEquals(f, f.addFilterMEstimate(filter -> fSupplier.set(filter)));
+			assertTrue(f.addFilterMEstimate(filter -> fSupplier.set(filter)));
 			checkVideoFilter();
 		}
 
 		@Test
 		void testAddOptionalFilter_audio() {
-			assertEquals(f, f.addOptionalFilter(audioFilterSupplier, filter -> fSupplier.set(filter)));
+			assertTrue(f.addOptionalFilter(audioFilterSupplier, filter -> fSupplier.set(filter)));
 			assertEquals(fSupplier.get(), audioFilterSupplier);
 			verify(afFunction, times(1)).apply(audioFilterSupplier);
 		}
 
 		@Test
 		void testAddOptionalFilter_video() {
-			assertEquals(f, f.addOptionalFilter(videoFilterSupplier, filter -> fSupplier.set(filter)));
+			assertTrue(f.addOptionalFilter(videoFilterSupplier, filter -> fSupplier.set(filter)));
 			assertEquals(fSupplier.get(), videoFilterSupplier);
 			verify(vfFunction, times(1)).apply(videoFilterSupplier);
 		}
@@ -246,73 +247,73 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterPhasemeter() {
-			assertEquals(f, f.addFilterPhasemeter(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterPhasemeter(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterAstats() {
-			assertEquals(f, f.addFilterAstats(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterAstats(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterSilencedetect() {
-			assertEquals(f, f.addFilterSilencedetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterSilencedetect(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterVolumedetect() {
-			assertEquals(f, f.addFilterVolumedetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterVolumedetect(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterEbur128() {
-			assertEquals(f, f.addFilterEbur128(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterEbur128(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterAMetadata() {
-			assertEquals(f, f.addFilterAMetadata(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterAMetadata(filter -> fSupplier.set(filter)));
 			checkNoAudioFilter();
 		}
 
 		@Test
 		void testAddFilterMetadata() {
-			assertEquals(f, f.addFilterMetadata(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterMetadata(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterSiti() {
-			assertEquals(f, f.addFilterSiti(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterSiti(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterIdet() {
-			assertEquals(f, f.addFilterIdet(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterIdet(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterFreezedetect() {
-			assertEquals(f, f.addFilterFreezedetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterFreezedetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterBlackdetect() {
-			assertEquals(f, f.addFilterBlackdetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterBlackdetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterCropdetect() {
-			assertEquals(f, f.addFilterCropdetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterCropdetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 			final var crop = (VideoFilterCropdetect) videoFilterSupplierCaptor.getValue();
 			assertFalse(crop.isModeMvedges());
@@ -320,26 +321,26 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddFilterBlockdetect() {
-			assertEquals(f, f.addFilterBlockdetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterBlockdetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterBlurdetect() {
-			assertEquals(f, f.addFilterBlurdetect(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterBlurdetect(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddFilterMEstimate() {
-			assertEquals(f, f.addFilterMEstimate(filter -> fSupplier.set(filter)));
+			assertFalse(f.addFilterMEstimate(filter -> fSupplier.set(filter)));
 			checkNoVideoFilter();
 		}
 
 		@Test
 		void testAddOptionalFilter_audio() {
 			final var fSupplier = new AtomicReference<FilterSupplier>();
-			assertEquals(f, f.addOptionalFilter(audioFilterSupplier, filter -> fSupplier.set(filter)));
+			assertFalse(f.addOptionalFilter(audioFilterSupplier, filter -> fSupplier.set(filter)));
 			assertNull(fSupplier.get());
 			verify(afFunction, times(1)).apply(audioFilterSupplier);
 		}
@@ -347,7 +348,7 @@ class AddFiltersTraitsTest {
 		@Test
 		void testAddOptionalFilter_video() {
 			final var fSupplier = new AtomicReference<FilterSupplier>();
-			assertEquals(f, f.addOptionalFilter(videoFilterSupplier, filter -> fSupplier.set(filter)));
+			assertFalse(f.addOptionalFilter(videoFilterSupplier, filter -> fSupplier.set(filter)));
 			assertNull(fSupplier.get());
 			verify(vfFunction, times(1)).apply(videoFilterSupplier);
 		}
