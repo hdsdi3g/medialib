@@ -80,6 +80,10 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		return this;
 	}
 
+	public Optional<FFprobeJAXB> getFFprobeResult() {
+		return Optional.ofNullable(ffprobeResult);
+	}
+
 	public void setEbur128EventConsumer(final BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer) {
 		this.ebur128EventConsumer = Objects.requireNonNull(ebur128EventConsumer,
 				"\"ebur128EventConsumer\" can't to be null");

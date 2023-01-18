@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -222,8 +223,12 @@ class MediaAnalyserSessionTest {
 	}
 
 	@Test
-	void testSetFFprobeResult() {
+	void testSetGetFFprobeResult() {
 		assertEquals(s, s.setFFprobeResult(null));
+		assertTrue(s.getFFprobeResult().isEmpty());
+
+		assertEquals(s, s.setFFprobeResult(ffprobeResult));
+		assertEquals(ffprobeResult, s.getFFprobeResult().get());
 	}
 
 	@Test
