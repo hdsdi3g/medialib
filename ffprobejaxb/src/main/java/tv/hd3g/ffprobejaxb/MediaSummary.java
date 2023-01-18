@@ -19,11 +19,12 @@ package tv.hd3g.ffprobejaxb;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -36,6 +37,7 @@ import org.ffmpeg.ffprobe.StreamType;
 import org.ffmpeg.ffprobe.TagType;
 
 public record MediaSummary(String format, List<String> streams) {
+	private static final DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
 
 	static MediaSummary create(final FFprobeJAXB source) {
 		final var format = source.getFormat();
@@ -49,6 +51,18 @@ public record MediaSummary(String format, List<String> streams) {
 		}
 		if (source.getChapters().isEmpty() == false) {
 			entries.add(source.getChapters().size() + " chapter(s)");
+		}
+
+		if (source.getVideoStreams().anyMatch(f -> f.getBitRate() != null) == false
+			&& source.getAudiosStreams().anyMatch(f -> f.getBitRate() != null) == false) {
+			Optional.ofNullable(format.getBitRate()).ifPresent(b -> {
+				final var bitrateKbps = (double) b / 1000d;
+				if (bitrateKbps < 10000) {
+					entries.add(Math.round(bitrateKbps) + " kbps");
+				} else {
+					entries.add(Math.round(bitrateKbps / 1000) + " Mbps");
+				}
+			});
 		}
 
 		final var videos = source.getVideoStreams().map(MediaSummary::getVideoSummary);
@@ -101,8 +115,11 @@ public record MediaSummary(String format, List<String> streams) {
 			entries.add(s.getChannelLayout());
 		}
 
-		entries.add("@ " + s.getSampleRate() + " Hz");
-		entries.add("[" + s.getBitRate() / 1000 + " kbps]");
+		Optional.ofNullable(s.getSampleRate())
+				.ifPresent(sr -> entries.add("@ " + sr + " Hz"));
+
+		Optional.ofNullable(s.getBitRate())
+				.ifPresent(b -> entries.add("[" + b / 1000 + " kbps]"));
 
 		addDisposition(s.getDisposition(), entries);
 		return entries.stream().collect(Collectors.joining(" "));
@@ -112,10 +129,13 @@ public record MediaSummary(String format, List<String> streams) {
 		final var entries = new ArrayList<String>();
 
 		entries.add(s.getCodecType() + ": " + s.getCodecName());
-		entries.add(s.getWidth() + "×" + s.getHeight());
+
+		if (s.getWidth() != null && s.getHeight() != null) {
+			entries.add(s.getWidth() + "×" + s.getHeight());
+		}
 
 		final var profile = getValue(s.getProfile());
-		final var level = s.getLevel();
+		final var level = Optional.ofNullable(s.getLevel()).orElse(0);
 		if (profile.isPresent()) {
 			if (level > 0) {
 				entries.add(profile.get() + "/" + level);
@@ -126,7 +146,7 @@ public record MediaSummary(String format, List<String> streams) {
 			entries.add("Level: " + level);
 		}
 
-		if (s.getHasBFrames() > 0) {
+		if (s.getHasBFrames() != null && s.getHasBFrames() > 0) {
 			entries.add("Has B frames");
 		}
 
@@ -135,30 +155,34 @@ public record MediaSummary(String format, List<String> streams) {
 			if (pos == -1) {
 				return b;
 			} else {
-				final var l = new BigDecimal(Integer.valueOf(b.substring(0, pos)));
-				final var r = new BigDecimal(Integer.valueOf(b.substring(pos + 1)));
+				final var l = Double.valueOf(b.substring(0, pos));
+				final var r = Double.valueOf(b.substring(pos + 1));
 				final var df = new DecimalFormat();
+				df.setDecimalFormatSymbols(symbols);
 				df.setMaximumFractionDigits(3);
 				df.setMinimumFractionDigits(0);
 				df.setGroupingUsed(false);
-				return df.format(l.divide(r).setScale(3));
+				return df.format(l / r);
 			}
 		}).orElse("?");
+
 		entries.add("@ " + frameRate + " fps");
 
-		final var bitrateKbps = (double) s.getBitRate() / 1000d;
-		if (bitrateKbps < 10000) {
-			entries.add("[" + Math.round(bitrateKbps) + " kbps]");
-		} else {
-			entries.add("[" + Math.round(bitrateKbps / 1000) + " Mbps]");
-		}
+		Optional.ofNullable(s.getBitRate()).ifPresent(b -> {
+			final var bitrateKbps = (double) b / 1000d;
+			if (bitrateKbps < 10000) {
+				entries.add("[" + Math.round(bitrateKbps) + " kbps]");
+			} else {
+				entries.add("[" + Math.round(bitrateKbps / 1000) + " Mbps]");
+			}
+		});
 
 		final var cpf = computePixelsFormat(s);
 		if (cpf.isEmpty() == false) {
 			entries.add(cpf);
 		}
 
-		if (s.getNbFrames() > 0) {
+		if (s.getNbFrames() != null && s.getNbFrames() > 0) {
 			entries.add("(" + s.getNbFrames() + " frms)");
 		}
 

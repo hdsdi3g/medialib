@@ -265,4 +265,20 @@ class MediaSummaryTest {
 				"format, video: [1 Mbps], video: [50 kbps], video: [30 kbps], 2× audio: has bis [40 kbps], audio: [20 kbps], audio: nope bitrate, data: [12 kbps]",
 				ms.toString());
 	}
+
+	@Test
+	void testNoBitRate() throws IOException {
+		final var out0 = FileUtils.readFileToString(new File("examples/out2-nobitrate.xml"), UTF_8);
+		final var source = new FFprobeJAXB(out0, s -> {
+		});
+		ms = MediaSummary.create(source);
+		assertNotNull(ms);
+
+		assertEquals("Matroska / WebM, 00:01:00, 2 MB, 415 kbps", ms.format());
+		assertEquals(List.of(
+				"video: vp9 480×480 Profile 0 @ 29.97 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709",
+				"audio: opus mono @ 48000 Hz"),
+				ms.streams());
+	}
+
 }
