@@ -16,12 +16,17 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent.secFloatToDuration;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import net.datafaker.Faker;
 
@@ -61,6 +66,29 @@ class LavfiMtdEventTest {
 			assertTrue(prev < actual, "pos:" + pos + " prev:" + prev + " actual:" + actual);
 			previous = sorted.get(pos - 1);
 		}
+	}
+
+	@Test
+	void testSecFloatToDuration() {
+		assertEquals(1000, secFloatToDuration(1).toMillis());
+		assertEquals(10000, secFloatToDuration(10).toMillis());
+		assertEquals(100, secFloatToDuration(0.1f).toMillis());
+		assertEquals(10, secFloatToDuration(0.01f).toMillis());
+	}
+
+	@Test
+	void testGetEndOr_default() {
+		final var d = Mockito.mock(Duration.class);
+		assertEquals(d, new LavfiMtdEvent(name, scope, 1f, 0).getEndOr(d));
+		verifyNoInteractions(d);
+	}
+
+	@Test
+	void testGetEndOr_value() {
+		final var d = Mockito.mock(Duration.class);
+		assertEquals(1000,
+				new LavfiMtdEvent(name, scope, 1f, 1000f).getEndOr(d).toSeconds());
+		verifyNoInteractions(d);
 	}
 
 }

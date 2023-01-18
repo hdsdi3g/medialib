@@ -32,13 +32,20 @@ public record LavfiMtdEvent(String name, String scope, Duration start, Duration 
 		this(name, scope, start, secFloatToDuration(end));
 	}
 
-	private static Duration secFloatToDuration(final float value) {
+	public static Duration secFloatToDuration(final float value) {
 		return Duration.ofMillis(Math.round(value * 1000f));
 	}
 
 	@Override
 	public int compareTo(final LavfiMtdEvent o) {
 		return start.compareTo(o.start);
+	}
+
+	public Duration getEndOr(final Duration fileDuration) {
+		if (end != null && end.toMillis() > 0) {
+			return end;
+		}
+		return fileDuration;
 	}
 
 }
