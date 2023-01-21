@@ -16,6 +16,8 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static java.lang.Float.NEGATIVE_INFINITY;
+import static java.lang.Float.NaN;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
@@ -30,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -261,6 +262,15 @@ public class LavfiMetadataFilterParser {
 				.ifPresent(value -> toAdd.add(toMtdValue(value)));
 	}
 
+	private static float parseFloat(final String value) {
+		if (value.equalsIgnoreCase("-inf")) {
+			return NEGATIVE_INFINITY;
+		} else if (value.equalsIgnoreCase("nan")) {
+			return NaN;
+		}
+		return Float.valueOf(value);
+	}
+
 	/**
 	 * lavfi.astats.1.DC_offset=0.000001
 	 * lavfi.astats.1.Peak_level=-0.622282
@@ -294,29 +304,29 @@ public class LavfiMetadataFilterParser {
 		final var channels = channelsContent.stream()
 				.map(content -> {
 					final var dcOffset = Optional.ofNullable(content.remove("DC_offset"))
-							.map(Float::valueOf)
+							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
 					final var peakLevel = Optional.ofNullable(content.remove("Peak_level"))
-							.map(Float::valueOf)
+							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
 					final var flatFactor = Optional.ofNullable(content.remove("Flat_factor"))
-							.map(Float::valueOf)
+							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
 					final var peakCount = Optional.ofNullable(content.remove("Peak_count"))
 							.map(LavfiMetadataFilterParser::parseLong)
 							.orElse(0L);
 					final var noiseFloor = Optional.ofNullable(content.remove("Noise_floor"))
-							.map(Float::valueOf)
+							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
 					final var noiseFloorCount = Optional.ofNullable(content.remove("Noise_floor_count"))
 							.map(LavfiMetadataFilterParser::parseLong)
 							.orElse(0L);
 					final var entropy = Optional.ofNullable(content.remove("Entropy"))
-							.map(Float::valueOf)
+							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
 					final var other = content.entrySet().stream()
-							.collect(Collectors.toUnmodifiableMap(Entry::getKey, entry -> Float.valueOf(entry
-									.getValue())));
+							.collect(toUnmodifiableMap(Entry::getKey,
+									entry -> parseFloat(entry.getValue())));
 
 					return new LavfiMtdAstatsChannel(
 							dcOffset,
