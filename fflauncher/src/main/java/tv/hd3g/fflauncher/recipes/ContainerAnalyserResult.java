@@ -16,6 +16,12 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import static java.util.Collections.unmodifiableList;
+import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.B;
+import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.I;
+import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.UNKNOWN;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,4 +55,55 @@ public record ContainerAnalyserResult(ContainerAnalyserSession session,
 			   && isNotNullAndNotEmpty(olderVideoConsts) == false
 			   && isNotNullAndNotEmpty(olderAudioConsts) == false;
 	}
+
+	/**
+	 * @return empty if no video frames, or no GOPs (all frames are I or UNKNOWN)
+	 */
+	public List<GOPStatItem> extractGOPStats() {
+		if (videoFrames == null
+			|| videoFrames.isEmpty()
+			|| videoFrames.stream().allMatch(f -> I.equals(f.pictType())
+												  || UNKNOWN.equals(f.pictType()))) {
+			return List.of();
+		}
+
+		return videoFrames.stream()
+				.reduce(new ArrayList<List<FFprobeVideoFrame>>(),
+						(list, f) -> {
+							if (I.equals(f.pictType()) || list.isEmpty()) {
+								list.add(new ArrayList<>(List.of(f)));
+							} else {
+								list.get(list.size() - 1).add(f);
+							}
+							return list;
+						},
+						(l, r) -> {
+							l.addAll(r);
+							return l;
+						}).stream()
+				.map(list -> {
+					final var gopFrameCount = list.size();
+					final var gopDataSize = list.stream()
+							.mapToLong(f -> (long) f.frame().pktSize())
+							.sum();
+					final var bFramesCount = (int) list.stream()
+							.filter(f -> B.equals(f.pictType()))
+							.count();
+					final var iFrameDataSize = list.get(0).frame().pktSize();
+					final var bFramesDataSize = list.stream()
+							.filter(f -> B.equals(f.pictType()))
+							.mapToLong(f -> (long) f.frame().pktSize())
+							.sum();
+
+					return new GOPStatItem(
+							gopFrameCount,
+							gopDataSize,
+							bFramesCount,
+							iFrameDataSize,
+							bFramesDataSize,
+							unmodifiableList(list));
+				})
+				.toList();
+	}
+
 }
