@@ -1,5 +1,17 @@
 # All Medialib projects upgrades needs
 
+## 11.0.0
+
+Maintenance, bug correction and refactoring about fflauncher MediaAnalyser/ContainerAnalyser #39 #40 #41 #42
+
+Correct behavior with stderr event and non ebur128 lines, create LavfiMetadataFilterParser and move it all LavfiMtdProgram Frames and Events Extractors, implements ImpEx RAW text result to produce offline results to MediaAnalyser/ContainerAnalyser, implements ImpEx RAW text result to produce offline results to MediaAnalyser/ContainerAnalyser #33
+
+Correct ffprobeJAXB bug if media source don't show bitrate in video or audio stream #43
+
+Create and compute GOPStatItem in fflauncher #44
+
+Update lift.toml (Sonatype-lift): add ignoreRules Var, Varifier and UnnecessarilyFullyQualified
+
 ## 10.1.0
 
 Correct bugs:
