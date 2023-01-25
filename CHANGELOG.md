@@ -1,5 +1,13 @@
 # All Medialib projects upgrades needs
 
+## 11.1.0
+
+Bug correction:
+
+Protect against missing fields in FFprobeResultSAX #46
+
+Correct #45 with Float parsing and lavfi metadatas
+
 ## 11.0.0
 
 Maintenance, bug correction and refactoring about fflauncher MediaAnalyser/ContainerAnalyser #39 #40 #41 #42
