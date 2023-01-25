@@ -18,6 +18,7 @@ package tv.hd3g.fflauncher.filtering.lavfimtd;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
 import static java.lang.Float.NaN;
+import static java.lang.Float.POSITIVE_INFINITY;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
@@ -258,15 +259,17 @@ public class LavfiMetadataFilterParser {
 									  final Map<String, String> rawFrames,
 									  final List<LavfiMtdValue<Float>> toAdd) {
 		Optional.ofNullable(rawFrames.get(keyName))
-				.map(Float::parseFloat)
+				.map(LavfiMetadataFilterParser::parseFloat)
 				.ifPresent(value -> toAdd.add(toMtdValue(value)));
 	}
 
-	private static float parseFloat(final String value) {
-		if (value.equalsIgnoreCase("-inf")) {
-			return NEGATIVE_INFINITY;
-		} else if (value.equalsIgnoreCase("nan")) {
+	public static float parseFloat(final String value) {
+		if (value == null || value.isBlank() || value.equalsIgnoreCase("nan")) {
 			return NaN;
+		} else if (value.equalsIgnoreCase("-inf")) {
+			return NEGATIVE_INFINITY;
+		} else if (value.equalsIgnoreCase("inf")) {
+			return POSITIVE_INFINITY;
 		}
 		return Float.valueOf(value);
 	}

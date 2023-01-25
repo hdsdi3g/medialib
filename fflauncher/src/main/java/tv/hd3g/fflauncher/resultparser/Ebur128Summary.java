@@ -17,6 +17,7 @@
 package tv.hd3g.fflauncher.resultparser;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
+import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser.parseFloat;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyser.splitter;
 
 import java.util.List;
@@ -121,7 +122,7 @@ public class Ebur128Summary {
 		if (numberValue.equalsIgnoreCase("-inf")) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable(Float.valueOf(numberValue));
+		return Optional.ofNullable(parseFloat(numberValue));
 	}
 
 }

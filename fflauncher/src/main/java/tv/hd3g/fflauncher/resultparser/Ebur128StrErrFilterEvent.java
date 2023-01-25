@@ -18,6 +18,7 @@ package tv.hd3g.fflauncher.resultparser;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
 import static java.util.Objects.requireNonNull;
+import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser.parseFloat;
 
 import java.util.HashMap;
 
@@ -94,7 +95,7 @@ public class Ebur128StrErrFilterEvent {
 		if (rawValue == null || rawValue.equalsIgnoreCase("nan")) {
 			return NEGATIVE_INFINITY;
 		}
-		return Float.valueOf(MediaAnalyser.splitter(rawValue, ' ', 2).get(0));
+		return parseFloat(MediaAnalyser.splitter(rawValue, ' ', 2).get(0));
 	}
 
 	private Stereo<Float> extractValues(final String rawValue) {
@@ -107,14 +108,14 @@ public class Ebur128StrErrFilterEvent {
 		if (items.get(0).equalsIgnoreCase("nan")) {
 			l = NEGATIVE_INFINITY;
 		} else {
-			l = Float.valueOf(items.get(0));
+			l = parseFloat(items.get(0));
 		}
 
 		float r;
 		if (items.get(1).equalsIgnoreCase("nan")) {
 			r = NEGATIVE_INFINITY;
 		} else {
-			r = Float.valueOf(items.get(1));
+			r = parseFloat(items.get(1));
 		}
 
 		return new Stereo<>(l, r);
