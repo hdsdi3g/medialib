@@ -17,6 +17,7 @@
 package tv.hd3g.fflauncher.ffprobecontainer;
 
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.AUDIO;
+import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.OTHER;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
 
 import java.io.IOException;
@@ -48,8 +49,11 @@ import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.processlauncher.InputStreamConsumer;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
-public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, InputStreamConsumer {
-	private static final String CAN_T_EXTRACT_NUMBER_FROM = "Can't extract number from {}=\"{}\"";
+public class FFprobeResultSAX extends DefaultHandler implements
+							  ErrorHandler,
+							  InputStreamConsumer,
+							  SAXAttributeParserTraits {
+	private static final String STREAM_INDEX = "stream_index";
 	private static final Logger log = LogManager.getLogger();
 	private static final SAXParserFactory factory;
 
@@ -122,24 +126,22 @@ public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, In
 	 * "__"/>
 	 */
 	private void onPacket(final Attributes attributes) {
-		if (attributes.getLength() != 11) {
-			log.error("Invalid <packet>, expect 11 attributes, get {}: {}",
-					attributes.getLength(), getAttributes(attributes));
+		if (getAttrIntValue(attributes, STREAM_INDEX, -1) == -1) {
 			return;
 		}
 
 		packets.add(new FFprobePacket(
-				FFprobeCodecType.fromString(getAttrValue(attributes, "codec_type")),
-				getAttrIntValue(attributes, "stream_index"),
-				getAttrLongValue(attributes, "pts"),
-				getAttrFloatValue(attributes, "pts_time"),
-				getAttrLongValue(attributes, "dts"),
-				getAttrFloatValue(attributes, "dts_time"),
-				getAttrIntValue(attributes, "duration"),
-				getAttrFloatValue(attributes, "duration_time"),
-				getAttrIntValue(attributes, "size"),
-				getAttrLongValue(attributes, "pos"),
-				getAttrValue(attributes, "flags")));
+				FFprobeCodecType.fromString(getAttrValue(attributes, "codec_type", OTHER.toString())),
+				getAttrIntValue(attributes, STREAM_INDEX, -1),
+				getAttrLongValue(attributes, "pts", -1),
+				getAttrFloatValue(attributes, "pts_time", -1),
+				getAttrLongValue(attributes, "dts", -1),
+				getAttrFloatValue(attributes, "dts_time", -1),
+				getAttrIntValue(attributes, "duration", -1),
+				getAttrFloatValue(attributes, "duration_time", -1),
+				getAttrIntValue(attributes, "size", -1),
+				getAttrLongValue(attributes, "pos", -1),
+				getAttrValue(attributes, "flags", null)));
 	}
 
 	/**
@@ -176,27 +178,25 @@ public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, In
 	 * color_transfer= * "bt709"/>
 	 */
 	private void onFrame(final Attributes attributes) {
-		if (attributes.getLength() < 13) {
-			log.error("Invalid <frame>, expect at least 13 attributes, get {}: {}",
-					attributes.getLength(), getAttributes(attributes));
+		if (getAttrIntValue(attributes, STREAM_INDEX, -1) == -1) {
 			return;
 		}
 
-		final var mediaType = FFprobeCodecType.fromString(getAttrValue(attributes, "media_type"));
+		final var mediaType = FFprobeCodecType.fromString(getAttrValue(attributes, "media_type", OTHER.toString()));
 		final var baseFrame = new FFprobeBaseFrame(
 				mediaType,
-				getAttrIntValue(attributes, "stream_index"),
-				getAttrBooleanValue(attributes, "key_frame"),
-				getAttrLongValue(attributes, "pts"),
-				getAttrFloatValue(attributes, "pts_time"),
-				getAttrLongValue(attributes, "pkt_dts"),
-				getAttrFloatValue(attributes, "pkt_dts_time"),
-				getAttrLongValue(attributes, "best_effort_timestamp"),
-				getAttrFloatValue(attributes, "best_effort_timestamp_time"),
-				getAttrIntValue(attributes, "pkt_duration"),
-				getAttrFloatValue(attributes, "pkt_duration_time"),
-				getAttrLongValue(attributes, "pkt_pos"),
-				getAttrIntValue(attributes, "pkt_size"));
+				getAttrIntValue(attributes, STREAM_INDEX, -1),
+				getAttrBooleanValue(attributes, "key_frame", true),
+				getAttrLongValue(attributes, "pts", -1),
+				getAttrFloatValue(attributes, "pts_time", -1),
+				getAttrLongValue(attributes, "pkt_dts", -1),
+				getAttrFloatValue(attributes, "pkt_dts_time", -1),
+				getAttrLongValue(attributes, "best_effort_timestamp", -1),
+				getAttrFloatValue(attributes, "best_effort_timestamp_time", -1),
+				getAttrIntValue(attributes, "pkt_duration", -1),
+				getAttrFloatValue(attributes, "pkt_duration_time", -1),
+				getAttrLongValue(attributes, "pkt_pos", -1),
+				getAttrIntValue(attributes, "pkt_size", -1));
 
 		if (mediaType == VIDEO) {
 			onFrameVideo(attributes, baseFrame);
@@ -215,35 +215,26 @@ public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, In
 	 * color_range="tv" color_space="bt709" color_primaries="bt709" color_transfer="bt709"/>
 	 */
 	private void onFrameVideo(final Attributes attributes, final FFprobeBaseFrame baseFrame) {
-		if (attributes.getLength() != 27) {
-			log.error("Invalid <frame media_type=\"video\">, expect 27 attributes, get {}: {}",
-					attributes.getLength(), getAttributes(attributes));
-			return;
-		}
-
-		final var pictType = Optional.ofNullable(FFprobePictType.valueOf(attributes.getValue("pict_type")))
-				.orElse(FFprobePictType.UNKNOWN);
-
 		final var frame = new FFprobeVideoFrame(
 				baseFrame,
-				pictType,
+				FFprobePictType.valueOf(getAttrValue(attributes, "pict_type", "UNKNOWN")),
 				"1".equals(attributes.getValue("repeat_pict")) ? true : false);
 		videoFrames.add(frame);
 
 		final var currentVideoConst = new FFprobeVideoFrameConst(
 				frame,
-				getAttrIntValue(attributes, "width"),
-				getAttrIntValue(attributes, "height"),
-				getAttrValue(attributes, "pix_fmt"),
-				getAttrValue(attributes, "sample_aspect_ratio"),
-				getAttrIntValue(attributes, "coded_picture_number"),
-				getAttrIntValue(attributes, "display_picture_number"),
-				getAttrBooleanValue(attributes, "interlaced_frame"),
-				getAttrBooleanValue(attributes, "top_field_first"),
-				getAttrValue(attributes, "color_range"),
-				getAttrValue(attributes, "color_space"),
-				getAttrValue(attributes, "color_primaries"),
-				getAttrValue(attributes, "color_transfer"));
+				getAttrIntValue(attributes, "width", 0),
+				getAttrIntValue(attributes, "height", 0),
+				getAttrValue(attributes, "pix_fmt", null),
+				getAttrValue(attributes, "sample_aspect_ratio", null),
+				getAttrIntValue(attributes, "coded_picture_number", 0),
+				getAttrIntValue(attributes, "display_picture_number", 0),
+				getAttrBooleanValue(attributes, "interlaced_frame", false),
+				getAttrBooleanValue(attributes, "top_field_first", false),
+				getAttrValue(attributes, "color_range", null),
+				getAttrValue(attributes, "color_space", null),
+				getAttrValue(attributes, "color_primaries", null),
+				getAttrValue(attributes, "color_transfer", null));
 
 		if (videoConst == null) {
 			videoConst = currentVideoConst;
@@ -257,22 +248,16 @@ public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, In
 	 * <frame media_type="audio" [...] sample_fmt="fltp" nb_samples="1024" channels="2" channel_layout="stereo"/>
 	 */
 	private void onFrameAudio(final Attributes attributes, final FFprobeBaseFrame baseFrame) {
-		if (attributes.getLength() != 17) {
-			log.error("Invalid <frame media_type=\"audio\">, expect 17 attributes, get {}: {}",
-					attributes.getLength(), getAttributes(attributes));
-			return;
-		}
-
 		final var frame = new FFprobeAudioFrame(
 				baseFrame,
-				getAttrIntValue(attributes, "nb_samples"));
+				getAttrIntValue(attributes, "nb_samples", -1));
 		audioFrames.add(frame);
 
 		final var currentAudioConst = new FFprobeAudioFrameConst(
 				frame,
-				getAttrValue(attributes, "sample_fmt"),
-				getAttrIntValue(attributes, "channels"),
-				ChannelLayout.parse(getAttrValue(attributes, "channel_layout")));
+				getAttrValue(attributes, "sample_fmt", null),
+				getAttrIntValue(attributes, "channels", 0),
+				ChannelLayout.parse(getAttrValue(attributes, "channel_layout", "")));
 
 		if (audioConst == null) {
 			audioConst = currentAudioConst;
@@ -292,49 +277,6 @@ public class FFprobeResultSAX extends DefaultHandler implements ErrorHandler, In
 				audioConst,
 				Collections.unmodifiableList(olderVideoConsts),
 				Collections.unmodifiableList(olderAudioConsts));
-	}
-
-	private static String getAttrValue(final Attributes attributes, final String keyName) {
-		final var value = attributes.getValue(keyName);
-		if (value == null) {
-			log.error("Can't get attribute {}", keyName);
-			return "";
-		}
-		return value;
-	}
-
-	private static boolean getAttrBooleanValue(final Attributes attributes, final String keyName) {
-		return getAttrValue(attributes, keyName).equals("1");
-	}
-
-	private static int getAttrIntValue(final Attributes attributes, final String keyName) {
-		final var value = getAttrValue(attributes, keyName);
-		try {
-			return Integer.valueOf(value);
-		} catch (final NumberFormatException e) {
-			log.error(CAN_T_EXTRACT_NUMBER_FROM, keyName, value);
-			return -1;
-		}
-	}
-
-	private static long getAttrLongValue(final Attributes attributes, final String keyName) {
-		final var value = getAttrValue(attributes, keyName);
-		try {
-			return Long.valueOf(value);
-		} catch (final NumberFormatException e) {
-			log.error(CAN_T_EXTRACT_NUMBER_FROM, keyName, value);
-			return -1;
-		}
-	}
-
-	private static float getAttrFloatValue(final Attributes attributes, final String keyName) {
-		final var value = getAttrValue(attributes, keyName);
-		try {
-			return Float.valueOf(value);
-		} catch (final NumberFormatException e) {
-			log.error(CAN_T_EXTRACT_NUMBER_FROM, keyName, value);
-			return -1;
-		}
 	}
 
 	@Override
