@@ -20,13 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -36,7 +39,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
 
+import net.datafaker.Faker;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -97,7 +105,7 @@ class ExecutableToolTest {
 
 		assertEquals(capturedStdOutErrTextRetention, result.checkExecutionGetText());
 		assertTrue(capturedStdOutErrTextRetention.getStdouterrLines(false)
-		        .anyMatch(line -> line.contains("version")));
+				.anyMatch(line -> line.contains("version")));
 	}
 
 	@Test
@@ -137,7 +145,7 @@ class ExecutableToolTest {
 
 		assertEquals(capturedStdOutErrTextRetention, result.checkExecutionGetText());
 		assertTrue(capturedStdOutErrTextRetention.getStdouterrLines(false)
-		        .anyMatch(line -> line.contains("version")));
+				.anyMatch(line -> line.contains("version")));
 	}
 
 	@Test
@@ -147,25 +155,31 @@ class ExecutableToolTest {
 		assertThrows(InvalidExecution.class, () -> result.waitForEndAndCheckExecution());
 	}
 
-	/*@Test FIXME test
+	@Test
 	void testExecute_Logger() {
+		final var selectedLevel = Faker.instance().options().option(Level.class);
 		final var log = Mockito.mock(Logger.class);
-		when(log.isEnabled(ALL)).thenReturn(true);
+		final var event = Mockito.mock(LoggingEventBuilder.class);
+
+		when(log.isEnabledForLevel(selectedLevel)).thenReturn(true);
+		when(log.atLevel(selectedLevel)).thenReturn(event);
 
 		final var lines = new LinkedBlockingQueue<LineEntry>();
 		final var result = exec.execute(executableFinder, log, line -> {
 			lines.add(line);
-			return ALL;
+			return selectedLevel;
 		});
 		result.waitForEnd();
 
-		final var msgs = ArgumentCaptor.forClass(Object.class);
-		verify(log, atLeastOnce()).log(eq(ALL), msgs.capture());
-		assertTrue(lines.size() > 0);
-		assertEquals(msgs.getAllValues().size(), lines.size());
+		verify(log, atLeastOnce()).atLevel(selectedLevel);
+		verify(log, atLeastOnce()).isEnabledForLevel(selectedLevel);
 
-		verify(log, atLeastOnce()).isEnabled(ALL);
-		verifyNoMoreInteractions(log);
-	}*/
+		final var msgs = ArgumentCaptor.forClass(String.class);
+		verify(event, atLeastOnce()).log(msgs.capture());
+		assertTrue(msgs.getValue().contains("❌"));
+		assertTrue(msgs.getValue().contains("java"));
+		
+		verifyNoMoreInteractions(log, event);
+	}
 
 }
