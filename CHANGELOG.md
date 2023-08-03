@@ -1,5 +1,17 @@
 # All Medialib projects upgrades needs
 
+## 12.0.0
+
+Maintenance version: update prodlib starter version from 12.3.1 to 18.0.2, set explicit jaxb-api and jaxb-runtime version (sticked to the older JAXB), code clean and refactor, remove log4j2 to logback.
+
+Beware to explicit force jaxb-runtime to 2.3.8:
+
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>2.3.8</version>
+            </dependency>
+
 ## 11.1.0
 
 Bug correction:
