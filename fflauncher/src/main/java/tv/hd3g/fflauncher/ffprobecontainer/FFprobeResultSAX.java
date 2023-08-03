@@ -32,8 +32,6 @@ import java.util.Optional;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -43,18 +41,19 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
 import tv.hd3g.processlauncher.InputStreamConsumer;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
+@Slf4j
 public class FFprobeResultSAX extends DefaultHandler implements
 							  ErrorHandler,
 							  InputStreamConsumer,
 							  SAXAttributeParserTraits {
 	private static final String STREAM_INDEX = "stream_index";
-	private static final Logger log = LogManager.getLogger();
 	private static final SAXParserFactory factory;
 
 	static {

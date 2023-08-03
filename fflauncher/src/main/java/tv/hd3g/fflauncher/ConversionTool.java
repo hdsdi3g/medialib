@@ -48,9 +48,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.enums.OutputFilePresencePolicy;
 import tv.hd3g.processlauncher.CapturedStdOutErrToPrintStream;
 import tv.hd3g.processlauncher.ExecutableTool;
@@ -58,8 +56,8 @@ import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
+@Slf4j
 public class ConversionTool implements ExecutableTool, InternalParametersSupplier, InputSourceProviderTraits {
-	private static Logger log = LogManager.getLogger();
 	private static final Predicate<LineEntry> ignoreAllLinesEventsToDisplay = le -> false;
 
 	protected final String execName;

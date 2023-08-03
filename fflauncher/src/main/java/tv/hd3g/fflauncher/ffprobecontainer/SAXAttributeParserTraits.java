@@ -18,12 +18,11 @@ package tv.hd3g.fflauncher.ffprobecontainer;
 
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.xml.sax.Attributes;
 
 public interface SAXAttributeParserTraits {
-	Logger log = LogManager.getLogger();
+	Logger log = org.slf4j.LoggerFactory.getLogger(SAXAttributeParserTraits.class);
 
 	default Optional<String> getAttrValue(final Attributes attributes, final String keyName) {
 		return Optional.ofNullable(attributes.getValue(keyName));

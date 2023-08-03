@@ -26,9 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFbase;
 import tv.hd3g.processlauncher.CapturedStdOutErrTextRetention;
 import tv.hd3g.processlauncher.InvalidExecution;
@@ -39,11 +37,10 @@ import tv.hd3g.processlauncher.cmdline.Parameters;
  * Threadsafe
  * Sync (blocking) during executions
  */
+@Slf4j
 public class FFAbout {
 
 	private static final String CUVID = "cuvid";
-
-	private static final Logger log = LogManager.getLogger();
 
 	private final String execName;
 	private final ExecutableFinder executableFinder;

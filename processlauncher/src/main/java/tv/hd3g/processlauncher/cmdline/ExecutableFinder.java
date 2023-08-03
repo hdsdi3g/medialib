@@ -17,7 +17,6 @@
 package tv.hd3g.processlauncher.cmdline;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,16 +32,15 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * It will resolve/find valid executable files in *NIX and valid executable extensions in Windows.
  * On system PATH, classpath, current dir, and local user dir (/bin).
  * ThreadSafe
  */
+@Slf4j
 public class ExecutableFinder {
-	private static final Logger log = LogManager.getLogger();
 
 	/**
 	 * Return exists and isDirectory and canRead
@@ -68,8 +66,8 @@ public class ExecutableFinder {
 			final var pathExt = System.getenv("PATHEXT");
 			if (pathExt.indexOf(';') >= 0) {
 				WINDOWS_EXEC_EXTENSIONS = stream(pathExt.split(";"))// NOSONAR S2386
-				        .map(ext -> ext.toLowerCase().substring(1))
-				        .collect(toUnmodifiableList());
+						.map(ext -> ext.toLowerCase().substring(1))
+						.toList();
 			} else {
 				log.warn("Invalid PATHEXT env.: {}", pathExt);
 				WINDOWS_EXEC_EXTENSIONS = List.of("exe", "com", "cmd", "bat");
@@ -81,13 +79,13 @@ public class ExecutableFinder {
 		final var searchdir = System.getProperty("execfinder.searchdir");
 		if (searchdir != null && searchdir.equals("") == false) {
 			GLOBAL_DECLARED_DIRS = stream(searchdir.split(File.pathSeparator)) // NOSONAR S2386
-			        .map(File::new)
-			        .filter(isValidDirectory)
-			        .map(File::getAbsoluteFile)
-			        .collect(toUnmodifiableList());
+					.map(File::new)
+					.filter(isValidDirectory)
+					.map(File::getAbsoluteFile)
+					.toList();
 
 			log.debug("Specific executable path declared via system property: {}",
-			        () -> GLOBAL_DECLARED_DIRS.stream().map(File::getPath).collect(Collectors.joining(", ")));
+					GLOBAL_DECLARED_DIRS.stream().map(File::getPath).collect(Collectors.joining(", ")));
 		} else {
 			GLOBAL_DECLARED_DIRS = List.of();
 		}
@@ -115,20 +113,20 @@ public class ExecutableFinder {
 		paths.add(new File(System.getProperty("user.dir")));
 
 		paths.addAll(Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator)).map(File::new)
-		        .filter(isValidDirectory).collect(Collectors.toUnmodifiableList()));
+				.filter(isValidDirectory).toList());
 
 		paths.addAll(Arrays.stream(System.getenv("PATH").split(File.pathSeparator)).map(File::new).filter(
-		        isValidDirectory).collect(Collectors.toUnmodifiableList()));
+				isValidDirectory).toList());
 
 		/**
 		 * Remove duplicate entries
 		 */
-		final var newList = paths.stream().distinct().collect(Collectors.toUnmodifiableList());
+		final var newList = paths.stream().distinct().toList();
 		paths.clear();
 		paths.addAll(newList);
 
 		log.trace("Full path: {}",
-		        () -> paths.stream().map(File::getPath).collect(Collectors.joining(File.pathSeparator)));
+				paths.stream().map(File::getPath).collect(Collectors.joining(File.pathSeparator)));
 	}
 
 	public String getFullPathToString() {
@@ -142,7 +140,7 @@ public class ExecutableFinder {
 	 * @return unmodifiableList
 	 */
 	public List<File> getFullPath() {
-		return paths.stream().collect(toUnmodifiableList());
+		return paths.stream().toList();
 	}
 
 	/**
@@ -212,16 +210,16 @@ public class ExecutableFinder {
 		}
 
 		final var allFileCandidates = Stream.concat(declaredInConfiguration.values().stream().map(
-		        File::getParentFile), paths.stream()).map(dir -> new File(dir + File.separator + name)
-		                .getAbsoluteFile())
-		        .distinct().collect(Collectors.toUnmodifiableList());
+				File::getParentFile), paths.stream()).map(dir -> new File(dir + File.separator + name)
+						.getAbsoluteFile())
+				.distinct().toList();
 
 		if (isWindowsStylePath == false) {
 			/**
 			 * *nix flavors
 			 */
 			return allFileCandidates.stream().filter(this::validExec).findFirst().orElseThrow(
-			        () -> new FileNotFoundException("Can't found executable \"" + name + "\""));
+					() -> new FileNotFoundException("Can't found executable \"" + name + "\""));
 		} else {
 			/**
 			 * Windows flavor

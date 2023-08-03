@@ -29,16 +29,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
+@Slf4j
 class ConversionToolParameterReference {
 
 	private static final int TRY_COUNT_TO_OPEN_FILE = 5;
 
-	private static Logger log = LogManager.getLogger();
 	private static final Set<OpenOption> openOptionsReadOnly = Set.of(StandardOpenOption.READ);
 
 	private final String ressource;

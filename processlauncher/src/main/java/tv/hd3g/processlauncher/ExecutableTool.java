@@ -21,8 +21,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 import tv.hd3g.processlauncher.cmdline.CommandLine;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
@@ -76,8 +76,8 @@ public interface ExecutableTool {
 				final var capture = builder.getSetCaptureStandardOutputAsOutputText();
 				capture.addObserver(new CapturedStdOutErrTextInteractive(line -> {
 					final var level = levelMapper.apply(line);
-					if (level != null && log.isEnabled(level)) {
-						log.log(level, line);
+					if (level != null && log.isEnabledForLevel(level)) {
+						log.atLevel(level).log(line.toString());
 					}
 					return null;
 				}));

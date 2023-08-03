@@ -26,16 +26,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 
+@Slf4j
 public class ProcesslauncherLifecycle {
 	private static final String LOG_FORCE_TO_CLOSE_PROCESS = "Force to close process {}";
 	private static final String LOG_CLOSE_MANUALLY_PROCESS = "Close manually process {}";
-
-	private static Logger log = LogManager.getLogger();
 
 	private static final Executor END_EXEC_CALLBACK;
 	private static final AtomicLong END_EXEC_CALLBACK_COUNT;
@@ -172,40 +169,40 @@ public class ProcesslauncherLifecycle {
 
 		log.debug("Internal kill {}", this);
 		final var cantKill = process.descendants().filter(ProcessHandle::isAlive)
-		        .filter(processHandle -> {
-			        if (log.isDebugEnabled()) {
-				        log.info(LOG_CLOSE_MANUALLY_PROCESS, () -> processHandleToString(processHandle, true));
-			        } else if (log.isInfoEnabled()) {
-				        log.info(LOG_CLOSE_MANUALLY_PROCESS, () -> processHandleToString(processHandle, false));
-			        }
-			        return processHandle.destroy() == false;
-		        }).filter(processHandle -> {
-			        if (log.isDebugEnabled()) {
-				        log.info(LOG_FORCE_TO_CLOSE_PROCESS, () -> processHandleToString(processHandle, true));
-			        } else if (log.isInfoEnabled()) {
-				        log.info(LOG_FORCE_TO_CLOSE_PROCESS, () -> processHandleToString(processHandle, false));
-			        }
-			        return processHandle.destroyForcibly() == false;
-		        }).collect(Collectors.toUnmodifiableList());
+				.filter(processHandle -> {
+					if (log.isDebugEnabled()) {
+						log.info(LOG_CLOSE_MANUALLY_PROCESS, processHandleToString(processHandle, true));
+					} else if (log.isInfoEnabled()) {
+						log.info(LOG_CLOSE_MANUALLY_PROCESS, processHandleToString(processHandle, false));
+					}
+					return processHandle.destroy() == false;
+				}).filter(processHandle -> {
+					if (log.isDebugEnabled()) {
+						log.info(LOG_FORCE_TO_CLOSE_PROCESS, processHandleToString(processHandle, true));
+					} else if (log.isInfoEnabled()) {
+						log.info(LOG_FORCE_TO_CLOSE_PROCESS, processHandleToString(processHandle, false));
+					}
+					return processHandle.destroyForcibly() == false;
+				}).toList();
 
 		if (process.isAlive()) {
-			log.info(LOG_CLOSE_MANUALLY_PROCESS, () -> processHandleToString(process.toHandle(), true));
+			log.info(LOG_CLOSE_MANUALLY_PROCESS, processHandleToString(process.toHandle(), true));
 			if (process.toHandle().destroy() == false) {
-				log.info(LOG_FORCE_TO_CLOSE_PROCESS, () -> processHandleToString(process.toHandle(), true));
+				log.info(LOG_FORCE_TO_CLOSE_PROCESS, processHandleToString(process.toHandle(), true));
 				if (process.toHandle().destroyForcibly() == false) {
 					throw new ProcessLifeCycleException("Can't close process "
-					                                    + processHandleToString(process.toHandle(), true));
+														+ processHandleToString(process.toHandle(), true));
 				}
 			}
 		}
 		if (cantKill.isEmpty() == false) {
 			cantKill.forEach(processHandle -> log.error("Can't force close process {}",
-			        () -> processHandleToString(processHandle, true)));
+					processHandleToString(processHandle, true)));
 			throw new ProcessLifeCycleException("Can't close process " + toString() + " for PID "
-			                                    + cantKill.stream()
-			                                            .map(ProcessHandle::pid)
-			                                            .map(String::valueOf)
-			                                            .collect(Collectors.joining(", ")));
+												+ cantKill.stream()
+														.map(ProcessHandle::pid)
+														.map(String::valueOf)
+														.collect(Collectors.joining(", ")));
 		}
 	}
 

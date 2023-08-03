@@ -22,9 +22,7 @@ import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.FFprobe.FFPrintFormat;
 import tv.hd3g.fflauncher.enums.FFLogLevel;
@@ -32,9 +30,8 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
+@Slf4j
 public class ProbeMedia {
-
-	private static Logger log = LogManager.getLogger();
 
 	private final String execName;
 	private final ExecutableFinder executableFinder;

@@ -25,17 +25,16 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
 import tv.hd3g.processlauncher.InvalidExecution;
 
 @Getter
+@Slf4j
 public class ContainerAnalyserSession extends BaseAnalyserSession {
-	private static Logger log = LogManager.getLogger();
 
 	private final ContainerAnalyser containerAnalyser;
 	private final String source;

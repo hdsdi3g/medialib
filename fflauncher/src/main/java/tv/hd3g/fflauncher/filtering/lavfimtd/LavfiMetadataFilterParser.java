@@ -35,13 +35,11 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LavfiMetadataFilterParser {
-	private static final Logger log = LogManager.getLogger();
 	public static final String DEFAULT_KEY = "default";
 	private static final String SUFFIX_END = "_end";
 	private static final String SUFFIX_START = "_start";

@@ -20,12 +20,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class StdInInjection extends OutputStream {
 
-	private static final Logger log = LogManager.getLogger();
 	public static final String LINESEPARATOR = System.getProperty("line.separator");
 
 	private final OutputStream stdIn;

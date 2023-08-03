@@ -24,11 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class StreamParser extends Thread {
-	private static final Logger log = LogManager.getLogger();
 	static final AtomicLong CREATED_THREAD_COUNTER = new AtomicLong(-1);
 
 	private final InputStream processStream;

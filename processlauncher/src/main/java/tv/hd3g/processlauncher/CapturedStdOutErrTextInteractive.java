@@ -21,11 +21,10 @@ import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CapturedStdOutErrTextInteractive extends CapturedStdOutErrText {
-	private static Logger log = LogManager.getLogger();
 
 	private final Function<LineEntry, String> interactive;
 	private final Charset destCharset;

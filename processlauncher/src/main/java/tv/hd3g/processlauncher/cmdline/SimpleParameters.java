@@ -31,15 +31,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SimpleParameters {
 	private static final String LOG_ADD_PARAMETERS = "Add parameters: {}";
 
 	private static final String PARAMS_CAN_T_TO_BE_NULL = "\"params\" can't to be null";
-
-	private static Logger log = LogManager.getLogger();
 
 	private static final Character QUOTE = '"';
 	private static final Character SPACE = ' ';
@@ -73,7 +71,7 @@ public class SimpleParameters {
 	 * Transfer (clone) current parameters and parameterKeysStartsWith
 	 */
 	public SimpleParameters importParametersFrom(final SimpleParameters previousInstance) {
-		log.trace("Import from {}", () -> previousInstance);
+		log.trace("Import from {}", previousInstance);
 
 		parameterKeysStartsWith = previousInstance.parameterKeysStartsWith;
 		parameters.clear();
@@ -232,7 +230,7 @@ public class SimpleParameters {
 				.toList();
 		parameters.addAll(subList);
 
-		log.trace(LOG_ADD_PARAMETERS, () -> subList);
+		log.trace(LOG_ADD_PARAMETERS, subList);
 		return this;
 	}
 
@@ -266,7 +264,7 @@ public class SimpleParameters {
 				.toList();
 		replaceParameters(newList);
 
-		log.trace("Prepend parameters: {}", () -> params);
+		log.trace("Prepend parameters: {}", params);
 		return this;
 	}
 

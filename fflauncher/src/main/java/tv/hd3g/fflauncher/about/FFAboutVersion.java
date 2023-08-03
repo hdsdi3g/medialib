@@ -23,16 +23,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class FFAboutVersion {
 
 	private static final String FFPLAY_VERSION = "ffplay version ";
 	private static final String FFPROBE_VERSION = "ffprobe version ";
 	private static final String FFMPEG_VERSION = "ffmpeg version ";
 	private static final String HEADER_CONFIGURATION = "configuration:";
-	private static final Logger log = LogManager.getLogger();
 
 	/**
 	 * Like "4.0 Copyright (c) 2000-2018 the FFmpeg developers"
@@ -124,7 +123,7 @@ public class FFAboutVersion {
 			return c.trim();
 		}).distinct().collect(Collectors.toSet()));
 
-		log.debug(() -> "\"" + rawConfiguration + "\" <-> configuration: " + configuration);
+		log.debug("\"" + rawConfiguration + "\" <-> configuration: " + configuration);
 
 		libavutilVersion = extractLibavVersion("libavutil", processResult);
 		libavcodecVersion = extractLibavVersion("libavcodec", processResult);

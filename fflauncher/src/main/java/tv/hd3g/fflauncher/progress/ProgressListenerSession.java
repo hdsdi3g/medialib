@@ -28,16 +28,14 @@ import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Not reusable.
  */
+@Slf4j
 public class ProgressListenerSession {
 	public static final String LOCALHOST_IPV4 = "127.0.0.1";
-
-	private static Logger log = LogManager.getLogger();
 
 	private final Thread currentThread;
 	private final ProgressCallback progressCallback;

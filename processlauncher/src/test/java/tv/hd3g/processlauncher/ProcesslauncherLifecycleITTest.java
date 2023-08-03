@@ -35,14 +35,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.processlauncher.cmdline.CommandLine;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
@@ -57,9 +56,9 @@ import tv.hd3g.processlauncher.demo.DemoExecStdinInjection;
 import tv.hd3g.processlauncher.demo.DemoExecSubProcess;
 import tv.hd3g.processlauncher.demo.DemoExecWorkingdir;
 
+@Slf4j
 public class ProcesslauncherLifecycleITTest {// NOSONAR
 
-	private static Logger log = LogManager.getLogger();
 	private final ExecutableFinder executableFinder;
 	private final ScheduledThreadPoolExecutor scheduledThreadPool;
 

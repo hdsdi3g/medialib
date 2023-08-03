@@ -30,9 +30,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.FilterChains;
@@ -45,8 +44,8 @@ import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.InvalidExecution;
 
+@Slf4j
 public class MediaAnalyserSession extends BaseAnalyserSession {
-	private static Logger log = LogManager.getLogger();
 
 	private final MediaAnalyser mediaAnalyser;
 	private final List<AudioFilterSupplier> audioFilters;
