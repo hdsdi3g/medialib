@@ -44,7 +44,11 @@ public record MediaSummary(String format, List<String> streams) {
 		final var entries = new ArrayList<String>();
 		entries.add(format.getFormatLongName());
 		entries.add(computeDuration(format));
-		entries.add(format.getSize() / 1024 / 1024 + " MB");
+		if (format.getSize() <= 1024 * 1024) {
+			entries.add(format.getSize() + " bytes");
+		} else {
+			entries.add(format.getSize() / 1024 / 1024 + " MB");
+		}
 
 		if (format.getNbPrograms() > 0) {
 			entries.add(format.getNbPrograms() + " program(s)");
@@ -84,11 +88,11 @@ public record MediaSummary(String format, List<String> streams) {
 	}
 
 	static void addDisposition(final StreamDispositionType s, final List<String> entries) {
-		if (s == null || s.getDefault() == 1 && s.getAttachedPic() == 0) {
+		if (s == null || s.getDefault() == 0 && s.getAttachedPic() == 0) {
 			return;
 		}
-		if (s.getDefault() != 1) {
-			entries.add("set not by default");
+		if (s.getDefault() == 1) {
+			entries.add("default stream");
 		}
 		if (s.getAttachedPic() != 0) {
 			entries.add("attached picture");
@@ -110,9 +114,17 @@ public record MediaSummary(String format, List<String> streams) {
 		}).ifPresent(entries::add);
 
 		if (s.getChannels() > 2) {
-			entries.add(s.getChannelLayout() + " (" + s.getChannels() + " channels)");
-		} else {
+			if (s.getChannelLayout() != null) {
+				entries.add(s.getChannelLayout() + " (" + s.getChannels() + " channels)");
+			} else {
+				entries.add(s.getChannels() + " channels");
+			}
+		} else if (s.getChannelLayout() != null) {
 			entries.add(s.getChannelLayout());
+		} else if (s.getChannels() == 2) {
+			entries.add("2 channels");
+		} else {
+			entries.add("mono");
 		}
 
 		Optional.ofNullable(s.getSampleRate())
@@ -138,16 +150,16 @@ public record MediaSummary(String format, List<String> streams) {
 		final var level = Optional.ofNullable(s.getLevel()).orElse(0);
 		if (profile.isPresent()) {
 			if (level > 0) {
-				entries.add(profile.get() + "/" + level);
+				entries.add(profile.get() + "/" + getLevelTag(s.getCodecName(), level));
 			} else {
 				entries.add(profile.get());
 			}
 		} else if (level > 0) {
-			entries.add("Level: " + level);
+			entries.add(getLevelTag(s.getCodecName(), level));
 		}
 
 		if (s.getHasBFrames() != null && s.getHasBFrames() > 0) {
-			entries.add("Has B frames");
+			entries.add("with B frames");
 		}
 
 		final var frameRate = getValue(s.getAvgFrameRate()).map(b -> {
@@ -190,17 +202,121 @@ public record MediaSummary(String format, List<String> streams) {
 		return entries.stream().collect(Collectors.joining(" "));
 	}
 
+	/*
+	* */
+
+	static String getLevelTag(final String videoCodec, final int rawLevel) {
+		return switch (videoCodec) {
+		/**
+		 * From https://github.com/FFmpeg/FFmpeg/blob/c7bfc826c351534262a9ee8ab39aa1fa0efe06a7/libavcodec/mpeg12enc.c#L1214C1-L1217C30
+		 */
+		case "mpeg1video", "mpeg2video", "mpegvideo" -> switch (rawLevel) {
+		case 4 -> "High";
+		case 6 -> "High 1440";
+		case 8 -> "Main";
+		case 10 -> "Low";
+		default -> "L" + rawLevel;
+		};
+		/**
+		 * From https://github.com/FFmpeg/FFmpeg/blob/c7bfc826c351534262a9ee8ab39aa1fa0efe06a7/libavcodec/h264_metadata_bsf.c#L677
+		 */
+		case "h264", "avc" -> switch (rawLevel) {
+		case 10 -> "1";
+		case 9 -> "1b";
+		case 11 -> "1.1";
+		case 12 -> "1.2";
+		case 13 -> "1.3";
+		case 20 -> "2";
+		case 21 -> "2.1";
+		case 22 -> "2.2";
+		case 30 -> "3";
+		case 31 -> "3.1";
+		case 32 -> "3.2";
+		case 40 -> "4";
+		case 41 -> "4.1";
+		case 42 -> "4.2";
+		case 50 -> "5";
+		case 51 -> "5.1";
+		case 52 -> "5.2";
+		case 60 -> "6";
+		case 61 -> "6.1";
+		case 62 -> "6.2";
+		default -> "L" + rawLevel;
+		};
+		/**
+		 * From https://github.com/FFmpeg/FFmpeg/blob/c7bfc826c351534262a9ee8ab39aa1fa0efe06a7/libavcodec/h265_metadata_bsf.c#L463
+		 */
+		case "hevc", "h265" -> switch (rawLevel) {
+		case 30 -> "1";
+		case 60 -> "2";
+		case 63 -> "2.1";
+		case 90 -> "3";
+		case 93 -> "3.1";
+		case 120 -> "4";
+		case 123 -> "4.1";
+		case 150 -> "5";
+		case 153 -> "5.1";
+		case 156 -> "5.2";
+		case 180 -> "6";
+		case 183 -> "6.1";
+		case 186 -> "6.2";
+		case 255 -> "8.5";
+		default -> "L" + rawLevel;
+		};
+		/**
+		 * From https://github.com/FFmpeg/FFmpeg/blob/c7bfc826c351534262a9ee8ab39aa1fa0efe06a7/libavcodec/libsvtav1.c#L620
+		 */
+		case "av1" -> switch (rawLevel) {
+		case 20 -> "2.0";
+		case 21 -> "2.1";
+		case 22 -> "2.2";
+		case 23 -> "2.3";
+		case 30 -> "3.0";
+		case 31 -> "3.1";
+		case 32 -> "3.2";
+		case 33 -> "3.3";
+		case 40 -> "4.0";
+		case 41 -> "4.1";
+		case 42 -> "4.2";
+		case 43 -> "4.3";
+		case 50 -> "5.0";
+		case 51 -> "5.1";
+		case 52 -> "5.2";
+		case 53 -> "5.3";
+		case 60 -> "6.0";
+		case 61 -> "6.1";
+		case 62 -> "6.2";
+		case 63 -> "6.3";
+		case 70 -> "7.0";
+		case 71 -> "7.1";
+		case 72 -> "7.2";
+		case 73 -> "7.3";
+		default -> "L" + rawLevel;
+		};
+		default -> "L" + rawLevel;
+		};
+	}
+
 	static String computePixelsFormat(final StreamType s) {
 		final var entries = new ArrayList<String>();
 		getValue(s.getPixFmt()).ifPresent(entries::add);
-		getValue(s.getColorRange()).map(v -> "rng:" + v.toUpperCase()).ifPresent(entries::add);
+		getValue(s.getColorRange()).map(v -> "colRange:" + v.toUpperCase()).ifPresent(entries::add);
 
-		Stream.concat(getValue(s.getColorSpace()).map(v -> "spce:" + v.toUpperCase()).stream(),
-				Stream.concat(
-						getValue(s.getColorTransfer()).map(v -> "tsfer:" + v.toUpperCase()).stream(),
-						getValue(s.getColorPrimaries()).map(v -> "prim:" + v.toUpperCase()).stream()))
-				.distinct()
-				.forEach(entries::add);
+		final var oColorSpace = getValue(s.getColorSpace());
+		final var oColorTransfer = getValue(s.getColorTransfer());
+		final var oColorPrimaries = getValue(s.getColorPrimaries());
+
+		if (oColorSpace.isPresent()
+			&& oColorSpace.equals(oColorTransfer)
+			&& oColorSpace.equals(oColorPrimaries)) {
+			oColorSpace.map(String::toUpperCase).ifPresent(entries::add);
+		} else {
+			Stream.concat(oColorSpace.map(v -> "colSpace:" + v.toUpperCase()).stream(),
+					Stream.concat(
+							oColorTransfer.map(v -> "colTransfer:" + v.toUpperCase()).stream(),
+							oColorPrimaries.map(v -> "colPrimaries:" + v.toUpperCase()).stream()))
+					.forEach(entries::add);
+		}
 
 		return entries.stream().collect(Collectors.joining("/"));
 	}

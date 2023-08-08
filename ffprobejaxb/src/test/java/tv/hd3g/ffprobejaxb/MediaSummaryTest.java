@@ -53,10 +53,41 @@ class MediaSummaryTest {
 
 		assertEquals("QuickTime / MOV, 00:00:50, 465 MB", ms.format());
 		assertEquals(List.of(
-				"video: prores 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/rng:TV/spce:SMPTE170M/tsfer:BT709/prim:BT470BG (2500 frms)",
-				"audio: pcm_s16le stereo @ 48000 Hz [1536 kbps]",
+				"video: prores 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/colRange:TV/colSpace:SMPTE170M/colTransfer:BT709/colPrimaries:BT470BG (2500 frms) default stream",
+				"audio: pcm_s16le stereo @ 48000 Hz [1536 kbps] default stream",
 				"data: tmcd (Time Code Media Handler) 00:00:00:00"),
 				ms.streams());
+	}
+
+	@Test
+	void testCreate_smallFile() throws IOException {
+		final var source = new FFprobeJAXB("""
+				<?xml version="1.0" encoding="UTF-8"?>
+				<ffprobe>
+				    <format size="123456" bit_rate="18000" duration="50.000000" format_long_name="QuickTime / MOV" />
+				</ffprobe>
+				""",
+				s -> {
+				});
+		ms = MediaSummary.create(source);
+		assertNotNull(ms);
+
+		assertEquals("QuickTime / MOV, 00:00:50, 123456 bytes, 18 kbps", ms.format());
+	}
+
+	@Test
+	void testCreate_bigFile() throws IOException {
+		final var source = new FFprobeJAXB("""
+				<?xml version="1.0" encoding="UTF-8"?>
+				<ffprobe>
+				    <format size="123456789" bit_rate="18000000" duration="50.000000" format_long_name="MOV" />
+				</ffprobe>
+				""", s -> {
+		});
+		ms = MediaSummary.create(source);
+		assertNotNull(ms);
+
+		assertEquals("MOV, 00:00:50, 117 MB, 18 Mbps", ms.format());
 	}
 
 	@Test
@@ -82,7 +113,7 @@ class MediaSummaryTest {
 		ms = MediaSummary.create(source);
 		assertNotNull(ms);
 
-		assertEquals("null, 00:00:01, 0 MB, " + programs + " program(s), " + chapCount + " chapter(s)",
+		assertEquals("null, 00:00:01, 1 bytes, " + programs + " program(s), " + chapCount + " chapter(s)",
 				ms.format());
 		assertEquals(List.of(), ms.streams());
 	}
@@ -109,7 +140,7 @@ class MediaSummaryTest {
 		s.setAttachedPic(0);
 		final var entries = new ArrayList<String>();
 		MediaSummary.addDisposition(s, entries);
-		assertTrue(entries.isEmpty());
+		assertEquals(List.of("default stream"), entries);
 	}
 
 	@Test
@@ -118,12 +149,12 @@ class MediaSummaryTest {
 		s.setDefault(0);
 		final var entries = new ArrayList<String>();
 		MediaSummary.addDisposition(s, entries);
-		assertEquals(List.of("set not by default"), entries);
+		assertEquals(List.of(), entries);
 
 		entries.clear();
 		s.setAttachedPic(1);
 		MediaSummary.addDisposition(s, entries);
-		assertEquals(List.of("set not by default", "attached picture"), entries);
+		assertEquals(List.of("attached picture"), entries);
 	}
 
 	@Test
@@ -138,6 +169,31 @@ class MediaSummaryTest {
 		s.setSampleRate(48000);
 		s.setBitRate(1_000_000);
 		assertEquals("type: name profile sample layout (8 channels) @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setSampleFmt(null);
+		assertEquals("type: name profile layout (8 channels) @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setSampleFmt("fltp");
+		assertEquals("type: name profile layout (8 channels) @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setChannelLayout(null);
+		assertEquals("type: name profile 8 channels @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setChannels(2);
+		s.setChannelLayout("layout");
+		assertEquals("type: name profile layout @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setChannelLayout(null);
+		assertEquals("type: name profile 2 channels @ 48000 Hz [1000 kbps]",
+				MediaSummary.getAudioSummary(s));
+
+		s.setChannels(1);
+		assertEquals("type: name profile mono @ 48000 Hz [1000 kbps]",
 				MediaSummary.getAudioSummary(s));
 	}
 
@@ -155,16 +211,16 @@ class MediaSummaryTest {
 		s.setNbFrames(100);
 
 		s.setBitRate(1_000_000);
-		assertEquals("type: name 2×3 profile/10 Has B frames @ 25 fps [1000 kbps] (100 frms)",
+		assertEquals("type: name 2×3 profile/L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
 				MediaSummary.getVideoSummary(s));
 
 		s.setProfile(null);
 		s.setLevel(0);
-		assertEquals("type: name 2×3 Has B frames @ 25 fps [1000 kbps] (100 frms)",
+		assertEquals("type: name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
 				MediaSummary.getVideoSummary(s));
 
 		s.setLevel(10);
-		assertEquals("type: name 2×3 Level: 10 Has B frames @ 25 fps [1000 kbps] (100 frms)",
+		assertEquals("type: name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
 				MediaSummary.getVideoSummary(s));
 	}
 
@@ -176,17 +232,17 @@ class MediaSummaryTest {
 		s.setColorSpace("space");
 		s.setColorTransfer("transfert");
 		s.setColorPrimaries("primaries");
-		assertEquals("pix/rng:RANGE/spce:SPACE/tsfer:TRANSFERT/prim:PRIMARIES",
+		assertEquals("pix/colRange:RANGE/colSpace:SPACE/colTransfer:TRANSFERT/colPrimaries:PRIMARIES",
 				MediaSummary.computePixelsFormat(s));
 
 		s.setColorPrimaries(null);
-		assertEquals("pix/rng:RANGE/spce:SPACE/tsfer:TRANSFERT",
+		assertEquals("pix/colRange:RANGE/colSpace:SPACE/colTransfer:TRANSFERT",
 				MediaSummary.computePixelsFormat(s));
 		s.setColorTransfer(null);
-		assertEquals("pix/rng:RANGE/spce:SPACE",
+		assertEquals("pix/colRange:RANGE/colSpace:SPACE",
 				MediaSummary.computePixelsFormat(s));
 		s.setColorSpace(null);
-		assertEquals("pix/rng:RANGE",
+		assertEquals("pix/colRange:RANGE",
 				MediaSummary.computePixelsFormat(s));
 		s.setColorRange(null);
 		assertEquals("pix",
@@ -276,9 +332,24 @@ class MediaSummaryTest {
 
 		assertEquals("Matroska / WebM, 00:01:00, 2 MB, 415 kbps", ms.format());
 		assertEquals(List.of(
-				"video: vp9 480×480 Profile 0 @ 29.97 fps yuv420p/rng:TV/spce:BT709/tsfer:BT709/prim:BT709",
-				"audio: opus mono @ 48000 Hz"),
+				"video: vp9 480×480 Profile 0 @ 29.97 fps yuv420p/colRange:TV/BT709 default stream",
+				"audio: opus mono @ 48000 Hz default stream"),
 				ms.streams());
+	}
+
+	@Test
+	void testGetLevelTag() {
+		final var level = faker.random().nextInt(1000, 100000);
+		assertEquals("L" + level, MediaSummary.getLevelTag(faker.numerify("codec###"), level));
+		assertEquals("L" + level, MediaSummary.getLevelTag("mpeg2video", level));
+		assertEquals("L" + level, MediaSummary.getLevelTag("h264", level));
+		assertEquals("L" + level, MediaSummary.getLevelTag("hevc", level));
+		assertEquals("L" + level, MediaSummary.getLevelTag("av1", level));
+
+		assertEquals("Main", MediaSummary.getLevelTag("mpeg2video", 8));
+		assertEquals("2.2", MediaSummary.getLevelTag("h264", 22));
+		assertEquals("3.1", MediaSummary.getLevelTag("hevc", 93));
+		assertEquals("6.1", MediaSummary.getLevelTag("av1", 61));
 	}
 
 }
