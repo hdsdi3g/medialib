@@ -1,5 +1,20 @@
 # All Medialib projects upgrades needs
 
+## 12.0.2
+
+Bug correction
+
+Correct #53 and some bugs with MediaSummary:
+
+ - add correct video level tag for MPEG2, H264, HEVC and AV1 based on ffmpeg source
+ - remove "set not by default"
+ - replace "Has B frames" by "with B frames"
+ - replace "rng" by "col" (space, transfer, primaries)
+ - correct null with audio ChannelLayout
+ - correct format size lower than 1 MB.
+
+Correct NumberFormatException during parsing ffmpeg progress #52
+
 ## 12.0.1
 
 Maintenance version: update prodlib starter version from 12.3.1 to 18.0.2, set explicit jaxb-api and jaxb-runtime version (sticked to the older JAXB), code clean and refactor, remove log4j2 to logback.
