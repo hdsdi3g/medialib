@@ -114,6 +114,12 @@ class ProgressBlockTest {
 	}
 
 	@Test
+	void testGetSpeedX_invalid() {
+		assertEquals(0, new ProgressBlock(List.of("speed=N/A")).getSpeedX());
+		assertEquals(0, new ProgressBlock(List.of("speed=0")).getSpeedX());
+	}
+
+	@Test
 	void testGetOutTimeUs() {
 		assertEquals(1582993, bSimpleLines.getOutTimeUs());
 		assertEquals(20633313, bFullLines.getOutTimeUs());

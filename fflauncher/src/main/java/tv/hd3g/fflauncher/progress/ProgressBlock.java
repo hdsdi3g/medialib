@@ -119,7 +119,11 @@ public class ProgressBlock {
 		if (speed.toLowerCase().endsWith("x")) {
 			return Float.valueOf(speed.substring(0, speed.length() - 1));
 		}
-		return Float.valueOf(speed);
+		try {
+			return Float.valueOf(speed);
+		} catch (final NumberFormatException e) {
+			return 0f;
+		}
 	}
 
 	public long getOutTimeUs() {
