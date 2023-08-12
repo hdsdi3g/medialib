@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.mockito.internal.verification.VerificationModeFactory.atMostOnce;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,16 +39,16 @@ class MediaAnalyserResultTest {
 	MediaAnalyserResult r;
 
 	@Mock
-	MediaAnalyserSession session;
-	@Mock
 	LavfiMetadataFilterParser lavfiMetadatas;
 	@Mock
 	Ebur128Summary ebur128Summary;
+	@Mock
+	Set<MediaAnalyserSessionFilterContext> filters;
 
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
-		r = new MediaAnalyserResult(session, lavfiMetadatas, ebur128Summary);
+		r = new MediaAnalyserResult(lavfiMetadatas, ebur128Summary, filters);
 	}
 
 	@AfterEach
@@ -55,7 +57,7 @@ class MediaAnalyserResultTest {
 		verify(lavfiMetadatas, atMostOnce()).getEventCount();
 		verify(ebur128Summary, atMostOnce()).isEmpty();
 
-		verifyNoMoreInteractions(session, lavfiMetadatas, ebur128Summary);
+		verifyNoMoreInteractions(filters, lavfiMetadatas, ebur128Summary);
 	}
 
 	@Test

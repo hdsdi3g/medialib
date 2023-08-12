@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -204,7 +205,18 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 				.flatMap(Supplier::get)
 				.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
 
-		return new MediaAnalyserResult(this, lavfiMetadataFilterParser.close(), rawStdErrEventParser.close());
+		final var filterSet = Stream.concat(
+				audioFilters.stream()
+						.map(AudioFilterSupplier::toFilter)
+						.filter(f -> f.getFilterName().equals("ametadata") == false)
+						.map(f -> MediaAnalyserSessionFilterContext.getFromFilter(f, "audio")),
+				videoFilters.stream()
+						.map(VideoFilterSupplier::toFilter)
+						.filter(f -> f.getFilterName().equals("metadata") == false)
+						.map(f -> MediaAnalyserSessionFilterContext.getFromFilter(f, "video")))
+				.distinct().collect(Collectors.toUnmodifiableSet());
+
+		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), filterSet);
 	}
 
 	public static MediaAnalyserResult importFromOffline(final Stream<String> stdOutLines,
@@ -223,7 +235,7 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		});
 		stdErrLines.forEach(rawStdErrEventParser::onLine);
 
-		return new MediaAnalyserResult(null, lavfiMetadataFilterParser.close(), rawStdErrEventParser.close());
+		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), Set.of());
 	}
 
 	public void extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {

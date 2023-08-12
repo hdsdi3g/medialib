@@ -20,7 +20,6 @@ import static net.datafaker.Faker.instance;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +38,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -148,6 +148,9 @@ class MediaAnalyserSessionTest {
 	@Captor
 	ArgumentCaptor<RawStdErrFilterEvent> rawStdErrFilterEventCaptor;
 
+	MediaAnalyserSessionFilterContext vFilterContext;
+	MediaAnalyserSessionFilterContext aFilterContext;
+
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
@@ -157,6 +160,11 @@ class MediaAnalyserSessionTest {
 		parameters = new Parameters();
 		aFilterValue = faker.numerify("aFilterValue###");
 		vFilterValue = faker.numerify("vFilterValue###");
+
+		vFilterContext = new MediaAnalyserSessionFilterContext(
+				"video", vFilterValue, vFilterValue, Filter.class.getName());
+		aFilterContext = new MediaAnalyserSessionFilterContext(
+				"audio", aFilterValue, aFilterValue, Filter.class.getName());
 
 		when(sourceFile.getPath()).thenReturn(sourceFilePath);
 		when(aF.toFilter()).thenReturn(aFilter);
@@ -254,22 +262,22 @@ class MediaAnalyserSessionTest {
 	private void checksProcess() {
 		checksProcessBase();
 		verify(ffmpeg, times(2)).getInternalParameters();
-		verify(aF, times(1)).toFilter();
-		verify(vF, times(1)).toFilter();
+		verify(aF, atLeastOnce()).toFilter();
+		verify(vF, atLeastOnce()).toFilter();
 	}
 
 	private void checksProcess_NoAF() {
 		checksProcessBase();
 		verify(ffmpeg, times(1)).getInternalParameters();
 		verify(ffmpeg, times(1)).setNoAudio();
-		verify(vF, times(1)).toFilter();
+		verify(vFilter, times(2)).getFilterName();
 	}
 
 	private void checksProcess_NoVF() {
 		checksProcessBase();
 		verify(ffmpeg, times(1)).getInternalParameters();
 		verify(ffmpeg, times(1)).setNoVideo();
-		verify(aF, times(1)).toFilter();
+		verify(aFilter, times(2)).getFilterName();
 	}
 
 	@Test
@@ -285,7 +293,7 @@ class MediaAnalyserSessionTest {
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
-		assertEquals(s, result.session());
+		assertEquals(Set.of(vFilterContext, aFilterContext), result.filters());
 
 		assertEquals(List.of(
 				"-af",
@@ -302,6 +310,8 @@ class MediaAnalyserSessionTest {
 
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aFilter, times(2)).getFilterName();
+		verify(vFilter, times(2)).getFilterName();
 	}
 
 	@Test
@@ -337,7 +347,7 @@ class MediaAnalyserSessionTest {
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
-		assertEquals(s, result.session());
+		assertEquals(Set.of(vFilterContext, aFilterContext), result.filters());
 
 		assertEquals(List.of(
 				"-af",
@@ -349,6 +359,8 @@ class MediaAnalyserSessionTest {
 
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aFilter, times(2)).getFilterName();
+		verify(vFilter, times(2)).getFilterName();
 	}
 
 	@Test
@@ -389,7 +401,7 @@ class MediaAnalyserSessionTest {
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 
-		assertEquals(s, result.session());
+		assertEquals(Set.of(vFilterContext), result.filters());
 
 		assertEquals(List.of(
 				"-vf",
@@ -401,6 +413,7 @@ class MediaAnalyserSessionTest {
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(vF, times(2)).toFilter();
 	}
 
 	@Test
@@ -420,7 +433,8 @@ class MediaAnalyserSessionTest {
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
-		assertEquals(s, result.session());
+
+		assertEquals(Set.of(aFilterContext), result.filters());
 
 		assertEquals(List.of(
 				"-af",
@@ -432,6 +446,7 @@ class MediaAnalyserSessionTest {
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aF, times(2)).toFilter();
 	}
 
 	@Test
@@ -464,6 +479,8 @@ class MediaAnalyserSessionTest {
 		parameters.clear();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aFilter, times(2)).getFilterName();
+		verify(vFilter, times(2)).getFilterName();
 	}
 
 	@Test
@@ -507,7 +524,7 @@ class MediaAnalyserSessionTest {
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
-		assertNull(result.session());
+		assertTrue(result.filters().isEmpty());
 
 		verify(ebur128EventSingleConsumer, times(1)).accept(ebur128StrErrFilterEventCaptor.capture());
 		assertEquals(ebur128event, ebur128StrErrFilterEventCaptor.getValue().toString());
@@ -589,6 +606,8 @@ class MediaAnalyserSessionTest {
 		verify(ffmpeg, times(1)).addDuration(pgmFFDuration);
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aFilter, times(2)).getFilterName();
+		verify(vFilter, times(2)).getFilterName();
 		parameters.clear();
 	}
 
@@ -603,6 +622,9 @@ class MediaAnalyserSessionTest {
 		verify(ffmpeg, times(1)).addStartPosition(pgmFFStartTime);
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aFilter, times(2)).getFilterName();
+		verify(vFilter, times(2)).getFilterName();
+
 		parameters.clear();
 	}
 }
