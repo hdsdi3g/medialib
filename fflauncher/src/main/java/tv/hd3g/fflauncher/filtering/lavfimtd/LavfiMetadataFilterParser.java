@@ -92,7 +92,6 @@ public class LavfiMetadataFilterParser {
 	 */
 	public void addLavfiRawLine(final String rawLine) {
 		log.trace("Lavfi line: {}", rawLine);
-
 		if (rawLine.startsWith("frame:")) {
 			if (currentPosition == null) {
 				currentPosition = parseFrameLine(rawLine);
@@ -105,7 +104,7 @@ public class LavfiMetadataFilterParser {
 		} else if (rawLine.startsWith("lavfi.")) {
 			bucket.add(rawLine);
 		} else {
-			throw new IllegalArgumentException("Invalid line content inside frame: " + rawLine);
+			log.debug("Can't manage lavfi line content inside frame (ignore it): {}", rawLine);
 		}
 	}
 

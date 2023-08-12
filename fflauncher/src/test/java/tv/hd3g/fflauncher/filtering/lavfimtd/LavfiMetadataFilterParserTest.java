@@ -16,6 +16,7 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,6 +37,7 @@ class LavfiMetadataFilterParserTest {
 
 	final static String RAW_LINES_OK = """
 			frame:0 pts:7 pts_time:0.007
+			timecode=00:00:00:00
 			lavfi.black_start=0.007
 			frame:2 pts:90 pts_time:0.09
 			lavfi.black_end=0.09
@@ -47,6 +49,7 @@ class LavfiMetadataFilterParserTest {
 			frame:108 pts:4507 pts_time:4.507
 			lavfi.black_start=4.507
 			frame:111 pts:4632 pts_time:4.632
+			timecode=00:00:20:00
 			lavfi.block=2.204194
 			frame:114 pts:4757 pts_time:4.757
 			lavfi.blur=5.744382
@@ -82,6 +85,7 @@ class LavfiMetadataFilterParserTest {
 			lavfi.cropdetect.x=0
 			lavfi.cropdetect.y=0
 			frame:1299 pts:1247088 pts_time:25.981
+			timecode=00:00:40:00
 			lavfi.aphasemeter.phase=0.992454
 			lavfi.aphasemeter.mono_end=25.981
 			lavfi.aphasemeter.mono_duration=2.94
@@ -335,12 +339,12 @@ class LavfiMetadataFilterParserTest {
 
 	@Test
 	void testNoLavfi() {
-		assertThrows(IllegalArgumentException.class, // NOSONAR S5778
-				() -> """
-						frame:1022 pts:981168  pts_time:20.441
-						aaaa.aphasemeter.phase=1.000000
-						bbbb.aphasemeter.mono_start=11.461
-						""".lines().forEach(p::addLavfiRawLine));
+		assertDoesNotThrow(() -> """
+				frame:1022 pts:981168  pts_time:20.441
+				timecode=00:00:10:00
+				aaaa.aphasemeter.phase=1.000000
+				bbbb.aphasemeter.mono_start=11.461
+				""".lines().forEach(p::addLavfiRawLine));
 	}
 
 }
