@@ -1,5 +1,12 @@
 # All Medialib projects upgrades needs
 
+## 12.1.0
+
+Bug correction and internal API update:
+
+ - Correct NPE with MediaAnalyserResult, refactor the relation between Result and Session, and create MediaAnalyserSessionFilterContext #55
+ - Manage timecode entries for lavfi lines (just log it), instead of just Exception
+
 ## 12.0.2
 
 Bug correction
