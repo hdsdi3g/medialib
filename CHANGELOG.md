@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 12.1.1
+
+Bug correction: correct Number error with parseFloat (LavfiMetadataFilterParser) #57
+
 ## 12.1.0
 
 Bug correction and internal API update:
