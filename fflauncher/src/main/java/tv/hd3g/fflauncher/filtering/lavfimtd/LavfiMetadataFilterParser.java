@@ -261,14 +261,18 @@ public class LavfiMetadataFilterParser {
 	}
 
 	public static float parseFloat(final String value) {
-		if (value == null || value.isBlank() || value.equalsIgnoreCase("nan")) {
+		if (value == null || value.isBlank()) {
 			return NaN;
 		} else if (value.equalsIgnoreCase("-inf")) {
 			return NEGATIVE_INFINITY;
 		} else if (value.equalsIgnoreCase("inf")) {
 			return POSITIVE_INFINITY;
 		}
-		return Float.valueOf(value);
+		try {
+			return Float.valueOf(value);
+		} catch (final Exception e) {
+			return NaN;
+		}
 	}
 
 	/**
