@@ -20,4 +20,8 @@ public interface FilterSupplier {
 
 	Filter toFilter();
 
+	default String getFilterName() {
+		return toFilter().getFilterName();
+	}
+
 }

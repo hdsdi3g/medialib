@@ -207,14 +207,14 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 
 		final var filterSet = Stream.concat(
 				audioFilters.stream()
-						.map(AudioFilterSupplier::toFilter)
 						.filter(f -> f.getFilterName().equals("ametadata") == false)
 						.map(f -> MediaAnalyserSessionFilterContext.getFromFilter(f, "audio")),
 				videoFilters.stream()
-						.map(VideoFilterSupplier::toFilter)
 						.filter(f -> f.getFilterName().equals("metadata") == false)
 						.map(f -> MediaAnalyserSessionFilterContext.getFromFilter(f, "video")))
-				.distinct().collect(Collectors.toUnmodifiableSet());
+				.distinct()
+				.sorted((l, r) -> l.type().concat(l.name()).compareTo(r.type().concat(r.name())))
+				.toList();
 
 		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), filterSet);
 	}

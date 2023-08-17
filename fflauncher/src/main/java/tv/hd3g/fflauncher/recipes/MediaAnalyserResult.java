@@ -16,15 +16,15 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
 
 public record MediaAnalyserResult(LavfiMetadataFilterParser lavfiMetadatas,
 								  Ebur128Summary ebur128Summary,
-								  Set<MediaAnalyserSessionFilterContext> filters) {
+								  Collection<MediaAnalyserSessionFilterContext> filters) {
 
 	public boolean isEmpty() {
 		final var lavfiMetadatasPresence = Optional.ofNullable(lavfiMetadatas)

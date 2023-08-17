@@ -16,16 +16,18 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.FilterSupplier;
 
 public record MediaAnalyserSessionFilterContext(String type, String name, String setup, String className) {
 
-	static MediaAnalyserSessionFilterContext getFromFilter(final Filter filter, final String filterType) {
+	static MediaAnalyserSessionFilterContext getFromFilter(final FilterSupplier filterSupplier,
+														   final String filterType) {
+		final var filter = filterSupplier.toFilter();
 		return new MediaAnalyserSessionFilterContext(
 				filterType,
 				filter.getFilterName(),
 				filter.toString(),
-				filter.getClass().getName());
+				filterSupplier.getClass().getName());
 	}
 
 }
