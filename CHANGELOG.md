@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 12.1.2
+
+Bug correction: correct MediaAnalyserSessionFilterContext class name #59
+
 ## 12.1.1
 
 Bug correction: correct Number error with parseFloat (LavfiMetadataFilterParser) #57
