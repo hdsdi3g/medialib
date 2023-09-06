@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 12.1.3
+
+Bug correction: correct missing ffmpeg filter option for idet (`rep_thres`) #61
+
 ## 12.1.2
 
 Bug correction: correct MediaAnalyserSessionFilterContext class name #59
