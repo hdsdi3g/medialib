@@ -44,6 +44,7 @@ public class VideoFilterIdet implements VideoFilterSupplier {
 		f.addOptionalArgument("analyze_interlaced_flag", analyzeInterlacedFlag, "1");
 		f.addOptionalNonNegativeArgument("intl_thres", intlThres);
 		f.addOptionalNonNegativeArgument("prog_thres", progThres);
+		f.addOptionalNonNegativeArgument("rep_thres", repThres);
 		f.addOptionalNonNegativeArgument("half_life", halfLife);
 		return f;
 	}
