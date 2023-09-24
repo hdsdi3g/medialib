@@ -19,14 +19,21 @@ package tv.hd3g.fflauncher.ffprobecontainer;
 public enum FFprobeCodecType {
 	VIDEO,
 	AUDIO,
+	DATA,
 	OTHER;
 
 	public static FFprobeCodecType fromString(final String name) {
-		final var v = FFprobeCodecType.valueOf(name.toUpperCase());
-		if (v == null) {
-			return FFprobeCodecType.OTHER;
+		try {
+			final var v = FFprobeCodecType.valueOf(name.toUpperCase());
+			if (v != null) {
+				return v;
+			}
+		} catch (final Exception e) {
+			/**
+			 *
+			 */
 		}
-		return v;
+		return FFprobeCodecType.OTHER;
 	}
 
 }
