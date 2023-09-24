@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 12.2.0
+
+Add "data" stream type for ffprobe (fflauncher) #63 (bug)
+
 ## 12.1.3
 
 Bug correction: correct missing ffmpeg filter option for idet (`rep_thres`) #61
