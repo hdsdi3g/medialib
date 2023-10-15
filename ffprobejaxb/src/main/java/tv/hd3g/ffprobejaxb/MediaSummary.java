@@ -205,7 +205,7 @@ public record MediaSummary(String format, List<String> streams) {
 	/*
 	* */
 
-	static String getLevelTag(final String videoCodec, final int rawLevel) {
+	public static String getLevelTag(final String videoCodec, final int rawLevel) {
 		return switch (videoCodec) {
 		/**
 		 * From https://github.com/FFmpeg/FFmpeg/blob/c7bfc826c351534262a9ee8ab39aa1fa0efe06a7/libavcodec/mpeg12enc.c#L1214C1-L1217C30
@@ -328,7 +328,7 @@ public record MediaSummary(String format, List<String> streams) {
 		sbTime.append(value);
 	}
 
-	static String computeDuration(final FormatType format) {
+	public static String computeDuration(final FormatType format) {
 		final var duration = Duration.ofMillis(Math.round(format.getDuration() * 1000f));
 		final var sbTime = new StringBuilder();
 		addZeros(duration.toHoursPart(), sbTime);
