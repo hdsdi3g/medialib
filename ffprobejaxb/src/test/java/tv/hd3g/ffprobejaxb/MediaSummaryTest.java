@@ -222,6 +222,15 @@ class MediaSummaryTest {
 		s.setLevel(10);
 		assertEquals("type: name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
 				MediaSummary.getVideoSummary(s));
+
+		s.setProfile("0");
+		assertEquals("type: name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
+				MediaSummary.getVideoSummary(s));
+
+		s.setProfile("0");
+		s.setLevel(0);
+		assertEquals("type: name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
+				MediaSummary.getVideoSummary(s));
 	}
 
 	@Test

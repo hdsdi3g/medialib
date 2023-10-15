@@ -146,7 +146,7 @@ public record MediaSummary(String format, List<String> streams) {
 			entries.add(s.getWidth() + "×" + s.getHeight());
 		}
 
-		final var profile = getValue(s.getProfile());
+		final var profile = getValue(s.getProfile()).filter(p -> p.equals("0") == false);
 		final var level = Optional.ofNullable(s.getLevel()).orElse(0);
 		if (profile.isPresent()) {
 			if (level > 0) {
