@@ -20,6 +20,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tv.hd3g.ffprobejaxb.MediaSummary.resumeDispositions;
 
 import java.io.File;
 import java.io.IOException;
@@ -129,7 +130,7 @@ class MediaSummaryTest {
 	@Test
 	void testAddDisposition_null() {
 		final var entries = new ArrayList<String>();
-		MediaSummary.addDisposition(null, entries);
+		resumeDispositions(null).forEach(entries::add);
 		assertTrue(entries.isEmpty());
 	}
 
@@ -139,7 +140,7 @@ class MediaSummaryTest {
 		s.setDefault(1);
 		s.setAttachedPic(0);
 		final var entries = new ArrayList<String>();
-		MediaSummary.addDisposition(s, entries);
+		resumeDispositions(s).forEach(entries::add);
 		assertEquals(List.of("default stream"), entries);
 	}
 
@@ -148,12 +149,12 @@ class MediaSummaryTest {
 		final var s = new StreamDispositionType();
 		s.setDefault(0);
 		final var entries = new ArrayList<String>();
-		MediaSummary.addDisposition(s, entries);
+		resumeDispositions(s).forEach(entries::add);
 		assertEquals(List.of(), entries);
 
 		entries.clear();
 		s.setAttachedPic(1);
-		MediaSummary.addDisposition(s, entries);
+		resumeDispositions(s).forEach(entries::add);
 		assertEquals(List.of("attached picture"), entries);
 	}
 

@@ -18,6 +18,7 @@ package tv.hd3g.ffprobejaxb;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -87,16 +89,36 @@ public record MediaSummary(String format, List<String> streams) {
 		});
 	}
 
-	static void addDisposition(final StreamDispositionType s, final List<String> entries) {
-		if (s == null || s.getDefault() == 0 && s.getAttachedPic() == 0) {
-			return;
+	private static Stream<String> optDisposition(final int value, final String label) {
+		if (value == 1) {
+			return Stream.of(label);
 		}
-		if (s.getDefault() == 1) {
-			entries.add("default stream");
+		return Stream.empty();
+	}
+
+	public static Stream<String> resumeDispositions(final StreamDispositionType s) {
+		if (s == null) {
+			return Stream.of();
 		}
-		if (s.getAttachedPic() != 0) {
-			entries.add("attached picture");
-		}
+		return Stream.of(
+				optDisposition(s.getDefault(), "default stream"),
+				optDisposition(s.getAttachedPic(), "attached picture"),
+				optDisposition(s.getTimedThumbnails(), "timed thumbnails"),
+				optDisposition(s.getStillImage(), "still image"),
+				optDisposition(s.getHearingImpaired(), "hearing impaired"),
+				optDisposition(s.getVisualImpaired(), "visual impaired"),
+				optDisposition(s.getDub(), "dub"),
+				optDisposition(s.getOriginal(), "original"),
+				optDisposition(s.getComment(), "comment"),
+				optDisposition(s.getLyrics(), "lyrics"),
+				optDisposition(s.getKaraoke(), "karaoke"),
+				optDisposition(s.getForced(), "forced"),
+				optDisposition(s.getCleanEffects(), "clean effects"),
+				optDisposition(s.getCaptions(), "captions"),
+				optDisposition(s.getDescriptions(), "descriptions"),
+				optDisposition(s.getMetadata(), "metadata"),
+				optDisposition(s.getDependent(), "dependent"))
+				.flatMap(Function.identity());
 	}
 
 	static String getAudioSummary(final StreamType s) {
@@ -133,8 +155,11 @@ public record MediaSummary(String format, List<String> streams) {
 		Optional.ofNullable(s.getBitRate())
 				.ifPresent(b -> entries.add("[" + b / 1000 + " kbps]"));
 
-		addDisposition(s.getDisposition(), entries);
-		return entries.stream().collect(Collectors.joining(" "));
+		final var dispositions = resumeDispositions(s.getDisposition()).collect(joining(", "));
+		if (dispositions.isEmpty() == false) {
+			entries.add(dispositions);
+		}
+		return entries.stream().collect(joining(" "));
 	}
 
 	static String getVideoSummary(final StreamType s) {
@@ -198,8 +223,11 @@ public record MediaSummary(String format, List<String> streams) {
 			entries.add("(" + s.getNbFrames() + " frms)");
 		}
 
-		addDisposition(s.getDisposition(), entries);
-		return entries.stream().collect(Collectors.joining(" "));
+		final var dispositions = resumeDispositions(s.getDisposition()).collect(joining(", "));
+		if (dispositions.isEmpty() == false) {
+			entries.add(dispositions);
+		}
+		return entries.stream().collect(joining(" "));
 	}
 
 	/*
