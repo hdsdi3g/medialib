@@ -1,5 +1,14 @@
 # All Medialib projects upgrades needs
 
+## 12.3.0
+
+Maintenance correction for FFprobeJAXB/MediaSummary:
+
+ - Bug correction: Correct #68 with "0" as profile for MediaSummary
+ - Set some public access for MediaSummary #67
+ - Update ffprobe xsd from 4.x to 6.0 #66
+ - Display new ffprobe dispositions to MediaSummary #66
+
 ## 12.2.0
 
 Add "data" stream type for ffprobe (fflauncher) #63 (bug)
