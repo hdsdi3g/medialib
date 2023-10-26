@@ -313,9 +313,9 @@ public class LavfiMetadataFilterParser {
 					final var peakLevel = Optional.ofNullable(content.remove("Peak_level"))
 							.map(LavfiMetadataFilterParser::parseFloat)
 							.orElse(Float.NaN);
-					final var flatFactor = Optional.ofNullable(content.remove("Flat_factor"))
-							.map(LavfiMetadataFilterParser::parseFloat)
-							.orElse(Float.NaN);
+					final var flatness = Optional.ofNullable(content.remove("Flat_factor"))
+							.map(LavfiMetadataFilterParser::parseLong)
+							.orElse(0l);
 					final var peakCount = Optional.ofNullable(content.remove("Peak_count"))
 							.map(LavfiMetadataFilterParser::parseLong)
 							.orElse(0L);
@@ -335,7 +335,7 @@ public class LavfiMetadataFilterParser {
 					return new LavfiMtdAstatsChannel(
 							dcOffset,
 							peakLevel,
-							flatFactor,
+							flatness,
 							peakCount,
 							noiseFloor,
 							noiseFloorCount,

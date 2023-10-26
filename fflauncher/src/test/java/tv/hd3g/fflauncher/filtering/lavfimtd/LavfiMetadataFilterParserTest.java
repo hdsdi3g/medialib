@@ -156,7 +156,7 @@ class LavfiMetadataFilterParserTest {
 								new LavfiMtdAstatsChannel(
 										0.000001f,
 										-0.622282f,
-										0.000000f,
+										0l,
 										2l,
 										-78.266739f,
 										708l,
@@ -165,7 +165,7 @@ class LavfiMetadataFilterParserTest {
 								new LavfiMtdAstatsChannel(
 										0.000002f,
 										-0.622282f,
-										0.000000f,
+										0l,
 										2l,
 										-78.266739f,
 										1074l,

@@ -23,8 +23,8 @@ public record LavfiMtdAstatsChannel(
 									float dcOffset,
 									/** Standard peak measured in dBFS */
 									float peakLevel,
-									/** Flatness (i.e. consecutive samples with the same value) of the signal at its peak levels (i.e. either Min level or Max level) */
-									float flatFactor,
+									/** Consecutive samples with the same value of the signal at its peak levels (i.e. either Min level or Max level) */
+									long flatness,
 									/** Number of occasions (not the number of samples) that the signal attained either Min level or Max level. */
 									long peakCount,
 									/** Minimum local peak measured in dBFS over a short window. */
