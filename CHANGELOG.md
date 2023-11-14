@@ -1,5 +1,11 @@
 # All Medialib projects upgrades needs
 
+## 14.0.0
+
+Manage filter list with importFromOffline MediaAnalyserResult/Session #74
+
+It breaks the actual code for this beacause MediaAnalyserResult was not symetrical: import/export looses informations on offline mode.
+
 ## 13.0.0
 
 FFmpeg, LavfiMetadataFilterParser, API fix: rename flatFactor to flatness (and move it from float to long) #71
