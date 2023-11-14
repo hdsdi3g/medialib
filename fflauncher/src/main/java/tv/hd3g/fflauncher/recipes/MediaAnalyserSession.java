@@ -19,11 +19,11 @@ package tv.hd3g.fflauncher.recipes;
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -205,7 +205,14 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 				.flatMap(Supplier::get)
 				.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
 
-		final var filterSet = Stream.concat(
+		return new MediaAnalyserResult(
+				lavfiMetadataFilterParser.close(),
+				rawStdErrEventParser.close(),
+				getFilterContextList());
+	}
+
+	public List<MediaAnalyserSessionFilterContext> getFilterContextList() {
+		return Stream.concat(
 				audioFilters.stream()
 						.filter(f -> f.getFilterName().equals("ametadata") == false)
 						.map(f -> MediaAnalyserSessionFilterContext.getFromFilter(f, "audio")),
@@ -215,14 +222,13 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 				.distinct()
 				.sorted((l, r) -> l.type().concat(l.name()).compareTo(r.type().concat(r.name())))
 				.toList();
-
-		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), filterSet);
 	}
 
 	public static MediaAnalyserResult importFromOffline(final Stream<String> stdOutLines,
 														final Stream<String> stdErrLines,
 														final Consumer<Ebur128StrErrFilterEvent> ebur128EventConsumer,
-														final Consumer<RawStdErrFilterEvent> rawStdErrEventConsumer) {
+														final Consumer<RawStdErrFilterEvent> rawStdErrEventConsumer,
+														final Collection<MediaAnalyserSessionFilterContext> filters) {
 		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
 		stdOutLines.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
 
@@ -235,7 +241,7 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		});
 		stdErrLines.forEach(rawStdErrEventParser::onLine);
 
-		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), Set.of());
+		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), filters);
 	}
 
 	public void extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {

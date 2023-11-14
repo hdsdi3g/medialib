@@ -300,6 +300,7 @@ class MediaAnalyserSessionTest {
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 		assertEquals(List.of(aFilterContext, vFilterContext), result.filters());
+		assertEquals(result.filters(), s.getFilterContextList());
 
 		assertEquals(List.of(
 				"-af",
@@ -316,7 +317,10 @@ class MediaAnalyserSessionTest {
 
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
-
+		verify(aF, atLeastOnce()).getFilterName();
+		verify(aF, atLeastOnce()).toFilter();
+		verify(vF, atLeastOnce()).getFilterName();
+		verify(vF, atLeastOnce()).toFilter();
 	}
 
 	@Test
@@ -521,7 +525,7 @@ class MediaAnalyserSessionTest {
 	@Test
 	void testImportFromOffline() {
 		final var result = MediaAnalyserSession.importFromOffline(
-				SYSOUT.lines(), SYSERR.lines(), ebur128EventSingleConsumer, rawStdErrEventSingleConsumer);
+				SYSOUT.lines(), SYSERR.lines(), ebur128EventSingleConsumer, rawStdErrEventSingleConsumer, List.of());
 
 		assertNotNull(result);
 		assertEquals(ebur128Result, result.ebur128Summary().toString());
