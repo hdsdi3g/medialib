@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 14.0.1
+
+Bugfix: Correct Set by SortedSet for AudioFilterEbur128 (fflauncher) to correct Set stability in peakMode #76
+
 ## 14.0.0
 
 Manage filter list with importFromOffline MediaAnalyserResult/Session #74
