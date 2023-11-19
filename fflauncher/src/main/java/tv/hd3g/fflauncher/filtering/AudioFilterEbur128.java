@@ -18,7 +18,7 @@ package tv.hd3g.fflauncher.filtering;
 
 import java.awt.Point;
 import java.util.Optional;
-import java.util.Set;
+import java.util.SortedSet;
 
 import lombok.Data;
 
@@ -76,7 +76,7 @@ public class AudioFilterEbur128 implements AudioFilterSupplier {
 	private int meter;
 	private boolean metadata;
 	private Framelog framelog;
-	private Set<Peak> peakMode;
+	private SortedSet<Peak> peakMode;
 	private boolean dualmono;
 	private float panlaw;
 	private int target;

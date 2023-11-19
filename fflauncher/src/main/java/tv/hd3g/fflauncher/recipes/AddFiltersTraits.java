@@ -16,7 +16,8 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import java.util.Set;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata;
@@ -67,7 +68,7 @@ public interface AddFiltersTraits {
 
 	default boolean addFilterEbur128(final Consumer<AudioFilterEbur128> filterifPresent) {
 		final var f = new AudioFilterEbur128();
-		f.setPeakMode(Set.of(Peak.SAMPLE, Peak.TRUE));
+		f.setPeakMode(new TreeSet<>(List.of(Peak.SAMPLE, Peak.TRUE)));
 		return addOptionalFilter(f, filterifPresent);
 	}
 

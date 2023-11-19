@@ -16,10 +16,13 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
+import static java.util.Collections.unmodifiableSortedSet;
 import static net.datafaker.Faker.instance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,14 +38,14 @@ class AudioFilterEbur128Test {
 
 	AudioFilterEbur128 f;
 	Framelog framelog;
-	Set<Peak> peaks;
+	SortedSet<Peak> peaks;
 	Gauge gauge;
 	Scale scale;
 
 	@BeforeEach
 	void init() throws Exception {
 		framelog = faker.options().option(Framelog.class);
-		peaks = Set.of(faker.options().option(Peak.class));
+		peaks = unmodifiableSortedSet(new TreeSet<>(Set.of(faker.options().option(Peak.class))));
 		gauge = faker.options().option(Gauge.class);
 		scale = faker.options().option(Scale.class);
 		f = new AudioFilterEbur128();
