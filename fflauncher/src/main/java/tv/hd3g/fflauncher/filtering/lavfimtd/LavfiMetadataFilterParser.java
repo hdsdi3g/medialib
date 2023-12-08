@@ -16,9 +16,6 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import static java.lang.Float.NEGATIVE_INFINITY;
-import static java.lang.Float.NaN;
-import static java.lang.Float.POSITIVE_INFINITY;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
@@ -39,7 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LavfiMetadataFilterParser {
+public class LavfiMetadataFilterParser implements NumberParserTraits {
 	public static final String DEFAULT_KEY = "default";
 	private static final String SUFFIX_END = "_end";
 	private static final String SUFFIX_START = "_start";
@@ -137,12 +134,12 @@ public class LavfiMetadataFilterParser {
 	/**
 	 * frame:1022 pts:981168 pts_time:20.441
 	 */
-	static LavfiMtdPosition parseFrameLine(final String line) {
+	LavfiMtdPosition parseFrameLine(final String line) {
 		final var items = splitter(line, ' ');
 		return new LavfiMtdPosition(
-				assertAndParse(items.get(0), "frame:", Integer::valueOf),
-				assertAndParse(items.get(1), "pts:", Long::valueOf),
-				assertAndParse(items.get(2), "pts_time:", Float::valueOf));
+				assertAndParse(items.get(0), "frame:", this::parseIntOrNeg1),
+				assertAndParse(items.get(1), "pts:", this::parseLongOrNeg1),
+				assertAndParse(items.get(2), "pts_time:", this::parseFloatOrNeg1));
 	}
 
 	private void completeFrame() {
@@ -182,20 +179,6 @@ public class LavfiMetadataFilterParser {
 		}
 
 		bucket.clear();
-	}
-
-	/**
-	 * From a float string chain
-	 */
-	private static int parseInt(final String floatString) {
-		return Math.round(Float.parseFloat(floatString));
-	}
-
-	/**
-	 * From a double string chain
-	 */
-	private static long parseLong(final String doubleString) {
-		return Math.round(Double.parseDouble(doubleString));
 	}
 
 	private <T> LavfiMtdValue<T> toMtdValue(final T value) {
@@ -256,23 +239,8 @@ public class LavfiMetadataFilterParser {
 									  final Map<String, String> rawFrames,
 									  final List<LavfiMtdValue<Float>> toAdd) {
 		Optional.ofNullable(rawFrames.get(keyName))
-				.map(LavfiMetadataFilterParser::parseFloat)
+				.map(this::parseFloat)
 				.ifPresent(value -> toAdd.add(toMtdValue(value)));
-	}
-
-	public static float parseFloat(final String value) {
-		if (value == null || value.isBlank()) {
-			return NaN;
-		} else if (value.equalsIgnoreCase("-inf")) {
-			return NEGATIVE_INFINITY;
-		} else if (value.equalsIgnoreCase("inf")) {
-			return POSITIVE_INFINITY;
-		}
-		try {
-			return Float.valueOf(value);
-		} catch (final Exception e) {
-			return NaN;
-		}
 	}
 
 	/**
@@ -291,7 +259,7 @@ public class LavfiMetadataFilterParser {
 	 * lavfi.astats.2.Noise_floor_count=1074.000000
 	 * lavfi.astats.2.Entropy=0.788152
 	 */
-	private static Optional<LavfiMtdAstats> extractAstats(final Map<String, String> rawFrames) {
+	private Optional<LavfiMtdAstats> extractAstats(final Map<String, String> rawFrames) {
 		final var channelsContent = new ArrayList<Map<String, String>>();
 
 		rawFrames.entrySet().forEach(entry -> {
@@ -308,25 +276,25 @@ public class LavfiMetadataFilterParser {
 		final var channels = channelsContent.stream()
 				.map(content -> {
 					final var dcOffset = Optional.ofNullable(content.remove("DC_offset"))
-							.map(LavfiMetadataFilterParser::parseFloat)
+							.map(this::parseFloat)
 							.orElse(Float.NaN);
 					final var peakLevel = Optional.ofNullable(content.remove("Peak_level"))
-							.map(LavfiMetadataFilterParser::parseFloat)
+							.map(this::parseFloat)
 							.orElse(Float.NaN);
 					final var flatness = Optional.ofNullable(content.remove("Flat_factor"))
-							.map(LavfiMetadataFilterParser::parseLong)
+							.flatMap(this::parseLong)
 							.orElse(0l);
 					final var peakCount = Optional.ofNullable(content.remove("Peak_count"))
-							.map(LavfiMetadataFilterParser::parseLong)
+							.flatMap(this::parseLong)
 							.orElse(0L);
 					final var noiseFloor = Optional.ofNullable(content.remove("Noise_floor"))
-							.map(LavfiMetadataFilterParser::parseFloat)
+							.map(this::parseFloat)
 							.orElse(Float.NaN);
 					final var noiseFloorCount = Optional.ofNullable(content.remove("Noise_floor_count"))
-							.map(LavfiMetadataFilterParser::parseLong)
+							.flatMap(this::parseLong)
 							.orElse(0L);
 					final var entropy = Optional.ofNullable(content.remove("Entropy"))
-							.map(LavfiMetadataFilterParser::parseFloat)
+							.map(this::parseFloat)
 							.orElse(Float.NaN);
 					final var other = content.entrySet().stream()
 							.collect(toUnmodifiableMap(Entry::getKey,
@@ -405,28 +373,28 @@ public class LavfiMetadataFilterParser {
 	 * lavfi.idet.multiple.progressive=120.00
 	 * lavfi.idet.multiple.undetermined=0.00
 	 */
-	private static Optional<LavfiMtdIdet> extractIdet(final Map<String, String> rawFrames) {
+	private Optional<LavfiMtdIdet> extractIdet(final Map<String, String> rawFrames) {
 		try {
 			final var single = new LavfiMtdIdetFrame(
 					LavfiMtdIdetSingleFrameType.valueOf(
 							rawFrames.get("single.current_frame").toUpperCase()),
-					parseInt(rawFrames.get("single.tff")),
-					parseInt(rawFrames.get("single.bff")),
-					parseInt(rawFrames.get("single.progressive")),
-					parseInt(rawFrames.get("single.undetermined")));
+					parseIntOrNeg1(rawFrames.get("single.tff")),
+					parseIntOrNeg1(rawFrames.get("single.bff")),
+					parseIntOrNeg1(rawFrames.get("single.progressive")),
+					parseIntOrNeg1(rawFrames.get("single.undetermined")));
 			final var multiple = new LavfiMtdIdetFrame(
 					LavfiMtdIdetSingleFrameType.valueOf(
 							rawFrames.get("multiple.current_frame").toUpperCase()),
-					parseInt(rawFrames.get("multiple.tff")),
-					parseInt(rawFrames.get("multiple.bff")),
-					parseInt(rawFrames.get("multiple.progressive")),
-					parseInt(rawFrames.get("multiple.undetermined")));
+					parseIntOrNeg1(rawFrames.get("multiple.tff")),
+					parseIntOrNeg1(rawFrames.get("multiple.bff")),
+					parseIntOrNeg1(rawFrames.get("multiple.progressive")),
+					parseIntOrNeg1(rawFrames.get("multiple.undetermined")));
 			final var repeated = new LavfiMtdIdetRepeatedFrame(
 					LavfiMtdIdetRepeatedFrameType.valueOf(
 							rawFrames.get("repeated.current_frame").toUpperCase()),
-					parseInt(rawFrames.get("repeated.neither")),
-					parseInt(rawFrames.get("repeated.top")),
-					parseInt(rawFrames.get("repeated.bottom")));
+					parseIntOrNeg1(rawFrames.get("repeated.neither")),
+					parseIntOrNeg1(rawFrames.get("repeated.top")),
+					parseIntOrNeg1(rawFrames.get("repeated.bottom")));
 			return Optional.ofNullable(new LavfiMtdIdet(single, multiple, repeated));
 		} catch (final NullPointerException e) {
 			return Optional.empty();
@@ -477,7 +445,7 @@ public class LavfiMetadataFilterParser {
 
 					throw new IllegalStateException("Can't extract to event: " + entries);
 				})
-				.reduce(new ArrayList<LavfiMtdEvent>(0),
+				.reduce(new ArrayList<>(0),
 						(list, frameDef) -> {
 							if (frameDef.type() == LavfiMtdEventFrameType.START) {
 								list.add(new LavfiMtdEvent(eventsNameToSet,

@@ -18,17 +18,17 @@ package tv.hd3g.fflauncher.resultparser;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
 import static java.util.Objects.requireNonNull;
-import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser.parseFloat;
 
 import java.util.HashMap;
 
 import lombok.Getter;
 import lombok.ToString;
+import tv.hd3g.fflauncher.filtering.lavfimtd.NumberParserTraits;
 import tv.hd3g.fflauncher.recipes.MediaAnalyser;
 
 @Getter
 @ToString
-public class Ebur128StrErrFilterEvent {
+public class Ebur128StrErrFilterEvent implements NumberParserTraits {
 
 	private final float t;
 	private final float target;

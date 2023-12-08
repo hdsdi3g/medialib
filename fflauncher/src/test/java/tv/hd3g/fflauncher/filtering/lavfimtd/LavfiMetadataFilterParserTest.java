@@ -16,7 +16,6 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import static java.lang.Float.NaN;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,8 +30,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import net.datafaker.Faker;
 
 class LavfiMetadataFilterParserTest {
 
@@ -294,7 +291,7 @@ class LavfiMetadataFilterParserTest {
 
 	@Test
 	void testParseFrameLine() {
-		final var result = LavfiMetadataFilterParser.parseFrameLine("frame:1022    pts:981168   pts_time:20.441");
+		final var result = p.parseFrameLine("frame:1022    pts:981168   pts_time:20.441");
 		assertEquals(new LavfiMtdPosition(1022, 981168l, 20.441f), result);
 	}
 
@@ -348,20 +345,6 @@ class LavfiMetadataFilterParserTest {
 				aaaa.aphasemeter.phase=1.000000
 				bbbb.aphasemeter.mono_start=11.461
 				""".lines().forEach(p::addLavfiRawLine));
-	}
-
-	@Test
-	void testParseFloat() {
-		assertEquals(NaN, LavfiMetadataFilterParser.parseFloat(""));
-		assertEquals(NaN, LavfiMetadataFilterParser.parseFloat(" "));
-		assertEquals(NaN, LavfiMetadataFilterParser.parseFloat(null));
-		assertEquals(NaN, LavfiMetadataFilterParser.parseFloat("nan"));
-		assertEquals(NaN, LavfiMetadataFilterParser.parseFloat("-nan"));
-		assertEquals(20f, LavfiMetadataFilterParser.parseFloat("20"));
-		assertEquals(1.23f, LavfiMetadataFilterParser.parseFloat("1.23"));
-
-		final var f = Faker.instance().random().nextFloat();
-		assertEquals(f, LavfiMetadataFilterParser.parseFloat(String.valueOf(f)));
 	}
 
 }

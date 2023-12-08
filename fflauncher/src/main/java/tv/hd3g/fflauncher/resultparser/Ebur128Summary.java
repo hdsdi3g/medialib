@@ -17,7 +17,6 @@
 package tv.hd3g.fflauncher.resultparser;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
-import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser.parseFloat;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyser.splitter;
 
 import java.util.List;
@@ -25,10 +24,11 @@ import java.util.Optional;
 
 import lombok.Getter;
 import lombok.ToString;
+import tv.hd3g.fflauncher.filtering.lavfimtd.NumberParserTraits;
 
 @Getter
 @ToString
-public class Ebur128Summary {
+public class Ebur128Summary implements NumberParserTraits {
 
 	private float integrated;
 	private float integratedThreshold;
@@ -113,7 +113,7 @@ public class Ebur128Summary {
 	/**
 	 * @param items like ["Threshold", " 0.0 LUFS"] or ["Peak", " -inf dBFS"].
 	 */
-	static Optional<Float> extractValue(final List<String> items) {
+	Optional<Float> extractValue(final List<String> items) {
 		if (items.size() != 2) {
 			return Optional.empty();
 		}

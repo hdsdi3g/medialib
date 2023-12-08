@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static tv.hd3g.fflauncher.resultparser.Ebur128Summary.extractValue;
 
 import java.util.List;
 
@@ -76,7 +75,7 @@ class Ebur128SummaryTest {
 
 	@Test
 	void testExtractValue_0() {
-		final var oF = extractValue(List.of(faker.numerify("key###"), " 0.0 LUFS"));
+		final var oF = s.extractValue(List.of(faker.numerify("key###"), " 0.0 LUFS"));
 		assertNotNull(oF);
 		assertTrue(oF.isPresent());
 		assertEquals(0F, oF.get());
@@ -84,7 +83,7 @@ class Ebur128SummaryTest {
 
 	@Test
 	void testExtractValue_positiveFloat() {
-		final var oF = extractValue(List.of(faker.numerify("key###"), "22.3 CACA"));
+		final var oF = s.extractValue(List.of(faker.numerify("key###"), "22.3 CACA"));
 		assertNotNull(oF);
 		assertTrue(oF.isPresent());
 		assertEquals(22.3f, oF.get());
@@ -92,7 +91,7 @@ class Ebur128SummaryTest {
 
 	@Test
 	void testExtractValue_negativeFloat() {
-		final var oF = extractValue(List.of(faker.numerify("key###"), "-256.6  CACA"));
+		final var oF = s.extractValue(List.of(faker.numerify("key###"), "-256.6  CACA"));
 		assertNotNull(oF);
 		assertTrue(oF.isPresent());
 		assertEquals(-256.6f, oF.get());
@@ -101,7 +100,7 @@ class Ebur128SummaryTest {
 	@Test
 	void testExtractValue_negativeInt() {
 		final var v = faker.random().nextInt();
-		final var oF = extractValue(List.of(faker.numerify("key###"), v + " CACA"));
+		final var oF = s.extractValue(List.of(faker.numerify("key###"), v + " CACA"));
 		assertNotNull(oF);
 		assertTrue(oF.isPresent());
 		assertEquals(v, oF.get());
@@ -109,7 +108,7 @@ class Ebur128SummaryTest {
 
 	@Test
 	void testExtractValue_negInf() {
-		final var oF = extractValue(List.of(faker.numerify("key###"), "-inf CACA"));
+		final var oF = s.extractValue(List.of(faker.numerify("key###"), "-inf CACA"));
 		assertNotNull(oF);
 		assertFalse(oF.isPresent());
 	}
