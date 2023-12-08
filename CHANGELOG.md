@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 14.0.2
+
+Bugfix: Better protection against special numbers, like "nan" or "-inf" on fflauncher #78
+
 ## 14.0.1
 
 Bugfix: Correct Set by SortedSet for AudioFilterEbur128 (fflauncher) to correct Set stability in peakMode #76
