@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 14.1.0
+
+Update parent starter project to 19.0.0 #80
+
 ## 14.0.2
 
 Bugfix: Better protection against special numbers, like "nan" or "-inf" on fflauncher #78
