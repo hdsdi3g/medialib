@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static tv.hd3g.fflauncher.acm.AudioChannelManipulationSetup.extractFromParentheses;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.DOWNMIX;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.MONO;
@@ -33,7 +34,6 @@ import static tv.hd3g.fflauncher.enums.SourceNotFoundPolicy.REMOVE_OUT_STREAM;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +44,7 @@ import tv.hd3g.fflauncher.acm.OutputAudioStream.OutputAudioChannel;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
 import tv.hd3g.fflauncher.enums.SourceNotFoundPolicy.SourceNotFoundException;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 class AudioChannelManipulationSetupTest {
 
@@ -79,25 +80,25 @@ class AudioChannelManipulationSetupTest {
 		setup = new AudioChannelManipulationSetup();
 
 		ffprobeJAXBfile0 = Mockito.mock(FFprobeJAXB.class);
-		final var stream00 = new StreamType();
-		stream00.setIndex(1);
-		stream00.setChannelLayout("stereo");
-		stream00.setChannels(2);
+		final var stream00 = Mockito.mock(FFProbeStream.class);
+		when(stream00.index()).thenReturn(1);
+		when(stream00.channelLayout()).thenReturn("stereo");
+		when(stream00.channels()).thenReturn(2);
 
-		final var stream01 = new StreamType();
-		stream01.setIndex(2);
-		stream01.setChannelLayout("stereo");
-		stream01.setChannels(2);
+		final var stream01 = Mockito.mock(FFProbeStream.class);
+		when(stream01.index()).thenReturn(2);
+		when(stream01.channelLayout()).thenReturn("stereo");
+		when(stream01.channels()).thenReturn(2);
 
-		Mockito.when(ffprobeJAXBfile0.getAudiosStreams()).thenReturn(Stream.of(stream00, stream01));
+		Mockito.when(ffprobeJAXBfile0.getAudioStreams()).thenReturn(Stream.of(stream00, stream01));
 
 		ffprobeJAXBfile1 = Mockito.mock(FFprobeJAXB.class);
-		final var stream1 = new StreamType();
-		stream1.setIndex(0);
-		stream1.setChannelLayout("");
-		stream1.setChannels(1);
+		final var stream1 = Mockito.mock(FFProbeStream.class);
+		when(stream1.index()).thenReturn(0);
+		when(stream1.channelLayout()).thenReturn("");
+		when(stream1.channels()).thenReturn(1);
 
-		Mockito.when(ffprobeJAXBfile1.getAudiosStreams()).thenReturn(Stream.of(stream1));
+		Mockito.when(ffprobeJAXBfile1.getAudioStreams()).thenReturn(Stream.of(stream1));
 		sourcesFiles = List.of(ffprobeJAXBfile0, ffprobeJAXBfile1);
 	}
 
@@ -356,10 +357,10 @@ class AudioChannelManipulationSetupTest {
 	}
 
 	static void checkOutputAudioStream(final OutputAudioChannel outChannel,
-	                                   final int inFileIndex,
-	                                   final int inStreamIndex,
-	                                   final int chInIndex,
-	                                   final int chOutIndex) {
+									   final int inFileIndex,
+									   final int inStreamIndex,
+									   final int chInIndex,
+									   final int chOutIndex) {
 		assertEquals(inFileIndex, outChannel.getInputAudioStream().getFileIndex());
 		assertEquals(inStreamIndex, outChannel.getInputAudioStream().getStreamIndex());
 		assertEquals(chInIndex, outChannel.getChInIndex().getPosInStream());
@@ -367,9 +368,9 @@ class AudioChannelManipulationSetupTest {
 	}
 
 	static List<OutputAudioChannel> checkOutputAudioStream(final OutputAudioStream outStream,
-	                                                       final int fileIndex,
-	                                                       final int streamIndex,
-	                                                       final ChannelLayout layout) {
+														   final int fileIndex,
+														   final int streamIndex,
+														   final ChannelLayout layout) {
 		assertEquals(fileIndex, outStream.getFileIndex());
 		assertEquals(streamIndex, outStream.getStreamIndex());
 		assertEquals(layout, outStream.getLayout());

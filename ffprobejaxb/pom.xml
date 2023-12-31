@@ -16,6 +16,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <properties>
+        <sonar.exclusions>**/org/ffmpeg/ffprobe*/*.java</sonar.exclusions>
+        <sonar.cpd.exclusions>**/tv/hd3g/ffprobejaxb/FFprobeJAXB*.java</sonar.cpd.exclusions>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>tv.hd3g.commons</groupId>
@@ -61,7 +66,7 @@
                 </executions>
                 <configuration>
                     <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <generatePackage>org.ffmpeg.ffprobe</generatePackage>
+                    <generatePackage>org.ffmpeg.ffprobe611</generatePackage>
                     <removeOldOutput>true</removeOldOutput>
                     <locale>en</locale>
                     <disableXmlSecurity>false</disableXmlSecurity>

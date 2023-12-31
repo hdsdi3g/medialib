@@ -19,6 +19,7 @@ package tv.hd3g.fflauncher.acm;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
 import static tv.hd3g.fflauncher.acm.InputAudioChannelSelector.IN_CH12;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.CH5_1;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.MONO;
@@ -27,11 +28,11 @@ import static tv.hd3g.fflauncher.enums.ChannelLayout.STEREO;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 class InputAudioStreamTest {
 
@@ -57,11 +58,12 @@ class InputAudioStreamTest {
 	@Test
 	void testGetListFromAnalysisFFprobeJAXBArray() {
 		final var file0 = Mockito.mock(FFprobeJAXB.class);
-		final var stream00 = new StreamType();
-		stream00.setIndex(1);
-		stream00.setChannelLayout("5.1");
-		stream00.setChannels(6);
-		Mockito.when(file0.getAudiosStreams()).thenReturn(Stream.of(stream00));
+		final var stream00 = Mockito.mock(FFProbeStream.class);
+		when(stream00.index()).thenReturn(1);
+		when(stream00.channelLayout()).thenReturn("5.1");
+		when(stream00.channels()).thenReturn(6);
+
+		Mockito.when(file0.getAudioStreams()).thenReturn(Stream.of(stream00));
 
 		final var streamList = InputAudioStream.getListFromAnalysis(file0);
 		assertNotNull(streamList);
@@ -72,25 +74,26 @@ class InputAudioStreamTest {
 	@Test
 	void testGetListFromAnalysisListOfFFprobeJAXB() {
 		final var file0 = Mockito.mock(FFprobeJAXB.class);
-		final var stream00 = new StreamType();
-		stream00.setIndex(1);
-		stream00.setChannelLayout("stereo");
-		stream00.setChannels(2);
 
-		final var stream01 = new StreamType();
-		stream01.setIndex(2);
-		stream01.setChannelLayout("stereo");
-		stream01.setChannels(2);
+		final var stream00 = Mockito.mock(FFProbeStream.class);
+		when(stream00.index()).thenReturn(1);
+		when(stream00.channelLayout()).thenReturn("stereo");
+		when(stream00.channels()).thenReturn(2);
 
-		Mockito.when(file0.getAudiosStreams()).thenReturn(Stream.of(stream00, stream01));
+		final var stream01 = Mockito.mock(FFProbeStream.class);
+		when(stream01.index()).thenReturn(2);
+		when(stream01.channelLayout()).thenReturn("stereo");
+		when(stream01.channels()).thenReturn(2);
+
+		Mockito.when(file0.getAudioStreams()).thenReturn(Stream.of(stream00, stream01));
 
 		final var file1 = Mockito.mock(FFprobeJAXB.class);
-		final var stream1 = new StreamType();
-		stream1.setIndex(0);
-		stream1.setChannelLayout("");
-		stream1.setChannels(1);
+		final var stream1 = Mockito.mock(FFProbeStream.class);
+		when(stream1.index()).thenReturn(0);
+		when(stream1.channelLayout()).thenReturn("");
+		when(stream1.channels()).thenReturn(1);
 
-		Mockito.when(file1.getAudiosStreams()).thenReturn(Stream.of(stream1));
+		Mockito.when(file1.getAudioStreams()).thenReturn(Stream.of(stream1));
 
 		final var streamList = InputAudioStream.getListFromAnalysis(List.of(file0, file1));
 		assertNotNull(streamList);
@@ -119,9 +122,9 @@ class InputAudioStreamTest {
 
 	@Test
 	void testSelectedInputChannel() {
-		final var sic = audioStream.new SelectedInputChannel(audioStream, IN_CH12);
-		assertEquals(audioStream, sic.getInputAudioStream());
-		assertEquals(IN_CH12, sic.getChannelSelector());
+		final var sic = new ACMSelectedInputChannel(audioStream, IN_CH12);
+		assertEquals(audioStream, sic.inputAudioStream());
+		assertEquals(IN_CH12, sic.channelSelector());
 	}
 
 	@Test
@@ -134,12 +137,12 @@ class InputAudioStreamTest {
 		final var ch2 = InputAudioStream.getFromAbsoluteIndex(list, 2);
 		final var ch3 = InputAudioStream.getFromAbsoluteIndex(list, 3);
 
-		assertEquals(audioStream0, ch0.getInputAudioStream());
-		assertEquals(InputAudioChannelSelector.IN_CH0, ch0.getChannelSelector());
-		assertEquals(audioStream0, ch1.getInputAudioStream());
-		assertEquals(InputAudioChannelSelector.IN_CH1, ch1.getChannelSelector());
-		assertEquals(audioStream1, ch2.getInputAudioStream());
-		assertEquals(InputAudioChannelSelector.IN_CH0, ch2.getChannelSelector());
+		assertEquals(audioStream0, ch0.inputAudioStream());
+		assertEquals(InputAudioChannelSelector.IN_CH0, ch0.channelSelector());
+		assertEquals(audioStream0, ch1.inputAudioStream());
+		assertEquals(InputAudioChannelSelector.IN_CH1, ch1.channelSelector());
+		assertEquals(audioStream1, ch2.inputAudioStream());
+		assertEquals(InputAudioChannelSelector.IN_CH0, ch2.channelSelector());
 		assertNull(ch3);
 	}
 }

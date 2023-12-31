@@ -188,7 +188,7 @@ class FFmpegTest {
 		assertTrue(test_file.exists());
 
 		final var s = probeMedia.doAnalysing(test_file.getPath()).getFirstVideoStream().get();
-		assertEquals("ffv1", s.getCodecName());
+		assertEquals("ffv1", s.codecName());
 	}
 
 	@Test

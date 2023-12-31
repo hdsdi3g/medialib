@@ -1,5 +1,5 @@
 /*
- * This file is part of ffprobe-jaxb.
+ * This file is part of ffprobejaxb.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -11,114 +11,153 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2018-2020
+ * Copyright (C) hdsdi3g for hd3g.tv 2023
  *
  */
 package tv.hd3g.ffprobejaxb;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
-import static javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Collections;
+import java.lang.reflect.InvocationTargetException;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
-import javax.xml.bind.JAXBContext;
+import org.w3c.dom.Node;
+
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.bind.ValidationEvent;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.ffmpeg.ffprobe.ChapterType;
-import org.ffmpeg.ffprobe.ChaptersType;
-import org.ffmpeg.ffprobe.ErrorType;
-import org.ffmpeg.ffprobe.FfprobeType;
-import org.ffmpeg.ffprobe.FormatType;
-import org.ffmpeg.ffprobe.FramesType;
-import org.ffmpeg.ffprobe.LibraryVersionType;
-import org.ffmpeg.ffprobe.LibraryVersionsType;
-import org.ffmpeg.ffprobe.PacketType;
-import org.ffmpeg.ffprobe.PacketsAndFramesType;
-import org.ffmpeg.ffprobe.PacketsType;
-import org.ffmpeg.ffprobe.PixelFormatType;
-import org.ffmpeg.ffprobe.PixelFormatsType;
-import org.ffmpeg.ffprobe.ProgramType;
-import org.ffmpeg.ffprobe.ProgramVersionType;
-import org.ffmpeg.ffprobe.ProgramsType;
-import org.ffmpeg.ffprobe.StreamType;
-import org.ffmpeg.ffprobe.StreamsType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
-public class FFprobeJAXB {
+public abstract class FFprobeJAXB implements FFprobeReference {
+	private static final Logger log = LoggerFactory.getLogger(FFprobeJAXB.class);
 
-	public final FfprobeType probeResult;
+	private static final String LOADED_XML = "Loaded XML: {}";
 	private final String xmlContent;
 
-	public FFprobeJAXB(final String xmlContent, final Consumer<String> onWarnLog) {
+	protected FFprobeJAXB(final String xmlContent) {
 		this.xmlContent = xmlContent;
-		try {
-			final var jc = JAXBContext.newInstance("org.ffmpeg.ffprobe");
-			final var unmarshaller = jc.createUnmarshaller();
-
-			/**
-			 * Prepare an error catcher if trouble are catched during import.
-			 */
-			unmarshaller.setEventHandler(e -> {
-				final var locator = e.getLocator();
-				onWarnLog.accept("XML validation: "
-								 + e.getMessage() + " [s"
-								 + e.getSeverity() + "] at line "
-								 + locator.getLineNumber() + ", column "
-								 + locator.getColumnNumber() + " offset "
-								 + locator.getOffset() + " node: "
-								 + locator.getNode() + ", object "
-								 + locator.getObject());
-				return true;
-			});
-
-			final var xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();// NOSONAR
-			xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
-			xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_SCHEMA, "");
-			xmlDocumentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-			final var xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
-			xmlDocumentBuilder.setErrorHandler(null);
-
-			final var document = xmlDocumentBuilder.parse(new ByteArrayInputStream(xmlContent.getBytes(UTF_8)));
-
-			probeResult = unmarshaller.unmarshal(document, FfprobeType.class).getValue();
-		} catch (JAXBException | SAXException | ParserConfigurationException e) {
-			throw new UncheckedIOException(new IOException("Can't load XML content", e));
-		} catch (final IOException e1) {
-			throw new UncheckedIOException(e1);
-		}
 	}
 
+	@Override
 	public String getXmlContent() {
 		return xmlContent;
 	}
 
-	public List<ChapterType> getChapters() {
-		return Optional.ofNullable(probeResult.getChapters())
-				.map(ChaptersType::getChapter)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
+	protected abstract void setJAXB(final Object rawJAXB);
+
+	public static FFprobeJAXB load(final String xmlContent) {
+		Node document;
+		try {
+			document = UnmarshallerTools.parseXMLDocument(xmlContent, new ErrorHandler() {
+
+				@Override
+				public void warning(final SAXParseException exception) throws SAXException {
+					log.debug(LOADED_XML, xmlContent);
+					log.warn("XML parser warning", exception);
+				}
+
+				@Override
+				public void fatalError(final SAXParseException exception) throws SAXException {
+					log.debug(LOADED_XML, xmlContent);
+					log.error("XML parser fatal error", exception);
+				}
+
+				@Override
+				public void error(final SAXParseException exception) throws SAXException {
+					log.debug(LOADED_XML, xmlContent);
+					log.error("XML parser error", exception);
+				}
+			});
+		} catch (ParserConfigurationException | SAXException e) {
+			throw new UncheckedIOException(new IOException("Can't load XML content", e));
+		}
+
+		final Map<FFprobeXSDVersion, List<ValidationEvent>> eventsByXSDVersion = new EnumMap<>(FFprobeXSDVersion.class);
+		JAXBException lastJAXBException = null;
+		List<ValidationEvent> lastEvents;
+		FFprobeJAXB jaxbReference = null;
+		for (final var xsdVersion : FFprobeXSDVersion.values()) {
+			final var events = new ConcurrentLinkedQueue<ValidationEvent>();
+
+			try {
+				log.debug("Try to load JAXB {}", xsdVersion.name());
+				final var ffRef = UnmarshallerTools.unmarshal(
+						xsdVersion.createInstance(),
+						document,
+						events::add,
+						xsdVersion.getClassJAXB());
+
+				lastEvents = events.stream().toList();
+				eventsByXSDVersion.put(xsdVersion, lastEvents);
+
+				if (events.isEmpty()) {
+					jaxbReference = xsdVersion.make(xmlContent, ffRef);
+				}
+			} catch (final JAXBException e) {
+				log.debug("Can't load JAXB", e);
+				lastJAXBException = e;
+			}
+		}
+
+		if (jaxbReference == null) {
+			if (lastJAXBException != null) {
+				throw new UncheckedIOException(new IOException(lastJAXBException));
+			}
+
+			eventsByXSDVersion.getOrDefault(FFprobeXSDVersion.values()[0], List.of())
+					.forEach(e -> {
+						final var locator = e.getLocator();
+						log.error(
+								"JAXB {} says: {} [s{}] at line {}, column {} offset {} node: {}, object {}",
+								FFprobeXSDVersion.values()[0].name(),
+								e.getMessage(),
+								e.getSeverity(),
+								locator.getLineNumber(),
+								locator.getColumnNumber(),
+								locator.getOffset(),
+								locator.getNode(),
+								locator.getObject(),
+								e.getLinkedException());
+					});
+			throw new IllegalArgumentException(
+					"Can't properly load ffprobe JAXB. You should update ffprobe.xsd ref and/or check XML document");
+		}
+
+		return jaxbReference;
 	}
 
-	public List<StreamType> getStreams() {
-		return Optional.ofNullable(probeResult.getStreams())
-				.map(StreamsType::getStream)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
-	}
+	protected static <T> Stream<T> getSubList(final Object jaxbSubListClass, final Class<T> outputFormat) {
+		if (jaxbSubListClass == null) {
+			return Stream.empty();
+		}
 
-	public FormatType getFormat() {
-		return probeResult.getFormat();
+		final var getterMethod = Stream.of(jaxbSubListClass.getClass().getMethods())
+				.filter(m -> m.getName().startsWith("get"))
+				.filter(m -> m.getReturnType().isAssignableFrom(List.class))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Can't found a List getter"));
+
+		try {
+			final var raw = getterMethod.invoke(jaxbSubListClass);
+			if (raw == null) {
+				return Stream.empty();
+			}
+			return ((List<T>) raw).stream()
+					.filter(Objects::nonNull)
+					.map(outputFormat::cast);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	public MediaSummary getMediaSummary() {
@@ -130,92 +169,31 @@ public class FFprobeJAXB {
 		return getMediaSummary().toString();
 	}
 
-	/**
-	 * @return nullable
-	 */
-	public ErrorType getError() {
-		return probeResult.getError();
+	static boolean getNonNull(final Boolean value) {
+		if (value == null) {
+			return false;
+		}
+		return value;
 	}
 
-	/**
-	 * @return nullable
-	 */
-	public ProgramVersionType getProgramVersion() {
-		return probeResult.getProgramVersion();
+	static int getNonNull(final Integer value) {
+		if (value == null) {
+			return 0;
+		}
+		return value;
 	}
 
-	public List<LibraryVersionType> getLibraryVersions() {
-		return Optional.ofNullable(probeResult.getLibraryVersions())
-				.map(LibraryVersionsType::getLibraryVersion)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
+	static long getNonNull(final Long value) {
+		if (value == null) {
+			return 0;
+		}
+		return value;
 	}
 
-	public List<PixelFormatType> getPixelFormats() {
-		return Optional.ofNullable(probeResult.getPixelFormats())
-				.map(PixelFormatsType::getPixelFormat)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
+	static float getNonNull(final Float value) {
+		if (value == null) {
+			return 0;
+		}
+		return value;
 	}
-
-	public List<PacketType> getPackets() {
-		return Optional.ofNullable(probeResult.getPackets())
-				.map(PacketsType::getPacket)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
-	}
-
-	/**
-	 * {@link FrameType }
-	 * {@link SubtitleType }
-	 */
-	public List<Object> getFrames() {
-		return Optional.ofNullable(probeResult.getFrames())
-				.map(FramesType::getFrameOrSubtitle)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
-	}
-
-	/**
-	 * {@link PacketType }
-	 * {@link FrameType }
-	 * {@link SubtitleType }
-	 */
-	public List<Object> getPacketsAndFrames() {
-		return Optional.ofNullable(probeResult.getPacketsAndFrames())
-				.map(PacketsAndFramesType::getPacketOrFrameOrSubtitle)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
-	}
-
-	public List<ProgramType> getPrograms() {
-		return Optional.ofNullable(probeResult.getPrograms())
-				.map(ProgramsType::getProgram)
-				.map(Collections::unmodifiableList)
-				.orElse(List.of());
-	}
-
-	public static final Predicate<StreamType> filterVideoStream = streamType -> streamType
-			.getCodecType().equals("video");
-	public static final Predicate<StreamType> filterAudioStream = streamType -> streamType
-			.getCodecType().equals("audio");
-	public static final Predicate<StreamType> filterDataStream = streamType -> streamType
-			.getCodecType().equals("data");
-
-	public Stream<StreamType> getVideoStreams() {
-		return getStreams().stream().filter(filterVideoStream);
-	}
-
-	public Stream<StreamType> getAudiosStreams() {
-		return getStreams().stream().filter(filterAudioStream);
-	}
-
-	public Optional<StreamType> getFirstVideoStream() {
-		return getVideoStreams()
-				.filter(vs -> vs.getDisposition().getAttachedPic() == 0)
-				.filter(vs -> vs.getDisposition().getTimedThumbnails() == 0)
-				.sorted((l, r) -> Integer.compare(r.getDisposition().getDefault(), l.getDisposition().getDefault()))
-				.findFirst();
-	}
-
 }

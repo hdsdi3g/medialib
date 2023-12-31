@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import tv.hd3g.fflauncher.acm.InputAudioStream.SelectedInputChannel;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
 import tv.hd3g.fflauncher.enums.SourceNotFoundPolicy;
 import tv.hd3g.fflauncher.enums.SourceNotFoundPolicy.SourceNotFoundException;
@@ -130,17 +129,17 @@ public class AudioChannelManipulationSetup {
 				final var sourceFileIndex = Integer.parseInt(outputStreamTopologyRaw.split(":")[0]);
 				final var relativeSourceStreamIndex = Integer.parseInt(outputStreamTopologyRaw.split(":")[1]);
 				final var inputAudioStream = InputAudioStream.getFromRelativeIndexes(inputStreams,
-				        sourceFileIndex,
-				        relativeSourceStreamIndex);
+						sourceFileIndex,
+						relativeSourceStreamIndex);
 				if (inputAudioStream == null) {
 					applySourceNotFoundBehavior("Can't found input channel by file/stream indexes: "
-					                            + sourceFileIndex + "/" + relativeSourceStreamIndex);
+												+ sourceFileIndex + "/" + relativeSourceStreamIndex);
 					return;
 				}
 
 				outputLayout = Optional.ofNullable(outputLayout).orElse(inputAudioStream.getLayout());
 				final var outputStream = new OutputAudioStream(outputLayout, outputFileIndex,
-				        relativeOutStrmIdx);
+						relativeOutStrmIdx);
 
 				final var chSize = inputAudioStream.getLayout().getChannelSize();
 				for (var pos = 0; pos < chSize; pos++) {
@@ -157,17 +156,16 @@ public class AudioChannelManipulationSetup {
 			 * @return true for cancel out stream
 			 */
 			boolean mapSingleSourceAbsoluteChannel(final int absoluteInputChannel,
-			                                       final List<SelectedInputChannel> selectedInputChannels) {
+												   final List<ACMSelectedInputChannel> aCMSelectedInputChannels) {
 				final var selected = InputAudioStream.getFromAbsoluteIndex(inputStreams,
-				        absoluteInputChannel);
+						absoluteInputChannel);
 				if (selected == null) {
 					return applySourceNotFoundBehavior("Can't found absolute input channel index: "
-					                                   + absoluteInputChannel);
+													   + absoluteInputChannel);
 				}
-				final var inputStream = selected.getInputAudioStream();
-				final var channelSelector = selected.getChannelSelector();
-				selectedInputChannels.add(inputStream.new SelectedInputChannel(inputStream,
-				        channelSelector));
+				final var inputStream = selected.inputAudioStream();
+				final var channelSelector = selected.channelSelector();
+				aCMSelectedInputChannels.add(new ACMSelectedInputChannel(inputStream, channelSelector));
 				return false;
 			}
 
@@ -183,7 +181,7 @@ public class AudioChannelManipulationSetup {
 			 * @return true for cancel out stream
 			 */
 			boolean mapSingleSourceRelativeChannel(final String absoluteInputRaw,
-			                                       final List<SelectedInputChannel> selectedInputChannels) {
+												   final List<ACMSelectedInputChannel> aCMSelectedInputChannels) {
 				final var absoluteInput = absoluteInputRaw.split(":");
 				if (absoluteInput.length != 3) {
 					throw new IllegalArgumentException("Invalid channel map entry: " + absoluteInputRaw);
@@ -192,20 +190,20 @@ public class AudioChannelManipulationSetup {
 				final var relativeSourceStreamIndex = parseInt(absoluteInput[1]);
 				final var channelSelector = new InputAudioChannelSelector(parseInt(absoluteInput[2]));
 				final var inputStream = InputAudioStream.getFromRelativeIndexes(inputStreams,
-				        sourceFileIndex,
-				        relativeSourceStreamIndex);
+						sourceFileIndex,
+						relativeSourceStreamIndex);
 				if (inputStream == null) {
 					return applySourceNotFoundBehavior("Can't found file/stream index: "
-					                                   + sourceFileIndex + "/"
-					                                   + relativeSourceStreamIndex);
+													   + sourceFileIndex + "/"
+													   + relativeSourceStreamIndex);
 				}
-				selectedInputChannels.add(inputStream.new SelectedInputChannel(inputStream,
-				        channelSelector));
+				aCMSelectedInputChannels.add(new ACMSelectedInputChannel(inputStream,
+						channelSelector));
 				return false;
 			}
 
 			void mapSingleChannels() {
-				final var selectedInputChannels = new ArrayList<SelectedInputChannel>();
+				final var selectedInputChannels = new ArrayList<ACMSelectedInputChannel>();
 				final var outputChannelTopologyRaw = outputStreamTopologyRaw.split("\\+");
 				/**
 				 * For each source channel
@@ -215,10 +213,10 @@ public class AudioChannelManipulationSetup {
 					boolean isStop;
 					try {
 						isStop = mapSingleSourceAbsoluteChannel(parseInt(absoluteInputRaw),
-						        selectedInputChannels);
+								selectedInputChannels);
 					} catch (final NumberFormatException e) {
 						isStop = mapSingleSourceRelativeChannel(absoluteInputRaw,
-						        selectedInputChannels);
+								selectedInputChannels);
 					}
 					if (isStop) {
 						return;
@@ -230,7 +228,7 @@ public class AudioChannelManipulationSetup {
 				}
 				final var outputStream = new OutputAudioStream(outputLayout, outputFileIndex, relativeOutStrmIdx);
 				selectedInputChannels.forEach(selectedInput -> outputStream
-				        .mapChannel(selectedInput.getInputAudioStream(), selectedInput.getChannelSelector()));
+						.mapChannel(selectedInput.inputAudioStream(), selectedInput.channelSelector()));
 				outputStreams.add(outputStream);
 			}
 
@@ -242,12 +240,12 @@ public class AudioChannelManipulationSetup {
 				}
 
 				relativeOutStrmIdx = relativeOutStrIdxByOutFileIdx
-				        .getOrDefault(outputFileIndex, -1) + 1;
+						.getOrDefault(outputFileIndex, -1) + 1;
 				relativeOutStrIdxByOutFileIdx.put(outputFileIndex, relativeOutStrmIdx);
 
 				outputStreamTopologyRaw = layoutMatcher.replaceAll("");
 				if (outputStreamTopologyRaw.indexOf('+') == -1
-				    && outputStreamTopologyRaw.split(":").length == 2) {
+					&& outputStreamTopologyRaw.split(":").length == 2) {
 					mapFullStream();
 				} else {
 					mapSingleChannels();
@@ -262,9 +260,9 @@ public class AudioChannelManipulationSetup {
 
 		List<OutputAudioStream> build() {
 			channelMap.stream()
-			        .map(entry -> entry.trim().replace(" ", ""))
-			        .filter(entry -> entry.isEmpty() == false)
-			        .forEach(this::onChannelMapEntry);
+					.map(entry -> entry.trim().replace(" ", ""))
+					.filter(entry -> entry.isEmpty() == false)
+					.forEach(this::onChannelMapEntry);
 			return unmodifiableList(outputStreams);
 		}
 	}

@@ -1,4 +1,8 @@
 secret-application.yml
+test*.mov
+test*.ts
+test*.mkv
+ffprobejaxb/.ffmpeg-compile/*
 
 # Windows / macOS
 desktop.ini

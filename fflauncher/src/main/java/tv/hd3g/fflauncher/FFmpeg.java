@@ -22,14 +22,10 @@ import static tv.hd3g.fflauncher.progress.ProgressListenerSession.LOCALHOST_IPV4
 import java.io.File;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
-
-import org.ffmpeg.ffprobe.StreamType;
 
 import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
-import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -101,11 +97,6 @@ public class FFmpeg extends FFbase implements
 	public FFmpeg addFastStartMovMp4File() {
 		getInternalParameters().addBulkParameters("-movflags faststart");
 		return this;
-	}
-
-	@Deprecated(forRemoval = true, since = "9.1.0")
-	public static Optional<StreamType> getFirstVideoStream(final FFprobeJAXB analysingResult) {// NOSONAR S1133
-		return analysingResult.getFirstVideoStream();
 	}
 
 	/**

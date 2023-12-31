@@ -31,13 +31,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.StreamType;
-
 import tv.hd3g.fflauncher.acm.ACMSplitInStreamDefinitionFilter.SplittedOut;
 import tv.hd3g.fflauncher.acm.OutputAudioStream.OutputAudioChannel;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
 import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.FFprobeReference;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 /**
@@ -279,13 +279,14 @@ public class AudioChannelManipulation {
 	 * @return add non-audio sources (video, data) + getMapParameters
 	 */
 	public List<Parameters> getMapParameters(final List<FFprobeJAXB> sourceFiles,
-											 final BiPredicate<Integer, StreamType> addNonAudioStreamFromSources) {
+											 final BiPredicate<Integer, FFProbeStream> addNonAudioStreamFromSources) {
 
-		final var selectedFileStreams = new LinkedHashMap<Integer, StreamType>();
+		final var selectedFileStreams = new LinkedHashMap<Integer, FFProbeStream>();
 		for (var pos = 0; pos < sourceFiles.size(); pos++) {
 			final var fileIndex = pos;
 			sourceFiles.get(pos).getStreams().stream()
-					.filter(s -> FFprobeJAXB.filterVideoStream.test(s) || FFprobeJAXB.filterDataStream.test(s))
+					.filter(s -> FFprobeReference.filterVideoStream.test(s) || FFprobeReference.filterDataStream.test(
+							s))
 					.filter(s -> addNonAudioStreamFromSources.test(fileIndex, s))
 					.forEach(s -> selectedFileStreams.put(fileIndex, s));
 		}
@@ -294,7 +295,7 @@ public class AudioChannelManipulation {
 				.map(entry -> {
 					final var fileIndex = entry.getKey();
 					final var streamInFile = entry.getValue();
-					return fileIndex + ":" + streamInFile.getIndex();
+					return fileIndex + ":" + streamInFile.index();
 				})
 				.toList());
 	}

@@ -44,7 +44,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,6 +65,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
 import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
 import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.InvalidExecution;
 import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.Processlauncher;
@@ -134,7 +134,7 @@ class MediaAnalyserSessionTest {
 	@Mock
 	FFprobeJAXB ffprobeResult;
 	@Mock
-	StreamType streamType;
+	FFProbeStream streamType;
 	@Mock
 	BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer;
 	@Mock
@@ -374,19 +374,19 @@ class MediaAnalyserSessionTest {
 	void testProcess_setFFprobeResult_noAudioStreams() {
 		s.setFFprobeResult(ffprobeResult);
 
-		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.empty());
+		when(ffprobeResult.getAudioStreams()).thenReturn(Stream.empty());
 		assertThrows(IllegalStateException.class, () -> s.process(emptyLavfiLinesToMerge));
-		verify(ffprobeResult, times(1)).getAudiosStreams();
+		verify(ffprobeResult, times(1)).getAudioStreams();
 	}
 
 	@Test
 	void testProcess_setFFprobeResult_noVideoStreams() {
 		s.setFFprobeResult(ffprobeResult);
 
-		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.of(streamType));
+		when(ffprobeResult.getAudioStreams()).thenReturn(Stream.of(streamType));
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.empty());
 		assertThrows(IllegalStateException.class, () -> s.process(emptyLavfiLinesToMerge));
-		verify(ffprobeResult, times(1)).getAudiosStreams();
+		verify(ffprobeResult, times(1)).getAudioStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 	}
 
@@ -396,7 +396,7 @@ class MediaAnalyserSessionTest {
 		s = new MediaAnalyserSession(mediaAnalyser, source, sourceFile);
 		s.setFFprobeResult(ffprobeResult);
 
-		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.empty());
+		when(ffprobeResult.getAudioStreams()).thenReturn(Stream.empty());
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.ofNullable(streamType));
 
 		final var result = s.process(emptyLavfiLinesToMerge);
@@ -416,7 +416,7 @@ class MediaAnalyserSessionTest {
 				parameters.getParameters());
 		parameters.clear();
 
-		verify(ffprobeResult, times(1)).getAudiosStreams();
+		verify(ffprobeResult, times(1)).getAudioStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
@@ -429,7 +429,7 @@ class MediaAnalyserSessionTest {
 		s = new MediaAnalyserSession(mediaAnalyser, source, sourceFile);
 		s.setFFprobeResult(ffprobeResult);
 
-		when(ffprobeResult.getAudiosStreams()).thenReturn(Stream.of(streamType));
+		when(ffprobeResult.getAudioStreams()).thenReturn(Stream.of(streamType));
 		when(ffprobeResult.getFirstVideoStream()).thenReturn(Optional.empty());
 
 		final var result = s.process(emptyLavfiLinesToMerge);
@@ -449,7 +449,7 @@ class MediaAnalyserSessionTest {
 				parameters.getParameters());
 		parameters.clear();
 
-		verify(ffprobeResult, times(1)).getAudiosStreams();
+		verify(ffprobeResult, times(1)).getAudioStreams();
 		verify(ffprobeResult, times(1)).getFirstVideoStream();
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();

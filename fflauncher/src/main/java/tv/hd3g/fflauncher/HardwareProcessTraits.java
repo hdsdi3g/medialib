@@ -105,10 +105,10 @@ public interface HardwareProcessTraits extends InternalParametersSupplier, Simpl
 		final var videoStream = oVideoStream.get();
 
 		final var codec = about.getCodecs().stream()
-				.filter(c -> (c.decodingSupported && c.name.equals(videoStream.getCodecName())))
+				.filter(c -> (c.decodingSupported && c.name.equals(videoStream.codecName())))
 				.findFirst()
 				.orElseThrow(() -> new MediaException("Can't found a valid decoder codec for " + videoStream
-						.getCodecName() + " in \"" + source + "\""));
+						.codecName() + " in \"" + source + "\""));
 
 		if (hardwareCodec == FFHardwareCodec.NV && about.isNVToolkitIsAvaliable()) {
 			final var oSourceCuvidCodecEngine = codec.decoders.stream().filter(decoder -> decoder
@@ -134,7 +134,7 @@ public interface HardwareProcessTraits extends InternalParametersSupplier, Simpl
 		}
 
 		throw new MediaException("Can't found a valid hardware decoder on \"" + source + "\" (\"" + videoStream
-				.getCodecLongName() + "\")");
+				.codecLongName() + "\")");
 	}
 
 	/**

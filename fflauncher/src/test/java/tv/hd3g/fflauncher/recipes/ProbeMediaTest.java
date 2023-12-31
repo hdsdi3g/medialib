@@ -53,8 +53,8 @@ class ProbeMediaTest {
 		final var probe = new ProbeMedia(executableFinder, Executors.newSingleThreadScheduledExecutor());
 		final var result = probe.doAnalysing(test_file_to_create);
 
-		assertEquals(1, result.getFormat().getDuration().intValue());
-		assertEquals(432, result.getVideoStreams().findFirst().get().getHeight().intValue());
+		assertEquals(1, Math.round(result.getFormat().get().duration()));
+		assertEquals(432, result.getVideoStreams().findFirst().get().height());
 
 		ffmpeg.cleanUpOutputFiles(true, false);
 	}

@@ -109,7 +109,7 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		}
 
 		if (ffprobeResult != null) {
-			if (ffprobeResult.getAudiosStreams().count() == 0 && audioFilters.isEmpty() == false) {
+			if (ffprobeResult.getAudioStreams().count() == 0 && audioFilters.isEmpty() == false) {
 				throw new IllegalStateException("Can't apply audio filters if source don't have an audio stream!");
 			} else if (ffprobeResult.getFirstVideoStream().isEmpty() && videoFilters.isEmpty() == false) {
 				throw new IllegalStateException("Can't apply video filters if source don't have an video stream!");

@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 
-import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.FFprobe.FFPrintFormat;
 import tv.hd3g.fflauncher.enums.FFLogLevel;
@@ -30,7 +29,6 @@ import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
-@Slf4j
 public class ProbeMedia {
 
 	private final String execName;
@@ -42,7 +40,7 @@ public class ProbeMedia {
 	}
 
 	public ProbeMedia(final String execName, final ExecutableFinder executableFinder,
-	                  final ScheduledExecutorService maxExecTimeScheduler) {
+					  final ScheduledExecutorService maxExecTimeScheduler) {
 		this.execName = Objects.requireNonNull(execName);
 		this.executableFinder = Objects.requireNonNull(executableFinder);
 		this.maxExecTimeScheduler = Objects.requireNonNull(maxExecTimeScheduler);
@@ -56,7 +54,7 @@ public class ProbeMedia {
 		ffprobe.setMaxExecTimeScheduler(maxExecTimeScheduler);
 		ffprobe.setLogLevel(FFLogLevel.ERROR, false, false);
 		ffprobe.setFilterForLinesEventsToDisplay(l -> (l.isStdErr() && ffprobe.filterOutErrorLines().test(l
-		        .getLine())));
+				.getLine())));
 
 		return ffprobe;
 	}
@@ -65,7 +63,7 @@ public class ProbeMedia {
 		final var rtFFprobe = ffprobe.execute(executableFinder);
 		final var textRetention = rtFFprobe.checkExecutionGetText();
 		final var stdOut = textRetention.getStdout(false, System.lineSeparator());
-		return new FFprobeJAXB(stdOut, warn -> log.warn(warn));
+		return FFprobeJAXB.load(stdOut);
 	}
 
 	/**

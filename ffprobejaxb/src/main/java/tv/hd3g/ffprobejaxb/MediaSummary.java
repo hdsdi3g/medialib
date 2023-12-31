@@ -19,6 +19,8 @@ package tv.hd3g.ffprobejaxb;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static tv.hd3g.ffprobejaxb.FFprobeReference.filterAudioStream;
+import static tv.hd3g.ffprobejaxb.FFprobeReference.filterVideoStream;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -27,41 +29,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ffmpeg.ffprobe.FormatType;
-import org.ffmpeg.ffprobe.StreamDispositionType;
-import org.ffmpeg.ffprobe.StreamType;
-import org.ffmpeg.ffprobe.TagType;
+import tv.hd3g.ffprobejaxb.data.FFProbeFormat;
+import tv.hd3g.ffprobejaxb.data.FFProbeKeyValue;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 public record MediaSummary(String format, List<String> streams) {
 	private static final DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
 
 	static MediaSummary create(final FFprobeJAXB source) {
-		final var format = source.getFormat();
+		final var format = source.getFormat()
+				.orElseThrow(() -> new IllegalArgumentException("Can't found FFprobe format to produce Summary"));
+		final var chapters = source.getChapters();
+
 		final var entries = new ArrayList<String>();
-		entries.add(format.getFormatLongName());
+		entries.add(format.formatLongName());
 		entries.add(computeDuration(format));
-		if (format.getSize() <= 1024 * 1024) {
-			entries.add(format.getSize() + " bytes");
+		source.getTimecode(true)
+				.map(t -> "TCIN: " + t)
+				.ifPresent(entries::add);
+
+		if (format.size() <= 1024 * 1024) {
+			entries.add(format.size() + " bytes");
 		} else {
-			entries.add(format.getSize() / 1024 / 1024 + " MB");
+			entries.add(format.size() / 1024 / 1024 + " MB");
 		}
 
-		if (format.getNbPrograms() > 0) {
-			entries.add(format.getNbPrograms() + " program(s)");
+		if (format.nbPrograms() > 0) {
+			entries.add(format.nbPrograms() + " program" +
+						(format.nbPrograms() > 1 ? "s" : ""));
 		}
-		if (source.getChapters().isEmpty() == false) {
-			entries.add(source.getChapters().size() + " chapter(s)");
+		if (chapters.isEmpty() == false) {
+			entries.add(chapters.size() + " chapter"
+						+ (chapters.size() > 1 ? "s" : ""));
 		}
 
-		if (source.getVideoStreams().anyMatch(f -> f.getBitRate() != null) == false
-			&& source.getAudiosStreams().anyMatch(f -> f.getBitRate() != null) == false) {
-			Optional.ofNullable(format.getBitRate()).ifPresent(b -> {
+		if (source.getVideoStreams().anyMatch(f -> f.bitRate() > 0) == false
+			&& source.getAudioStreams().anyMatch(f -> f.bitRate() > 0) == false) {
+			Optional.ofNullable(format.bitRate()).ifPresent(b -> {
 				final var bitrateKbps = (double) b / 1000d;
 				if (bitrateKbps < 10000) {
 					entries.add(Math.round(bitrateKbps) + " kbps");
@@ -72,12 +81,14 @@ public record MediaSummary(String format, List<String> streams) {
 		}
 
 		final var videos = source.getVideoStreams().map(MediaSummary::getVideoSummary);
-		final var audios = source.getAudiosStreams().map(MediaSummary::getAudioSummary);
+		final var audios = source.getAudioStreams().map(MediaSummary::getAudioSummary);
 		final var others = computeOther(source);
 
 		return new MediaSummary(
 				entries.stream().collect(Collectors.joining(", ")),
-				Stream.concat(videos, Stream.concat(audios, others)).toList());
+				Stream.of(videos, audios, others)
+						.flatMap(s -> s)
+						.toList());
 	}
 
 	static Optional<String> getValue(final String value) {
@@ -89,105 +100,74 @@ public record MediaSummary(String format, List<String> streams) {
 		});
 	}
 
-	private static Stream<String> optDisposition(final int value, final String label) {
-		if (value == 1) {
-			return Stream.of(label);
-		}
-		return Stream.empty();
-	}
-
-	public static Stream<String> resumeDispositions(final StreamDispositionType s) {
-		if (s == null) {
-			return Stream.of();
-		}
-		return Stream.of(
-				optDisposition(s.getDefault(), "default stream"),
-				optDisposition(s.getAttachedPic(), "attached picture"),
-				optDisposition(s.getTimedThumbnails(), "timed thumbnails"),
-				optDisposition(s.getStillImage(), "still image"),
-				optDisposition(s.getHearingImpaired(), "hearing impaired"),
-				optDisposition(s.getVisualImpaired(), "visual impaired"),
-				optDisposition(s.getDub(), "dub"),
-				optDisposition(s.getOriginal(), "original"),
-				optDisposition(s.getComment(), "comment"),
-				optDisposition(s.getLyrics(), "lyrics"),
-				optDisposition(s.getKaraoke(), "karaoke"),
-				optDisposition(s.getForced(), "forced"),
-				optDisposition(s.getCleanEffects(), "clean effects"),
-				optDisposition(s.getCaptions(), "captions"),
-				optDisposition(s.getDescriptions(), "descriptions"),
-				optDisposition(s.getMetadata(), "metadata"),
-				optDisposition(s.getDependent(), "dependent"))
-				.flatMap(Function.identity());
-	}
-
-	static String getAudioSummary(final StreamType s) {
+	static String getAudioSummary(final FFProbeStream s) {
 		final var entries = new ArrayList<String>();
 
-		entries.add(s.getCodecType() + ": " + s.getCodecName());
+		entries.add(s.codecType() + ": " + s.codecName());
 
-		getValue(s.getProfile()).ifPresent(entries::add);
+		getValue(s.profile()).ifPresent(entries::add);
 
-		getValue(s.getSampleFmt()).flatMap(f -> {
-			if (f.equals("fltp") || s.getCodecName().contains(f)) {
+		getValue(s.sampleFmt()).flatMap(f -> {
+			if (f.equals("fltp") || f.equals("s16p") || s.codecName().contains(f)) {
 				return Optional.empty();
 			}
 			return Optional.ofNullable(f);
 		}).ifPresent(entries::add);
 
-		if (s.getChannels() > 2) {
-			if (s.getChannelLayout() != null) {
-				entries.add(s.getChannelLayout() + " (" + s.getChannels() + " channels)");
+		if (s.channels() > 2) {
+			if (s.channelLayout() != null) {
+				entries.add(s.channelLayout() + " (" + s.channels() + " channels)");
 			} else {
-				entries.add(s.getChannels() + " channels");
+				entries.add(s.channels() + " channels");
 			}
-		} else if (s.getChannelLayout() != null) {
-			entries.add(s.getChannelLayout());
-		} else if (s.getChannels() == 2) {
+		} else if (s.channelLayout() != null) {
+			entries.add(s.channelLayout());
+		} else if (s.channels() == 2) {
 			entries.add("2 channels");
 		} else {
 			entries.add("mono");
 		}
 
-		Optional.ofNullable(s.getSampleRate())
+		Optional.ofNullable(s.sampleRate())
 				.ifPresent(sr -> entries.add("@ " + sr + " Hz"));
 
-		Optional.ofNullable(s.getBitRate())
+		Optional.ofNullable(s.bitRate())
+				.filter(b -> b > 100)
 				.ifPresent(b -> entries.add("[" + b / 1000 + " kbps]"));
 
-		final var dispositions = resumeDispositions(s.getDisposition()).collect(joining(", "));
+		final var dispositions = s.disposition().resumeDispositions().collect(joining(", "));
 		if (dispositions.isEmpty() == false) {
 			entries.add(dispositions);
 		}
 		return entries.stream().collect(joining(" "));
 	}
 
-	static String getVideoSummary(final StreamType s) {
+	static String getVideoSummary(final FFProbeStream s) {
 		final var entries = new ArrayList<String>();
 
-		entries.add(s.getCodecType() + ": " + s.getCodecName());
+		entries.add(s.codecType() + ": " + s.codecName());
 
-		if (s.getWidth() != null && s.getHeight() != null) {
-			entries.add(s.getWidth() + "×" + s.getHeight());
+		if (s.width() > 0 && s.height() > 0) {
+			entries.add(s.width() + "×" + s.height());
 		}
 
-		final var profile = getValue(s.getProfile()).filter(p -> p.equals("0") == false);
-		final var level = Optional.ofNullable(s.getLevel()).orElse(0);
+		final var profile = getValue(s.profile()).filter(p -> p.equals("0") == false);
+		final var level = Optional.ofNullable(s.level()).orElse(0);
 		if (profile.isPresent()) {
 			if (level > 0) {
-				entries.add(profile.get() + "/" + getLevelTag(s.getCodecName(), level));
+				entries.add(profile.get() + "/" + getLevelTag(s.codecName(), level));
 			} else {
 				entries.add(profile.get());
 			}
 		} else if (level > 0) {
-			entries.add(getLevelTag(s.getCodecName(), level));
+			entries.add(getLevelTag(s.codecName(), level));
 		}
 
-		if (s.getHasBFrames() != null && s.getHasBFrames() > 0) {
+		if (s.hasBFrames()) {
 			entries.add("with B frames");
 		}
 
-		final var frameRate = getValue(s.getAvgFrameRate()).map(b -> {
+		final var frameRate = getValue(s.avgFrameRate()).map(b -> {
 			final var pos = b.indexOf("/");
 			if (pos == -1) {
 				return b;
@@ -205,8 +185,11 @@ public record MediaSummary(String format, List<String> streams) {
 
 		entries.add("@ " + frameRate + " fps");
 
-		Optional.ofNullable(s.getBitRate()).ifPresent(b -> {
+		Optional.ofNullable(s.bitRate()).ifPresent(b -> {
 			final var bitrateKbps = (double) b / 1000d;
+			if (bitrateKbps < 1) {
+				return;
+			}
 			if (bitrateKbps < 10000) {
 				entries.add("[" + Math.round(bitrateKbps) + " kbps]");
 			} else {
@@ -219,11 +202,11 @@ public record MediaSummary(String format, List<String> streams) {
 			entries.add(cpf);
 		}
 
-		if (s.getNbFrames() != null && s.getNbFrames() > 0) {
-			entries.add("(" + s.getNbFrames() + " frms)");
+		if (s.hasBFrames() && s.nbFrames() > 0) {
+			entries.add("(" + s.nbFrames() + " frms)");
 		}
 
-		final var dispositions = resumeDispositions(s.getDisposition()).collect(joining(", "));
+		final var dispositions = s.disposition().resumeDispositions().collect(joining(", "));
 		if (dispositions.isEmpty() == false) {
 			entries.add(dispositions);
 		}
@@ -325,24 +308,25 @@ public record MediaSummary(String format, List<String> streams) {
 		};
 	}
 
-	static String computePixelsFormat(final StreamType s) {
+	static String computePixelsFormat(final FFProbeStream s) {
 		final var entries = new ArrayList<String>();
-		getValue(s.getPixFmt()).ifPresent(entries::add);
-		getValue(s.getColorRange()).map(v -> "colRange:" + v.toUpperCase()).ifPresent(entries::add);
+		getValue(s.pixFmt()).ifPresent(entries::add);
+		getValue(s.colorRange()).map(v -> "colRange:" + v.toUpperCase()).ifPresent(entries::add);
 
-		final var oColorSpace = getValue(s.getColorSpace());
-		final var oColorTransfer = getValue(s.getColorTransfer());
-		final var oColorPrimaries = getValue(s.getColorPrimaries());
+		final var oColorSpace = getValue(s.colorSpace());
+		final var oColorTransfer = getValue(s.colorTransfer());
+		final var oColorPrimaries = getValue(s.colorPrimaries());
 
 		if (oColorSpace.isPresent()
 			&& oColorSpace.equals(oColorTransfer)
 			&& oColorSpace.equals(oColorPrimaries)) {
 			oColorSpace.map(String::toUpperCase).ifPresent(entries::add);
 		} else {
-			Stream.concat(oColorSpace.map(v -> "colSpace:" + v.toUpperCase()).stream(),
-					Stream.concat(
-							oColorTransfer.map(v -> "colTransfer:" + v.toUpperCase()).stream(),
-							oColorPrimaries.map(v -> "colPrimaries:" + v.toUpperCase()).stream()))
+			Stream.of(
+					oColorSpace.map(v -> "colSpace:" + v.toUpperCase()).stream(),
+					oColorTransfer.map(v -> "colTransfer:" + v.toUpperCase()).stream(),
+					oColorPrimaries.map(v -> "colPrimaries:" + v.toUpperCase()).stream())
+					.flatMap(f -> f)
 					.forEach(entries::add);
 		}
 
@@ -356,8 +340,8 @@ public record MediaSummary(String format, List<String> streams) {
 		sbTime.append(value);
 	}
 
-	public static String computeDuration(final FormatType format) {
-		final var duration = Duration.ofMillis(Math.round(format.getDuration() * 1000f));
+	public static String computeDuration(final FFProbeFormat format) {
+		final var duration = Duration.ofMillis(Math.round(format.duration() * 1000f));
 		final var sbTime = new StringBuilder();
 		addZeros(duration.toHoursPart(), sbTime);
 		sbTime.append(":");
@@ -369,27 +353,19 @@ public record MediaSummary(String format, List<String> streams) {
 
 	private static Stream<String> computeOther(final FFprobeJAXB source) {
 		return source.getStreams().stream()
-				.filter(Predicate.not(FFprobeJAXB.filterAudioStream))
-				.filter(Predicate.not(FFprobeJAXB.filterVideoStream))
+				.filter(Predicate.not(filterAudioStream))
+				.filter(Predicate.not(filterVideoStream))
 				.map(v -> {
-					final var name = getValue(v.getCodecName())
-							.or(() -> getValue(v.getCodecTagString()))
+					final var name = getValue(v.codecName())
+							.or(() -> getValue(v.codecTagString()))
 							.orElse("");
-					final var handler = v.getTag().stream()
-							.filter(t -> "handler_name".equals(t.getKey()))
+					final var handler = v.tags().stream()
+							.filter(t -> "handler_name".equals(t.key()))
 							.findFirst()
-							.map(TagType::getValue)
+							.map(FFProbeKeyValue::value)
 							.map(t -> " (" + t + ")")
 							.orElse("");
-
-					final var tc = v.getTag().stream()
-							.filter(t -> "timecode".equals(t.getKey()))
-							.findFirst()
-							.map(TagType::getValue)
-							.map(t -> " " + t)
-							.orElse("");
-
-					return v.getCodecType() + ": " + name + handler + tc;
+					return v.codecType() + ": " + name + handler;
 				});
 	}
 

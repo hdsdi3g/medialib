@@ -58,15 +58,15 @@ public class InputAudioStream extends ACMAudioStream {
 		for (var pos = 0; pos < sourcesAnalysis.size(); pos++) {
 			final var analysis = sourcesAnalysis.get(pos);
 			final var absoluteSourceIndex = pos;
-			analysis.getAudiosStreams()
-					.sorted((l, r) -> Integer.compare(l.getIndex(), r.getIndex()))
+			analysis.getAudioStreams()
+					.sorted((l, r) -> Integer.compare(l.index(), r.index()))
 					.map(as -> {
-						final var layout = as.getChannelLayout();
+						final var layout = as.channelLayout();
 						if (layout == null || layout.isEmpty()) {
-							return new InputAudioStream(ChannelLayout.getByChannelSize(as.getChannels()),
-									absoluteSourceIndex, as.getIndex());
+							return new InputAudioStream(ChannelLayout.getByChannelSize(as.channels()),
+									absoluteSourceIndex, as.index());
 						}
-						return new InputAudioStream(ChannelLayout.parse(layout), absoluteSourceIndex, as.getIndex());
+						return new InputAudioStream(ChannelLayout.parse(layout), absoluteSourceIndex, as.index());
 					})
 					.forEach(allSourceStreams::add);
 		}
@@ -87,27 +87,7 @@ public class InputAudioStream extends ACMAudioStream {
 		return null;
 	}
 
-	public class SelectedInputChannel {
-		private final InputAudioStream inputAudioStream;
-		private final InputAudioChannelSelector channelSelector;
-
-		SelectedInputChannel(final InputAudioStream inputAudioStream,
-							 final InputAudioChannelSelector channelSelector) {
-			this.inputAudioStream = inputAudioStream;
-			this.channelSelector = channelSelector;
-		}
-
-		InputAudioStream getInputAudioStream() {
-			return inputAudioStream;
-		}
-
-		InputAudioChannelSelector getChannelSelector() {
-			return channelSelector;
-		}
-
-	}
-
-	public static SelectedInputChannel getFromAbsoluteIndex(final List<InputAudioStream> streamList,
+	public static ACMSelectedInputChannel getFromAbsoluteIndex(final List<InputAudioStream> streamList,
 															final int channelIndex) {
 		var totalChannelCount = 0;
 		for (final var inStream : streamList) {
@@ -115,7 +95,7 @@ public class InputAudioStream extends ACMAudioStream {
 			final var layoutSize = layout.getChannelSize();
 			final var relativeChannelIndex = channelIndex - totalChannelCount;
 			if (relativeChannelIndex < layoutSize) {
-				return inStream.new SelectedInputChannel(inStream,
+				return new ACMSelectedInputChannel(inStream,
 						new InputAudioChannelSelector(relativeChannelIndex));
 			}
 			totalChannelCount += layoutSize;

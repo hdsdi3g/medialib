@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 15.0.0
+
+Deeply refactor FFprobeJAXB to manage multiple ffprobe XSD versions #73
+
 ## 14.1.0
 
 Update parent starter project to 19.0.0 #80

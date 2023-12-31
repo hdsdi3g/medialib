@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 import static tv.hd3g.fflauncher.acm.AudioChannelManipulation.checkClassicStreamDesc;
 import static tv.hd3g.fflauncher.acm.InputAudioChannelSelector.IN_CH0;
 import static tv.hd3g.fflauncher.acm.InputAudioChannelSelector.IN_CH1;
@@ -14,12 +15,12 @@ import static tv.hd3g.fflauncher.enums.ChannelLayout.STEREO;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.ffmpeg.ffprobe.StreamType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class AudioChannelManipulationTest {
@@ -29,17 +30,17 @@ class AudioChannelManipulationTest {
 	final static InputAudioStream inMono3 = new InputAudioStream(MONO, 0, 4);
 	final static InputAudioStream inStereo = new InputAudioStream(STEREO, 1, 0);
 	final static OutputAudioStream outStreamMono0 = new OutputAudioStream(MONO, 0, 0)
-	        .mapChannel(inStereo, IN_CH0);
+			.mapChannel(inStereo, IN_CH0);
 	final static OutputAudioStream outStreamMono1 = new OutputAudioStream(MONO, 0, 1)
-	        .mapChannel(inStereo, IN_CH1);
+			.mapChannel(inStereo, IN_CH1);
 	final static OutputAudioStream outStreamStereo0 = new OutputAudioStream(STEREO, 1, 0)
-	        .mapChannel(inMono1, IN_CH0)
-	        .mapChannel(inMono0, IN_CH0);
+			.mapChannel(inMono1, IN_CH0)
+			.mapChannel(inMono0, IN_CH0);
 	final static OutputAudioStream outStreamStereo1 = new OutputAudioStream(STEREO, 2, 1)
-	        .mapChannel(inMono2, IN_CH0)
-	        .mapChannel(inMono3, IN_CH0);
+			.mapChannel(inMono2, IN_CH0)
+			.mapChannel(inMono3, IN_CH0);
 	final static OutputAudioStream outStreamSimpleMono = new OutputAudioStream(MONO, 0, 1)
-	        .mapChannel(inMono0, IN_CH0);
+			.mapChannel(inMono0, IN_CH0);
 
 	@Test
 	void testEmpty() {
@@ -53,7 +54,7 @@ class AudioChannelManipulationTest {
 	@Test
 	void testStraight_1stream() {
 		final var outStreamSimpleStereo = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStereo, IN_CH0).mapChannel(inStereo, IN_CH1);
+				.mapChannel(inStereo, IN_CH0).mapChannel(inStereo, IN_CH1);
 
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleStereo));
 		assertTrue(acm.getToSplitFilterList().isEmpty());
@@ -65,16 +66,16 @@ class AudioChannelManipulationTest {
 	@Test
 	void testStraight_4streams() {
 		final var outStreamSimpleMono0 = new OutputAudioStream(MONO, 0, 0)
-		        .mapChannel(inMono0, IN_CH0);
+				.mapChannel(inMono0, IN_CH0);
 		final var outStreamSimpleMono1 = new OutputAudioStream(MONO, 0, 1)
-		        .mapChannel(inMono1, IN_CH0);
+				.mapChannel(inMono1, IN_CH0);
 		final var outStreamSimpleMono2 = new OutputAudioStream(MONO, 0, 2)
-		        .mapChannel(inMono2, IN_CH0);
+				.mapChannel(inMono2, IN_CH0);
 		final var outStreamSimpleMono3 = new OutputAudioStream(MONO, 0, 3)
-		        .mapChannel(inMono3, IN_CH0);
+				.mapChannel(inMono3, IN_CH0);
 
 		final var sourceList = List.of(
-		        outStreamSimpleMono0, outStreamSimpleMono1, outStreamSimpleMono2, outStreamSimpleMono3);
+				outStreamSimpleMono0, outStreamSimpleMono1, outStreamSimpleMono2, outStreamSimpleMono3);
 		final var acm = new AudioChannelManipulation(sourceList);
 		assertTrue(acm.getToSplitFilterList().isEmpty());
 		assertTrue(acm.getMergeJoinList().isEmpty());
@@ -85,7 +86,7 @@ class AudioChannelManipulationTest {
 	@Test
 	void testStraight_remap() {
 		final var outStreamSwappedStereo = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStereo, IN_CH1).mapChannel(inStereo, IN_CH0);
+				.mapChannel(inStereo, IN_CH1).mapChannel(inStereo, IN_CH0);
 
 		final var acm = new AudioChannelManipulation(List.of(outStreamSwappedStereo));
 		assertTrue(acm.getToSplitFilterList().isEmpty());
@@ -103,7 +104,7 @@ class AudioChannelManipulationTest {
 	@Test
 	void testStraight_layoutChange() {
 		final var outStreamDownmix = new OutputAudioStream(DOWNMIX, 0, 0)
-		        .mapChannel(inStereo, IN_CH0).mapChannel(inStereo, IN_CH1);
+				.mapChannel(inStereo, IN_CH0).mapChannel(inStereo, IN_CH1);
 
 		final var acm = new AudioChannelManipulation(List.of(outStreamDownmix));
 		assertTrue(acm.getToSplitFilterList().isEmpty());
@@ -135,9 +136,9 @@ class AudioChannelManipulationTest {
 	@Test
 	void testACMSandbox_split_duplicate() {
 		final var outStreamMono0 = new OutputAudioStream(MONO, 0, 0)
-		        .mapChannel(inStereo, IN_CH0);
+				.mapChannel(inStereo, IN_CH0);
 		final var outStreamMono0Again = new OutputAudioStream(MONO, 0, 1)
-		        .mapChannel(inStereo, IN_CH0);
+				.mapChannel(inStereo, IN_CH0);
 
 		final var acm = new AudioChannelManipulation(List.of(outStreamMono0, outStreamMono0Again));
 		assertEquals(2, acm.getToSplitFilterList().size());
@@ -247,7 +248,7 @@ class AudioChannelManipulationTest {
 		void testGetMapParameters_manual() {
 			final var acm = new AudioChannelManipulation(List.of(outStreamStereo0, outStreamMono0, outStreamStereo1));
 			final var pList = acm.getMapParameters(
-			        (idx, outStream) -> Parameters.of(String.valueOf(idx), outStream.toMapReferenceAsInput()));
+					(idx, outStream) -> Parameters.of(String.valueOf(idx), outStream.toMapReferenceAsInput()));
 			assertNotNull(pList);
 			assertEquals(2, pList.size());
 			assertEquals("0 mergjoin0 1 split0", pList.get(0).toString());
@@ -279,16 +280,18 @@ class AudioChannelManipulationTest {
 		void testGetMapParameters_InputStreams() {
 			final var probe = Mockito.mock(FFprobeJAXB.class);
 
-			final var streamTypeVideo = new StreamType();
-			streamTypeVideo.setIndex(0);
-			streamTypeVideo.setCodecType("video");
-			final var streamTypeAudio = new StreamType();
-			streamTypeAudio.setIndex(1);
-			streamTypeAudio.setCodecType("audio");
+			final var streamTypeVideo = Mockito.mock(FFProbeStream.class);
+			when(streamTypeVideo.index()).thenReturn(0);
+			when(streamTypeVideo.codecType()).thenReturn("video");
+
+			final var streamTypeAudio = Mockito.mock(FFProbeStream.class);
+			when(streamTypeAudio.index()).thenReturn(1);
+			when(streamTypeAudio.codecType()).thenReturn("audio");
+
 			Mockito.when(probe.getStreams()).thenReturn(List.of(streamTypeVideo, streamTypeAudio));
 
 			final var acm = new AudioChannelManipulation(List.of(outStreamStereo0, outStreamMono0, outStreamStereo1));
-			final var tested = new LinkedHashMap<Integer, StreamType>();
+			final var tested = new LinkedHashMap<Integer, FFProbeStream>();
 			final var pList = acm.getMapParameters(List.of(probe), (i, s) -> {
 				tested.put(i, s);
 				return true;
