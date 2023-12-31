@@ -13,8 +13,8 @@
     <parent>
         <groupId>tv.hd3g.commons</groupId>
         <artifactId>starter</artifactId>
-        <version>18.0.2</version>
-        <relativePath />
+        <version>19.0.0</version>
+        <relativePath/>
     </parent>
 
     <modules>
