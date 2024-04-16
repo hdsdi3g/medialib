@@ -137,7 +137,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	@Test
 	void testResultValues() throws Exception {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
-		        DemoExecIOText.class.getName());
+				DemoExecIOText.class.getName());
 		parameters.addParameters(DemoExecIOText.expectedIn);
 		final var cmd = new CommandLine("java", parameters, executableFinder);
 		final var ept = new ProcesslauncherBuilder(cmd);
@@ -167,7 +167,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		final var duration = System.currentTimeMillis() - startTime;
 
 		MatcherAssert.assertThat(duration, Matchers.lessThan(DemoExecLongSleep.MAX_DURATION
-		                                                     + 1500)); /** 1500 is a "startup time bonus" */
+															 + 1500)); /** 1500 is a "startup time bonus" */
 		assertEquals(EndStatus.TOO_LONG_EXECUTION_TIME, result.getEndStatus());
 
 		assertTrue(result.isTooLongTime());
@@ -192,7 +192,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		final var duration = System.currentTimeMillis() - startTime;
 
 		MatcherAssert.assertThat(duration, Matchers.lessThan(DemoExecLongSleep.MAX_DURATION
-		                                                     + 1500)); /** 1500 is a "startup time bonus" */
+															 + 1500)); /** 1500 is a "startup time bonus" */
 		assertEquals(EndStatus.KILLED, result.getEndStatus());
 
 		assertFalse(result.isTooLongTime());
@@ -251,7 +251,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	@Test
 	void testInteractiveHandler() throws Exception {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
-		        DemoExecInteractive.class.getName());
+				DemoExecInteractive.class.getName());
 		parameters.addParameters("foo");
 		final var cmd = new CommandLine("java", parameters, executableFinder);
 		final var ept = new ProcesslauncherBuilder(cmd);
@@ -283,7 +283,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		};
 
 		ept.getSetCaptureStandardOutputAsOutputText(CapturedStreams.BOTH_STDOUT_STDERR)
-		        .addObserver(new CapturedStdOutErrTextInteractive(interactive));
+				.addObserver(new CapturedStdOutErrTextInteractive(interactive));
 
 		final var result = ept.start().waitForEnd();
 
@@ -312,7 +312,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	@Test
 	void testCheckExecutionOk() throws InterruptedException, ExecutionException, IOException {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
-		        DemoExecExitCode.class.getName());
+				DemoExecExitCode.class.getName());
 		parameters.addParameters("0");
 		final var cmd = new CommandLine("java", parameters, executableFinder);
 		final var ept1 = new ProcesslauncherBuilder(cmd);
@@ -323,7 +323,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	@Test
 	void testCheckExecutionError() throws InterruptedException, ExecutionException, IOException {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
-		        DemoExecExitCode.class.getName());
+				DemoExecExitCode.class.getName());
 		parameters.addParameters("1");
 		final var cmd = new CommandLine("java", parameters, executableFinder);
 		final var result = new ProcesslauncherBuilder(cmd).start();
@@ -358,13 +358,9 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		final var errors = new AtomicReference<Exception>();
 
 		final InputStreamConsumer stdOutConsumer = (processInputStream, source) -> {
-			try {
-				final var lines = IOUtils.readLines(processInputStream, StandardCharsets.UTF_8);
-				lineCount.set((int) lines.stream().filter(l -> l.equals(DemoExecLongStdOutErr.STD_OUT)).count());
-				endOk.set(lines.get(lines.size() - 1).equals(DemoExecLongStdOutErr.STD_OUT_END));
-			} catch (final IOException e) {
-				errors.set(e);
-			}
+			final var lines = IOUtils.readLines(processInputStream, StandardCharsets.UTF_8);
+			lineCount.set((int) lines.stream().filter(l -> l.equals(DemoExecLongStdOutErr.STD_OUT)).count());
+			endOk.set(lines.get(lines.size() - 1).equals(DemoExecLongStdOutErr.STD_OUT_END));
 		};
 
 		ept.setCaptureStandardOutput(new DirectStandardOutputStdErrRetention(textRetention, stdOutConsumer));

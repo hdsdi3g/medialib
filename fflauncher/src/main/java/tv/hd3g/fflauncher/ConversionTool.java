@@ -463,10 +463,11 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 				})
 				.map(File::toPath)
 				.flatMap(dirPath -> {
-					try (var result = Files.walk(dirPath)
-							.sorted(reverseOrder())
-							.map(Path::toFile)) {
-						return result.toList().stream();
+					try (var fWalk = Files.walk(dirPath)) {
+						return fWalk.sorted(reverseOrder())
+								.map(Path::toFile)
+								.toList()
+								.stream();
 					} catch (final IOException e) {
 						log.error("Can't access to {}", dirPath, e);
 						return Stream.empty();
