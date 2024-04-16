@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 15.0.1
+
+Update deps #85
+
 ## 15.0.0
 
 Deeply refactor FFprobeJAXB to manage multiple ffprobe XSD versions #73
