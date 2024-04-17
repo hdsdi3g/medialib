@@ -1535,7 +1535,7 @@
         </chapter>
     </chapters>
 
-    <format filename="../.demo-media-files/test-vp8.mkv" nb_streams="2" nb_programs="0" format_name="matroska,webm" format_long_name="Matroska / WebM" start_time="-0.021000" duration="5.021000" size="240334" bit_rate="382926" probe_score="100">
+    <format filename="../.demo-media-files/test-vp8.mkv" nb_streams="2" nb_programs="0" format_name="matroska,webm" format_long_name="Matroska / WebM" start_time="-0.021000" duration="5.021000" size="240423" bit_rate="383067" probe_score="100">
         <tag key="title" value="Media title"/>
         <tag key="ENCODER" value="Lavf60.3.100"/>
     </format>

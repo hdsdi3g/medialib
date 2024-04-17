@@ -23,7 +23,7 @@ import javax.xml.bind.JAXBException;
 
 public enum FFprobeXSDVersion {
 
-	V611("org.ffmpeg.ffprobe611", org.ffmpeg.ffprobe611.FfprobeType.class, FFprobeJAXB611::new),
+	V700("org.ffmpeg.ffprobe700", org.ffmpeg.ffprobe700.FfprobeType.class, FFprobeJAXB700::new),
 	V436("org.ffmpeg.ffprobe436", org.ffmpeg.ffprobe436.FfprobeType.class, FFprobeJAXB436::new);
 
 	private final String contextPath;

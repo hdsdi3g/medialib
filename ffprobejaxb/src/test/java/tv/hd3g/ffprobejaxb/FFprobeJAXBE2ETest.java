@@ -435,7 +435,7 @@ class FFprobeJAXBE2ETest {
 			}
 
 			if (isXMLNameContains("vp8.mkv")) {
-				assertThat(ms.format()).isEqualTo("Matroska / WebM, 00:00:05, 240334 bytes, 1 chapter, 383 kbps");
+				assertThat(ms.format()).isEqualTo("Matroska / WebM, 00:00:05, 240423 bytes, 1 chapter, 383 kbps");
 
 				if (isXMLNameContains("-2.")) {
 					assertThat(vStream).isEqualTo(

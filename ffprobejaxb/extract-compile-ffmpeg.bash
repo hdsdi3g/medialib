@@ -56,20 +56,20 @@ function make_and_test() {
 	fi
 }
 
-make_and_test "6.1.1"
-make_and_test "6.2-dev"
-make_and_test "6.1"
-make_and_test "5.1.4"
 make_and_test "2.8.22"
 make_and_test "3.4.13"
-
 make_and_test "4.1.11"
 make_and_test "4.2.9"
 make_and_test "4.3.6"
 make_and_test "4.4.4"
-
 make_and_test "5.0.3"
 make_and_test "5.1.3"
+make_and_test "5.1.4"
 make_and_test "6.0"
+make_and_test "6.0.1"
+make_and_test "6.1"
+make_and_test "6.1.1"
 make_and_test "6.1-dev"
-
+make_and_test "6.2-dev"
+make_and_test "7.0"
+make_and_test "7.1-dev"

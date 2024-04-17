@@ -14,6 +14,8 @@ You should see another project to use *ffprobe-jaxb*: [fflauncher](https://githu
 
 ## Add new XSDs, after a new ffmpeg release
 
+You can found a new XSD on `./doc/ffprobe.xsd` FFmpeg git repository.
+
 This documentation is only for *ffprobe-jaxb* maintenance.
 
 > If the new XSD is the same at the most recent in the `old xsd refs` directory.

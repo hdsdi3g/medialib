@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 15.0.2
+
+Update FFprobeJAXB to handle to ffprobe XML v7.0 #88
+
 ## 15.0.1
 
 Update deps #85
