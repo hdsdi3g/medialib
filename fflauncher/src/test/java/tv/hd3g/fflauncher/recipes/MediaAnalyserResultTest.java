@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.mockito.internal.verification.VerificationModeFactory.atMostOnce;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
-import tv.hd3g.fflauncher.resultparser.Ebur128Summary;
 
 class MediaAnalyserResultTest {
 
@@ -41,23 +41,20 @@ class MediaAnalyserResultTest {
 	@Mock
 	LavfiMetadataFilterParser lavfiMetadatas;
 	@Mock
-	Ebur128Summary ebur128Summary;
-	@Mock
 	Set<MediaAnalyserSessionFilterContext> filters;
 
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
-		r = new MediaAnalyserResult(lavfiMetadatas, ebur128Summary, filters);
+		r = new MediaAnalyserResult(lavfiMetadatas, filters, Optional.of(0));
 	}
 
 	@AfterEach
 	void ends() {
 		verify(lavfiMetadatas, atMostOnce()).getReportCount();
 		verify(lavfiMetadatas, atMostOnce()).getEventCount();
-		verify(ebur128Summary, atMostOnce()).isEmpty();
 
-		verifyNoMoreInteractions(filters, lavfiMetadatas, ebur128Summary);
+		verifyNoMoreInteractions(filters, lavfiMetadatas);
 	}
 
 	@Test
@@ -78,9 +75,4 @@ class MediaAnalyserResultTest {
 		assertFalse(r.isEmpty());
 	}
 
-	@Test
-	void testIsEmpty_Ebur128() {
-		when(ebur128Summary.isEmpty()).thenReturn(false);
-		assertFalse(r.isEmpty());
-	}
 }

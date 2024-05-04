@@ -23,8 +23,6 @@ public record FFprobeVideoFrameConst(FFprobeVideoFrame updatedWith,
 									 int height,
 									 String pixFmt,
 									 String sampleAspectRatio,
-									 int codedPictureNumber,
-									 int displayPictureNumber,
 									 boolean interlacedFrame,
 									 boolean topFieldFirst,
 									 String colorRange,
@@ -43,12 +41,10 @@ public record FFprobeVideoFrameConst(FFprobeVideoFrame updatedWith,
 			return false;
 		}
 		final var other = obj;
-		return codedPictureNumber == other.codedPictureNumber
-			   && Objects.equals(colorPrimaries, other.colorPrimaries)
+		return Objects.equals(colorPrimaries, other.colorPrimaries)
 			   && Objects.equals(colorRange, other.colorRange)
 			   && Objects.equals(colorSpace, other.colorSpace)
 			   && Objects.equals(colorTransfer, other.colorTransfer)
-			   && displayPictureNumber == other.displayPictureNumber
 			   && height == other.height
 			   && interlacedFrame == other.interlacedFrame
 			   && Objects.equals(pixFmt, other.pixFmt)

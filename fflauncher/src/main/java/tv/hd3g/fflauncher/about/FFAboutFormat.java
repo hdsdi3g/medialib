@@ -33,10 +33,8 @@ public class FFAboutFormat {
 	static List<FFAboutFormat> parseFormats(final List<String> lines) {
 		return lines.stream()
 				.map(String::trim)
-				.filter(line -> (line.toLowerCase().startsWith("File formats:".toLowerCase()) == false))
-				.filter(line -> (line.toLowerCase().startsWith("D. = Demuxing supported".toLowerCase()) == false))
-				.filter(line -> (line.toLowerCase().startsWith(".E = Muxing supported".toLowerCase()) == false))
-				.filter(line -> (line.startsWith("--") == false))
+				.dropWhile(line -> line.startsWith("-") == false && line.endsWith("-") == false)
+				.filter(line -> line.startsWith("-") == false && line.endsWith("-") == false)
 				.map(FFAboutFormat::new)
 				.toList();
 	}
@@ -60,7 +58,6 @@ public class FFAboutFormat {
 	public final String longName;
 
 	FFAboutFormat(final String line) {
-
 		final var lineBlocs = Arrays.stream(line.split(" "))
 				.filter(lb -> lb.trim().equals("") == false)
 				.map(String::trim)
@@ -73,11 +70,16 @@ public class FFAboutFormat {
 		demuxing = lineBlocs.get(0).trim().contains("D");
 		muxing = lineBlocs.get(0).trim().contains("E");
 
-		if (lineBlocs.get(1).contains(",")) {
-			name = Arrays.stream(lineBlocs.get(1).trim().split(",")).findFirst().orElse("");
-			alternateTags = unmodifiableSet(Arrays.stream(lineBlocs.get(1).trim().split(",")).collect(toSet()));
+		var namesBlock = lineBlocs.get(1);
+		if (lineBlocs.get(1).equals("d")) {
+			namesBlock = lineBlocs.get(2);
+		}
+
+		if (namesBlock.contains(",")) {
+			name = Arrays.stream(namesBlock.trim().split(",")).findFirst().orElse("");
+			alternateTags = unmodifiableSet(Arrays.stream(namesBlock.trim().split(",")).collect(toSet()));
 		} else {
-			name = lineBlocs.get(1);
+			name = namesBlock;
 			alternateTags = Collections.singleton(name);
 		}
 

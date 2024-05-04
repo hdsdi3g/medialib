@@ -102,6 +102,7 @@ class ContainerAnalyserSessionTest {
 	@Mock
 	Processlauncher processlauncher;
 	String source;
+	String commandLine;
 	File sourceFile;
 	@Captor
 	ArgumentCaptor<Consumer<LineEntry>> lineEntryCaptor;
@@ -115,7 +116,8 @@ class ContainerAnalyserSessionTest {
 
 		when(executableToolRunning.getLifecyle()).thenReturn(processLifecycle);
 		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
-		when(processlauncher.getFullCommandLine()).thenReturn(faker.numerify("commandLine###"));
+		commandLine = faker.numerify("commandLine###");
+		when(processlauncher.getFullCommandLine()).thenReturn(commandLine);
 	}
 
 	@AfterEach
@@ -216,7 +218,7 @@ class ContainerAnalyserSessionTest {
 			assertEquals(
 					new FFprobeVideoFrameConst(
 							result.videoFrames().get(0),
-							2160, 3840, "yuv420p", "1:1", 0, 0, false, false,
+							2160, 3840, "yuv420p", "1:1", false, false,
 							"tv", "bt709", "bt709", "bt709"),
 					result.videoConst());
 			assertEquals(
@@ -242,7 +244,8 @@ class ContainerAnalyserSessionTest {
 		when(processLifecycle.isCorrectlyDone()).thenReturn(true);
 
 		final var sysOutList = new ArrayList<String>();
-		cas.extract(sysOutList::add);
+		final var cmdLine = cas.extract(sysOutList::add);
+		assertEquals(commandLine, cmdLine);
 
 		verify(ffprobe, times(1)).setHidebanner();
 		verify(ffprobe, times(1)).setShowFrames();

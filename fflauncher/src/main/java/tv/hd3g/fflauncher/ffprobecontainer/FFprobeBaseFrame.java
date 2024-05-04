@@ -25,8 +25,8 @@ public record FFprobeBaseFrame(FFprobeCodecType mediaType,
 							   float pktDtsTime,
 							   long bestEffortTimestamp,
 							   float bestEffortTimestampTime,
-							   int pktDuration,
-							   float pktDurationTime,
+							   int duration,
+							   float durationTime,
 							   long pktPos,
 							   int pktSize) {
 }

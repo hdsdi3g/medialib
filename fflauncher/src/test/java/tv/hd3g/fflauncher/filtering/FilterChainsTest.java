@@ -134,6 +134,17 @@ class FilterChainsTest {
 	}
 
 	@Test
+	void testGetAllFiltersInChains() {
+		assertEquals(List.of(
+				"split[main][tmp]",
+				"[tmp]crop=iw:ih/2:0:0",
+				"vflip[flip]",
+				"foobar='my text, with: [c]omas !'",
+				"[main][flip]overlay=0:H/2"),
+				filterChains.getAllFiltersInChains().map(Filter::toString).toList());
+	}
+
+	@Test
 	void testCreateChain() {
 		final var newChain = filterChains.createChain();
 		assertNotNull(newChain);

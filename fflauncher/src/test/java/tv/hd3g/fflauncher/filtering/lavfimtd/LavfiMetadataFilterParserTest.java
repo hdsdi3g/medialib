@@ -107,6 +107,18 @@ class LavfiMetadataFilterParserTest {
 			lavfi.cropdetect.h=1072
 			lavfi.cropdetect.x=0
 			lavfi.cropdetect.y=4
+			lavfi.r128.M=-36.182
+			lavfi.r128.S=-36.183
+			lavfi.r128.I=-24.545
+			lavfi.r128.LRA=17.320
+			lavfi.r128.LRA.low=-36.190
+			lavfi.r128.LRA.high=-18.870
+			lavfi.r128.sample_peaks_ch0=0.133
+			lavfi.r128.sample_peaks_ch1=0.117
+			lavfi.r128.sample_peak=0.133
+			lavfi.r128.true_peaks_ch0=0.133
+			lavfi.r128.true_peaks_ch1=0.118
+			lavfi.r128.true_peak=0.133
 			frame:87883 pts:84367728 pts_time:1757.66
 			lavfi.astats.1.DC_offset=0.000001
 			lavfi.astats.1.Peak_level=-0.622282
@@ -187,6 +199,16 @@ class LavfiMetadataFilterParserTest {
 		assertEquals(
 				List.of(new LavfiMtdValue<>(119, 4966, 4.966f, new LavfiMtdSiti(11.67f, 5.60f))),
 				p.getSitiReport());
+
+		assertEquals(List.of(
+				new LavfiMtdValue<>(7616, 317340, 317.34f, new LavfiMtdR128(
+						-36.183f, -36.182f, -24.545f, 17.320f,
+						-36.190f, -18.870f,
+						-17.522966f,
+						new Stereo<>(-17.522966f, -18.636282f),
+						-17.522966f,
+						new Stereo<>(-17.522966f, -18.562359f)))),
+				p.getR128Report());
 	}
 
 	@Test

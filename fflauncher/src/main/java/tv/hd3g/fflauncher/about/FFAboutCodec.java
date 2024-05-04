@@ -31,9 +31,9 @@ public class FFAboutCodec {
 	static List<FFAboutCodec> parse(final List<String> lines) {
 		return lines.stream()
 				.map(String::trim)
-				.filter(line -> (line.toLowerCase().startsWith("codecs:") == false))
-				.filter(line -> (line.startsWith("-------") == false))
-				.filter(line -> (line.indexOf('=') == -1)).map(FFAboutCodec::new)
+				.dropWhile(line -> line.startsWith("-") == false && line.endsWith("-") == false)
+				.filter(line -> line.startsWith("-") == false && line.endsWith("-") == false)
+				.map(FFAboutCodec::new)
 				.toList();
 	}
 

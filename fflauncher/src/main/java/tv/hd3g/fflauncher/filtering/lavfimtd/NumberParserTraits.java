@@ -16,6 +16,9 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static java.lang.Float.NaN;
+import static java.lang.Float.isFinite;
+import static java.lang.Float.isNaN;
 import static java.lang.Math.round;
 
 import java.util.Optional;
@@ -102,6 +105,13 @@ public interface NumberParserTraits {
 			return -1f;
 		}
 		return val;
+	}
+
+	default float linearToDb(final float linear) {
+		if (isFinite(linear) && isNaN(linear) == false) {
+			return (float) (20d * Math.log10(linear));
+		}
+		return NaN;
 	}
 
 }

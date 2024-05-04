@@ -14,23 +14,8 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2022
  *
  */
-package tv.hd3g.fflauncher.recipes;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-import java.util.Collection;
-import java.util.Optional;
-
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
-
-public record MediaAnalyserResult(LavfiMetadataFilterParser lavfiMetadatas,
-								  Collection<MediaAnalyserSessionFilterContext> filters,
-								  Optional<Integer> r128Target) {
-
-	public static final int R128_DEFAULT_LUFS_TARGET = -23;
-
-	public boolean isEmpty() {
-		return Optional.ofNullable(lavfiMetadatas)
-				.map(l -> l.getReportCount() > 0 || l.getEventCount() > 0)
-				.orElse(false) == false;
-	}
+public record Stereo<T>(T left, T right) {
 
 }

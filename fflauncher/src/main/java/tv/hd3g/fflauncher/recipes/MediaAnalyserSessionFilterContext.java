@@ -16,6 +16,10 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import java.util.Collection;
+
+import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
 
 public record MediaAnalyserSessionFilterContext(String type, String name, String setup, String className) {
@@ -28,6 +32,17 @@ public record MediaAnalyserSessionFilterContext(String type, String name, String
 				filter.getFilterName(),
 				filter.toString(),
 				filterSupplier.getClass().getName());
+	}
+
+	static FilterChains getFilterChains(final Collection<MediaAnalyserSessionFilterContext> filters) {
+		final var fChains = new FilterChains();
+		final var chain = fChains.createChain();
+
+		filters.stream()
+				.map(MediaAnalyserSessionFilterContext::setup)
+				.map(Filter::new)
+				.forEach(chain::add);
+		return fChains;
 	}
 
 }

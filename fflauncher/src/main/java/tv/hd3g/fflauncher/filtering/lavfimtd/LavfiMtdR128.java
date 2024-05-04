@@ -11,11 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2022
+ * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-package tv.hd3g.fflauncher.resultparser;
+package tv.hd3g.fflauncher.filtering.lavfimtd;
 
-public record Stereo<T> (T left, T right) {
-
+public record LavfiMtdR128(
+						   float shortTerm,
+						   float momentary,
+						   float integrated,
+						   float loudnessRange,
+						   float loudnessRangeLow,
+						   float loudnessRangeHigh,
+						   float samplePeak,
+						   Stereo<Float> samplePeaks,
+						   float truePeak,
+						   Stereo<Float> truePeaks) {
 }

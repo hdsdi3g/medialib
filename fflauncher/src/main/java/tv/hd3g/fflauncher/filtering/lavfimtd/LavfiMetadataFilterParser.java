@@ -48,6 +48,8 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 	@Getter
 	private final List<LavfiMtdValue<Float>> aPhaseMeterReport;
 	@Getter
+	private final List<LavfiMtdValue<LavfiMtdR128>> r128Report;
+	@Getter
 	private final List<LavfiMtdValue<LavfiMtdAstats>> aStatsReport;
 	@Getter
 	private final List<LavfiMtdValue<Float>> blockDetectReport;
@@ -72,6 +74,7 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		bucket = new ArrayList<>();
 		rawEvents = new ArrayList<>();
 		aPhaseMeterReport = new ArrayList<>();
+		r128Report = new ArrayList<>();
 		aStatsReport = new ArrayList<>();
 		blockDetectReport = new ArrayList<>();
 		blurDetectReport = new ArrayList<>();
@@ -200,6 +203,8 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 				extractMetadataFloat("phase", rawFrames, aPhaseMeterReport);
 		case "astats" -> extractAstats(rawFrames)
 				.ifPresent(value -> aStatsReport.add(toMtdValue(value)));
+		case "r128" -> extractR128(rawFrames)
+				.ifPresent(value -> r128Report.add(toMtdValue(value)));
 		case "block" ->
 				/** lavfi.block=2.204194 */
 				extractMetadataFloat(DEFAULT_KEY, rawFrames, blockDetectReport);
@@ -399,6 +404,38 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		} catch (final NullPointerException e) {
 			return Optional.empty();
 		}
+	}
+
+	/**
+	 * lavfi.r128.M=-36.182
+	 * lavfi.r128.S=-36.183
+	 * lavfi.r128.I=-24.545
+	 * lavfi.r128.LRA=17.320
+	 * lavfi.r128.LRA.low=-36.190
+	 * lavfi.r128.LRA.high=-18.870
+	 * lavfi.r128.sample_peaks_ch0=0.133
+	 * lavfi.r128.sample_peaks_ch1=0.117
+	 * lavfi.r128.sample_peak=0.133
+	 * lavfi.r128.true_peaks_ch0=0.133
+	 * lavfi.r128.true_peaks_ch1=0.118
+	 * lavfi.r128.true_peak=0.133
+	 */
+	private Optional<LavfiMtdR128> extractR128(final Map<String, String> rawFrames) {
+		return Optional.ofNullable(new LavfiMtdR128(
+				parseFloat(rawFrames.get("S")),
+				parseFloat(rawFrames.get("M")),
+				parseFloat(rawFrames.get("I")),
+				parseFloat(rawFrames.get("LRA")),
+				parseFloat(rawFrames.get("LRA.low")),
+				parseFloat(rawFrames.get("LRA.high")),
+				linearToDb(parseFloat(rawFrames.get("sample_peak"))),
+				new Stereo<>(
+						linearToDb(parseFloat(rawFrames.get("sample_peaks_ch0"))),
+						linearToDb(parseFloat(rawFrames.get("sample_peaks_ch1")))),
+				linearToDb(parseFloat(rawFrames.get("true_peak"))),
+				new Stereo<>(
+						linearToDb(parseFloat(rawFrames.get("true_peaks_ch0"))),
+						linearToDb(parseFloat(rawFrames.get("true_peaks_ch1"))))));
 	}
 
 	/**

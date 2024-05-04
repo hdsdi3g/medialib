@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import tv.hd3g.fflauncher.ConversionTool;
 import tv.hd3g.fflauncher.FFbase;
@@ -98,6 +99,10 @@ public class FilterChains {
 	 */
 	public List<Filter> getChain(final int chainId) {
 		return chain.get(chainId);
+	}
+
+	public Stream<Filter> getAllFiltersInChains() {
+		return chain.stream().flatMap(List::stream);
 	}
 
 	/**

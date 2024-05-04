@@ -18,25 +18,30 @@ package tv.hd3g.fflauncher.ffprobecontainer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.MONO;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.STEREO;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.AUDIO;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.xml.sax.Attributes;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
@@ -50,9 +55,9 @@ class FFprobeResultSAXTest {
 			<?xml version="1.0" encoding="UTF-8"?>
 			<a><b>
 			<packet codec_type="audio" stream_index="1" pts="2555904" pts_time="57.957007" dts="2555904" dts_time="57.957007" duration="1024" duration_time="0.023220" size="442" pos="84622585" flags="K_"/>
-			<frame media_type="audio" stream_index="1" key_frame="1" pts="2555904" pts_time="57.957007" pkt_dts="2555904" pkt_dts_time="57.957007" best_effort_timestamp="2555904" best_effort_timestamp_time="57.957007" pkt_duration="1024" pkt_duration_time="0.023220" pkt_pos="84622585" pkt_size="442" sample_fmt="fltp" nb_samples="1024" channels="2" channel_layout="stereo"/>
+			<frame media_type="audio" stream_index="1" key_frame="1" pts="2555904" pts_time="57.957007" pkt_dts="2555904" pkt_dts_time="57.957007" best_effort_timestamp="2555904" best_effort_timestamp_time="57.957007" duration="1024" duration_time="0.023220" pkt_pos="84622585" pkt_size="442" sample_fmt="fltp" nb_samples="1024" channels="2" channel_layout="stereo"/>
 			<packet codec_type="video" stream_index="0" pts="1738737" pts_time="57.957900" dts="1738737" dts_time="57.957900" duration="1001" duration_time="0.033367" size="75214" pos="84623027" flags="__"/>
-			<frame media_type="video" stream_index="0" key_frame="0" pts="1738737" pts_time="57.957900" pkt_dts="1738737" pkt_dts_time="57.957900" best_effort_timestamp="1738737" best_effort_timestamp_time="57.957900" pkt_duration="1001" pkt_duration_time="0.033367" pkt_pos="84623027" pkt_size="75214" width="3840" height="2160" pix_fmt="yuv420p" sample_aspect_ratio="1:1" pict_type="P" coded_picture_number="0" display_picture_number="0" interlaced_frame="0" top_field_first="0" repeat_pict="0" color_range="tv" color_space="bt709" color_primaries="bt709" color_transfer="bt709"/>
+			<frame media_type="video" stream_index="0" key_frame="0" pts="1738737" pts_time="57.957900" pkt_dts="1738737" pkt_dts_time="57.957900" best_effort_timestamp="1738737" best_effort_timestamp_time="57.957900" duration="1001" duration_time="0.033367" pkt_pos="84623027" pkt_size="75214" width="3840" height="2160" pix_fmt="yuv420p" sample_aspect_ratio="1:1" pict_type="P" interlaced_frame="0" top_field_first="0" repeat_pict="0" color_range="tv" color_space="bt709" color_primaries="bt709" color_transfer="bt709"/>
 			</b></a>
 			""";
 
@@ -111,7 +116,7 @@ class FFprobeResultSAXTest {
 		assertEquals(
 				new FFprobeVideoFrameConst(
 						r.videoFrames().get(0),
-						3840, 2160, "yuv420p", "1:1", 0, 0, false, false,
+						3840, 2160, "yuv420p", "1:1", false, false,
 						"tv", "bt709", "bt709", "bt709"),
 				r.videoConst());
 
@@ -176,7 +181,7 @@ class FFprobeResultSAXTest {
 		assertEquals(
 				new FFprobeVideoFrameConst(
 						r.videoFrames().get(0),
-						3840, 2160, "yuv420p", "1:1", 0, 0, false, false,
+						3840, 2160, "yuv420p", "1:1", false, false,
 						"tv", "bt709", "bt709", "bt709"),
 				r.videoConst());
 
@@ -187,9 +192,158 @@ class FFprobeResultSAXTest {
 		assertEquals(List.of(
 				new FFprobeVideoFrameConst(
 						r.videoFrames().get(0),
-						1920, 1080, "yuv422i", "16:9", 0, 1, true, true,
+						1920, 1080, "yuv422i", "16:9", true, true,
 						"cinema", "bt2020", "bt2020", "bt2020")),
 				r.olderVideoConsts());
 	}
 
+	@Nested
+	class SAXAttributeParserTraitsTest {
+		static Faker faker = net.datafaker.Faker.instance();
+
+		@Mock
+		Attributes attributes;
+
+		String keyName;
+		String sValue;
+		int iValue;
+		float fValue;
+		long lValue;
+
+		@BeforeEach
+		void init() throws Exception {
+			openMocks(this).close();
+			keyName = faker.numerify("keyName###");
+			sValue = faker.numerify("sValue###");
+			iValue = faker.random().nextInt();
+			fValue = faker.random().nextFloat();
+			lValue = faker.random().nextLong();
+		}
+
+		@AfterEach
+		void end() {
+			verifyNoMoreInteractions(attributes);
+		}
+
+		@Test
+		void testGetAttrValueAttributesString() {
+			when(attributes.getValue(keyName)).thenReturn(sValue);
+			assertEquals(Optional.ofNullable(sValue), s.getAttrValue(attributes, keyName));
+			verify(attributes, times(1)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrValueAttributesStringString() {
+			final var orDefault = faker.numerify("or###");
+			assertEquals(orDefault, s.getAttrValue(attributes, keyName, orDefault));
+
+			when(attributes.getValue(keyName)).thenReturn(sValue);
+			assertEquals(sValue, s.getAttrValue(attributes, keyName, orDefault));
+
+			verify(attributes, times(2)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrBooleanValueAttributesString() {
+			assertFalse(s.getAttrBooleanValue(attributes, keyName).isPresent());
+
+			when(attributes.getValue(keyName)).thenReturn("1");
+			assertTrue(s.getAttrBooleanValue(attributes, keyName).get());
+
+			when(attributes.getValue(keyName)).thenReturn("nope");
+			assertFalse(s.getAttrBooleanValue(attributes, keyName).get());
+
+			verify(attributes, times(3)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrBooleanValueAttributesStringBoolean() {
+			assertTrue(s.getAttrBooleanValue(attributes, keyName, true));
+			assertFalse(s.getAttrBooleanValue(attributes, keyName, false));
+
+			when(attributes.getValue(keyName)).thenReturn("1");
+			assertTrue(s.getAttrBooleanValue(attributes, keyName, false));
+
+			when(attributes.getValue(keyName)).thenReturn("nope");
+			assertFalse(s.getAttrBooleanValue(attributes, keyName, true));
+
+			verify(attributes, times(4)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrIntValueAttributesString() {
+			assertFalse(s.getAttrIntValue(attributes, keyName).isPresent());
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(iValue));
+			assertEquals(Optional.ofNullable(iValue), s.getAttrIntValue(attributes, keyName));
+
+			when(attributes.getValue(keyName)).thenReturn("nope");
+			assertFalse(s.getAttrIntValue(attributes, keyName).isPresent());
+
+			verify(attributes, times(3)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrIntValueAttributesStringInt() {
+			final var orDefault = faker.random().nextInt();
+
+			assertEquals(orDefault, s.getAttrIntValue(attributes, keyName, orDefault));
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(iValue));
+			assertEquals(iValue, s.getAttrIntValue(attributes, keyName, orDefault));
+
+			verify(attributes, times(2)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrLongValueAttributesString() {
+			assertFalse(s.getAttrLongValue(attributes, keyName).isPresent());
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(lValue));
+			assertEquals(Optional.ofNullable(lValue), s.getAttrLongValue(attributes, keyName));
+
+			when(attributes.getValue(keyName)).thenReturn("nope");
+			assertFalse(s.getAttrLongValue(attributes, keyName).isPresent());
+
+			verify(attributes, times(3)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrLongValueAttributesStringLong() {
+			final var orDefault = faker.random().nextLong();
+
+			assertEquals(orDefault, s.getAttrLongValue(attributes, keyName, orDefault));
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(lValue));
+			assertEquals(lValue, s.getAttrLongValue(attributes, keyName, orDefault));
+
+			verify(attributes, times(2)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrFloatValueAttributesString() {
+			assertFalse(s.getAttrFloatValue(attributes, keyName).isPresent());
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(fValue));
+			assertEquals(Optional.ofNullable(fValue), s.getAttrFloatValue(attributes, keyName));
+
+			when(attributes.getValue(keyName)).thenReturn("nope");
+			assertFalse(s.getAttrFloatValue(attributes, keyName).isPresent());
+
+			verify(attributes, times(3)).getValue(keyName);
+		}
+
+		@Test
+		void testGetAttrFloatValueAttributesStringFloat() {
+			final var orDefault = faker.random().nextFloat();
+
+			assertEquals(orDefault, s.getAttrFloatValue(attributes, keyName, orDefault));
+
+			when(attributes.getValue(keyName)).thenReturn(String.valueOf(fValue));
+			assertEquals(fValue, s.getAttrFloatValue(attributes, keyName, orDefault));
+
+			verify(attributes, times(2)).getValue(keyName);
+		}
+
+	}
 }

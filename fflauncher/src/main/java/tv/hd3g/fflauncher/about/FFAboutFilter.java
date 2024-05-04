@@ -29,7 +29,7 @@ public class FFAboutFilter {
 		return lines.stream()
 				.map(String::trim)
 				.filter(line -> (line.toLowerCase().startsWith("Filters:".toLowerCase()) == false))
-				.filter(line -> (line.startsWith("---") == false))
+				.filter(line -> line.startsWith("-") == false && line.endsWith("-") == false)
 				.filter(line -> (line.indexOf('=') == -1))
 				.map(FFAboutFilter::new)
 				.toList();

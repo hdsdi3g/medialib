@@ -84,7 +84,7 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 		return parser.getResult(null);
 	}
 
-	public void extract(final Consumer<String> sysOut) {
+	public String extract(final Consumer<String> sysOut) {
 		final var ffprobe = prepareFFprobe();
 
 		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
@@ -99,7 +99,8 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 					}
 				});
 
-		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+		final var fullCommandLine = processLifecycle.getLauncher().getFullCommandLine();
+		log.debug("Start {}", fullCommandLine);
 
 		processLifecycle.waitForEnd();
 		final var execOk = processLifecycle.isCorrectlyDone();
@@ -107,6 +108,7 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 			final var stdErr = stdErrLinesBucket.stream().collect(Collectors.joining("|"));
 			throw new InvalidExecution(processLifecycle, stdErr);
 		}
+		return fullCommandLine;
 	}
 
 }

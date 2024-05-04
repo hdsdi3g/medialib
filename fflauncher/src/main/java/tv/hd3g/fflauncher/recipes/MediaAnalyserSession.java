@@ -17,14 +17,14 @@
 package tv.hd3g.fflauncher.recipes;
 
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
+import static tv.hd3g.fflauncher.enums.FFLogLevel.WARNING;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext.getFilterChains;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,13 +35,12 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFmpeg;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
+import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.FilterArgument;
 import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.FilterSupplier;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.RawStdErrEventParser;
-import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.processlauncher.InvalidExecution;
 
@@ -55,8 +54,6 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 	private final File sourceFile;
 
 	private FFprobeJAXB ffprobeResult;
-	private BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer;
-	private BiConsumer<MediaAnalyserSession, RawStdErrFilterEvent> rawStdErrEventConsumer;
 	private String pgmFFDuration;
 	private String pgmFFStartTime;
 
@@ -70,9 +67,6 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 
 		audioFilters = Collections.unmodifiableList(mediaAnalyser.getAudioFilters());
 		videoFilters = Collections.unmodifiableList(mediaAnalyser.getVideoFilters());
-
-		ebur128EventConsumer = (m, event) -> log.trace("On ebur128: {} on {}", event, m);
-		rawStdErrEventConsumer = (m, event) -> log.trace("On rawStd: {} on {}", event, m);
 	}
 
 	public MediaAnalyserSession setFFprobeResult(final FFprobeJAXB ffprobeResult) {
@@ -82,17 +76,6 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 
 	public Optional<FFprobeJAXB> getFFprobeResult() {
 		return Optional.ofNullable(ffprobeResult);
-	}
-
-	public void setEbur128EventConsumer(final BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer) {
-		this.ebur128EventConsumer = Objects.requireNonNull(ebur128EventConsumer,
-				"\"ebur128EventConsumer\" can't to be null");
-	}
-
-	public void setRawStdErrEventConsumer(final BiConsumer<MediaAnalyserSession, RawStdErrFilterEvent> rawStdErrEventConsumer) {
-		this.rawStdErrEventConsumer = Objects.requireNonNull(rawStdErrEventConsumer,
-				"\"rawStdErrEventConsumer\" can't to be null");
-
 	}
 
 	public void setPgmFFDuration(final String pgmFFDuration) {
@@ -119,6 +102,7 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		final var ffmpeg = mediaAnalyser.createFFmpeg();
 		ffmpeg.setHidebanner();
 		ffmpeg.setNostats();
+		ffmpeg.setLogLevel(WARNING, false, true);
 
 		if (source != null) {
 			ffmpeg.addSimpleInputSource(source);
@@ -171,13 +155,6 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		final var ffmpeg = prepareFFmpeg();
 
 		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
-		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
-			if (event.getFilterName().equals("ebur128")) {
-				ebur128EventConsumer.accept(this, new Ebur128StrErrFilterEvent(event.getLineValue()));
-			} else {
-				rawStdErrEventConsumer.accept(this, event);
-			}
-		});
 
 		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
 		final var processLifecycle = ffmpeg.execute(mediaAnalyser.getExecutableFinder(),
@@ -187,7 +164,6 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 					if (lineEntry.isStdErr() == false) {
 						lavfiMetadataFilterParser.addLavfiRawLine(line);
 					} else {
-						rawStdErrEventParser.onLine(line);
 						stdErrLinesBucket.add(line.trim());
 					}
 				});
@@ -205,10 +181,27 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 				.flatMap(Supplier::get)
 				.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
 
+		final var r128Target = FilterChains.parse("-af", ffmpeg.getInternalParameters())
+				.stream()
+				.map(MediaAnalyserSession::extractEbur128TargetFromAFilterChains)
+				.flatMap(Optional::stream)
+				.findFirst();
+
 		return new MediaAnalyserResult(
 				lavfiMetadataFilterParser.close(),
-				rawStdErrEventParser.close(),
-				getFilterContextList());
+				getFilterContextList(),
+				r128Target);
+	}
+
+	static Optional<Integer> extractEbur128TargetFromAFilterChains(final FilterChains fchains) {
+		return fchains.getAllFiltersInChains()
+				.filter(f -> f.getFilterName().equals("ebur128"))
+				.map(Filter::getArguments)
+				.flatMap(List::stream)
+				.filter(f -> f.getKey().equals("target"))
+				.map(FilterArgument::getValue)
+				.map(Integer::parseInt)
+				.findFirst();
 	}
 
 	public List<MediaAnalyserSessionFilterContext> getFilterContextList() {
@@ -225,26 +218,15 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 	}
 
 	public static MediaAnalyserResult importFromOffline(final Stream<String> stdOutLines,
-														final Stream<String> stdErrLines,
-														final Consumer<Ebur128StrErrFilterEvent> ebur128EventConsumer,
-														final Consumer<RawStdErrFilterEvent> rawStdErrEventConsumer,
 														final Collection<MediaAnalyserSessionFilterContext> filters) {
 		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
 		stdOutLines.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
+		final var ebur128Target = extractEbur128TargetFromAFilterChains(getFilterChains(filters));
 
-		final var rawStdErrEventParser = new RawStdErrEventParser(event -> {
-			if (event.getFilterName().equals("ebur128")) {
-				ebur128EventConsumer.accept(new Ebur128StrErrFilterEvent(event.getLineValue()));
-			} else {
-				rawStdErrEventConsumer.accept(event);
-			}
-		});
-		stdErrLines.forEach(rawStdErrEventParser::onLine);
-
-		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), rawStdErrEventParser.close(), filters);
+		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), filters, ebur128Target);
 	}
 
-	public void extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {
+	public String extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {
 		final var ffmpeg = prepareFFmpeg();
 
 		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
@@ -260,7 +242,8 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 					}
 				});
 
-		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+		final var ffmpegCommandLine = processLifecycle.getLauncher().getFullCommandLine();
+		log.debug("Start {}", ffmpegCommandLine);
 
 		processLifecycle.waitForEnd();
 		final var execOk = processLifecycle.isCorrectlyDone();
@@ -268,6 +251,7 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 			final var stdErr = stdErrLinesBucket.stream().collect(Collectors.joining("|"));
 			throw new InvalidExecution(processLifecycle, stdErr);
 		}
+		return ffmpegCommandLine;
 	}
 
 	public String getSource() {

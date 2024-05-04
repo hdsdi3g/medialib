@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +52,8 @@ import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 @Slf4j
 public class FFprobeResultSAX extends DefaultHandler implements
 							  ErrorHandler,
-							  InputStreamConsumer,
-							  SAXAttributeParserTraits {
+							  InputStreamConsumer {
+	private static final String CAN_T_PARSE_NUMBER = "Can't parse number: {}";
 	private static final String STREAM_INDEX = "stream_index";
 	private static final SAXParserFactory factory;
 
@@ -68,6 +69,7 @@ public class FFprobeResultSAX extends DefaultHandler implements
 	}
 
 	private String processSource;
+	private final HashSet<String> notFoundKeysAfterWarn;
 	private final List<FFprobePacket> packets;
 	private final List<FFprobeAudioFrame> audioFrames;
 	private final List<FFprobeVideoFrame> videoFrames;
@@ -78,6 +80,7 @@ public class FFprobeResultSAX extends DefaultHandler implements
 	private FFprobeAudioFrameConst audioConst;
 
 	public FFprobeResultSAX() {
+		notFoundKeysAfterWarn = new HashSet<>();
 		packets = new ArrayList<>();
 		audioFrames = new ArrayList<>();
 		videoFrames = new ArrayList<>();
@@ -192,8 +195,8 @@ public class FFprobeResultSAX extends DefaultHandler implements
 				getAttrFloatValue(attributes, "pkt_dts_time", -1),
 				getAttrLongValue(attributes, "best_effort_timestamp", -1),
 				getAttrFloatValue(attributes, "best_effort_timestamp_time", -1),
-				getAttrIntValue(attributes, "pkt_duration", -1),
-				getAttrFloatValue(attributes, "pkt_duration_time", -1),
+				getAttrIntValue(attributes, "duration", -1),
+				getAttrFloatValue(attributes, "duration_time", -1f),
 				getAttrLongValue(attributes, "pkt_pos", -1),
 				getAttrIntValue(attributes, "pkt_size", -1));
 
@@ -226,8 +229,6 @@ public class FFprobeResultSAX extends DefaultHandler implements
 				getAttrIntValue(attributes, "height", 0),
 				getAttrValue(attributes, "pix_fmt", null),
 				getAttrValue(attributes, "sample_aspect_ratio", null),
-				getAttrIntValue(attributes, "coded_picture_number", 0),
-				getAttrIntValue(attributes, "display_picture_number", 0),
 				getAttrBooleanValue(attributes, "interlaced_frame", false),
 				getAttrBooleanValue(attributes, "top_field_first", false),
 				getAttrValue(attributes, "color_range", null),
@@ -291,6 +292,74 @@ public class FFprobeResultSAX extends DefaultHandler implements
 	@Override
 	public void warning(final SAXParseException e) throws SAXException {
 		log.warn("SAX warning (during {})", processSource, e);
+	}
+
+	public Optional<String> getAttrValue(final Attributes attributes, final String keyName) {
+		return Optional.ofNullable(attributes.getValue(keyName))
+				.or(() -> {
+					if (notFoundKeysAfterWarn.contains(keyName) == false) {
+						log.debug("Missing XML attribute: {}", keyName);
+						notFoundKeysAfterWarn.add(keyName);
+					}
+					return Optional.empty();
+				});
+	}
+
+	public String getAttrValue(final Attributes attributes, final String keyName, final String orDefault) {
+		return getAttrValue(attributes, keyName).orElse(orDefault);
+	}
+
+	public Optional<Boolean> getAttrBooleanValue(final Attributes attributes, final String keyName) {
+		return getAttrValue(attributes, keyName).map(v -> v.equals("1"));
+	}
+
+	public boolean getAttrBooleanValue(final Attributes attributes, final String keyName, final boolean orDefault) {
+		return getAttrBooleanValue(attributes, keyName).orElse(orDefault);
+	}
+
+	public Optional<Integer> getAttrIntValue(final Attributes attributes, final String keyName) {
+		return getAttrValue(attributes, keyName).flatMap(v -> {
+			try {
+				return Optional.ofNullable(Integer.valueOf(v));
+			} catch (final NumberFormatException e) {
+				log.warn(CAN_T_PARSE_NUMBER, v);
+				return Optional.empty();
+			}
+		});
+	}
+
+	public int getAttrIntValue(final Attributes attributes, final String keyName, final int orDefault) {
+		return getAttrIntValue(attributes, keyName).orElse(orDefault);
+	}
+
+	public Optional<Long> getAttrLongValue(final Attributes attributes, final String keyName) {
+		return getAttrValue(attributes, keyName).flatMap(v -> {
+			try {
+				return Optional.ofNullable(Long.valueOf(v));
+			} catch (final NumberFormatException e) {
+				log.warn(CAN_T_PARSE_NUMBER, v);
+				return Optional.empty();
+			}
+		});
+	}
+
+	public long getAttrLongValue(final Attributes attributes, final String keyName, final long orDefault) {
+		return getAttrLongValue(attributes, keyName).orElse(orDefault);
+	}
+
+	public Optional<Float> getAttrFloatValue(final Attributes attributes, final String keyName) {
+		return getAttrValue(attributes, keyName).flatMap(v -> {
+			try {
+				return Optional.ofNullable(Float.valueOf(v));
+			} catch (final NumberFormatException e) {
+				log.warn(CAN_T_PARSE_NUMBER, v);
+				return Optional.empty();
+			}
+		});
+	}
+
+	public float getAttrFloatValue(final Attributes attributes, final String keyName, final float orDefault) {
+		return getAttrFloatValue(attributes, keyName).orElse(orDefault);
 	}
 
 }

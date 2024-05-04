@@ -17,6 +17,7 @@
 package tv.hd3g.fflauncher.recipes;
 
 import static net.datafaker.Faker.instance;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,13 +34,14 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
+import static tv.hd3g.fflauncher.enums.FFLogLevel.WARNING;
+import static tv.hd3g.fflauncher.recipes.MediaAnalyserSession.extractEbur128TargetFromAFilterChains;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -47,9 +49,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.FFmpeg;
@@ -57,13 +58,12 @@ import tv.hd3g.fflauncher.filtering.AbstractFilterMetadata.Mode;
 import tv.hd3g.fflauncher.filtering.AudioFilterAMetadata;
 import tv.hd3g.fflauncher.filtering.AudioFilterSupplier;
 import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.fflauncher.filtering.FilterChains;
 import tv.hd3g.fflauncher.filtering.VideoFilterMetadata;
 import tv.hd3g.fflauncher.filtering.VideoFilterSupplier;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdEvent;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdSiti;
 import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdValue;
-import tv.hd3g.fflauncher.resultparser.Ebur128StrErrFilterEvent;
-import tv.hd3g.fflauncher.resultparser.RawStdErrFilterEvent;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.InvalidExecution;
@@ -74,6 +74,8 @@ import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class MediaAnalyserSessionTest {
+	private static final String EBUR128_TARGET = "ebur128=target=";
+
 	static Faker faker = instance();
 
 	final Optional<Supplier<Stream<String>>> emptyLavfiLinesToMerge = Optional.empty();
@@ -81,23 +83,6 @@ class MediaAnalyserSessionTest {
 			frame:1022 pts:981168 pts_time:20.441
 			lavfi.aphasemeter.phase=1.000000
 			lavfi.aphasemeter.mono_start=18.461
-			""";
-	final static String SYSERR = """
-			[Parsed_ebur128_0 @ 0x0000000000000] t: 1.80748    TARGET:-23 LUFS    M: -25.5 S:-120.7     I: -19.2 LUFS       LRA:   0.0 LU  SPK:  -5.5  -5.6 dBFS  FTPK: -19.1 -21.6 dBFS  TPK:  -5.5  -5.6 dBFS
-			[Parsed_raw_0 @ 0x0000000000000] t: 2.80748 a: 12 b: 34
-			[Parsed_ebur128_0 @ 0x55c6a78b3c80] Summary:
-			Integrated loudness:
-			  I:         -17.6 LUFS
-			  Threshold: -28.2 LUFS
-				Loudness range:
-			  LRA:         6.5 LU
-			  Threshold: -38.2 LUFS
-			  LRA low:   -21.6 LUFS
-			  LRA high:  -15.1 LUFS
-				Sample peak:
-			  Peak:       -1.4 dBFS
-				True peak:
-			  Peak:       -1.5 dBFS
 			""";
 
 	MediaAnalyserSession s;
@@ -110,6 +95,7 @@ class MediaAnalyserSessionTest {
 	String ebur128Result;
 	String ebur128event;
 	String rawEvent;
+	String commandLine;
 
 	@Mock
 	MediaAnalyser mediaAnalyser;
@@ -135,18 +121,6 @@ class MediaAnalyserSessionTest {
 	FFprobeJAXB ffprobeResult;
 	@Mock
 	FFProbeStream streamType;
-	@Mock
-	BiConsumer<MediaAnalyserSession, Ebur128StrErrFilterEvent> ebur128EventConsumer;
-	@Mock
-	BiConsumer<MediaAnalyserSession, RawStdErrFilterEvent> rawStdErrEventConsumer;
-	@Mock
-	Consumer<Ebur128StrErrFilterEvent> ebur128EventSingleConsumer;
-	@Mock
-	Consumer<RawStdErrFilterEvent> rawStdErrEventSingleConsumer;
-	@Captor
-	ArgumentCaptor<Ebur128StrErrFilterEvent> ebur128StrErrFilterEventCaptor;
-	@Captor
-	ArgumentCaptor<RawStdErrFilterEvent> rawStdErrFilterEventCaptor;
 
 	MediaAnalyserSessionFilterContext vFilterContext;
 	MediaAnalyserSessionFilterContext aFilterContext;
@@ -186,13 +160,13 @@ class MediaAnalyserSessionTest {
 		when(ffmpeg.execute(eq(executableFinder), any())).thenAnswer(invocation -> {
 			final Consumer<LineEntry> consumer = invocation.getArgument(1, Consumer.class);
 			SYSOUT.lines().forEach(l -> consumer.accept(LineEntry.makeStdOut(l, processLifecycle)));
-			SYSERR.lines().forEach(l -> consumer.accept(LineEntry.makeStdErr(l, processLifecycle)));
 			return processLifecycle;
 		});
 
 		when(processLifecycle.isCorrectlyDone()).thenReturn(true);
 		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
-		when(processlauncher.getFullCommandLine()).thenReturn(faker.numerify("commandLine###"));
+		commandLine = faker.numerify("commandLine###");
+		when(processlauncher.getFullCommandLine()).thenReturn(commandLine);
 
 		when(mediaAnalyser.createFFmpeg()).thenReturn(ffmpeg);
 		when(mediaAnalyser.getExecutableFinder()).thenReturn(executableFinder);
@@ -223,11 +197,7 @@ class MediaAnalyserSessionTest {
 				aFilter,
 				vFilter,
 				ffprobeResult,
-				streamType,
-				ebur128EventConsumer,
-				rawStdErrEventConsumer,
-				ebur128EventSingleConsumer,
-				rawStdErrEventSingleConsumer);
+				streamType);
 	}
 
 	@Test
@@ -268,39 +238,37 @@ class MediaAnalyserSessionTest {
 
 	private void checksProcess() {
 		checksProcessBase();
-		verify(ffmpeg, times(2)).getInternalParameters();
+		verify(ffmpeg, atLeast(1)).getInternalParameters();
 		verify(aF, atLeastOnce()).toFilter();
 		verify(vF, atLeastOnce()).toFilter();
 	}
 
 	private void checksProcess_NoAF() {
 		checksProcessBase();
-		verify(ffmpeg, times(1)).getInternalParameters();
+		verify(ffmpeg, atLeast(1)).getInternalParameters();
 		verify(ffmpeg, times(1)).setNoAudio();
 
 	}
 
 	private void checksProcess_NoVF() {
 		checksProcessBase();
-		verify(ffmpeg, times(1)).getInternalParameters();
+		verify(ffmpeg, atLeast(1)).getInternalParameters();
 		verify(ffmpeg, times(1)).setNoVideo();
 	}
 
 	@Test
 	void testProcess() {
-		s.setEbur128EventConsumer(ebur128EventConsumer);
-		s.setRawStdErrEventConsumer(rawStdErrEventConsumer);
-
 		final var result = s.process(emptyLavfiLinesToMerge);
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 		assertEquals(List.of(aFilterContext, vFilterContext), result.filters());
 		assertEquals(result.filters(), s.getFilterContextList());
+		assertThat(result.r128Target()).isEmpty();
 
 		assertEquals(List.of(
 				"-af",
@@ -309,11 +277,6 @@ class MediaAnalyserSessionTest {
 				vFilterValue),
 				parameters.getParameters());
 		parameters.clear();
-
-		verify(ebur128EventConsumer, times(1)).accept(eq(s), ebur128StrErrFilterEventCaptor.capture());
-		assertEquals(ebur128event, ebur128StrErrFilterEventCaptor.getValue().toString());
-		verify(rawStdErrEventConsumer, times(1)).accept(eq(s), rawStdErrFilterEventCaptor.capture());
-		assertEquals(rawEvent, rawStdErrFilterEventCaptor.getValue().toString());
 
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
@@ -330,6 +293,7 @@ class MediaAnalyserSessionTest {
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 		verify(processLifecycle, times(1)).getEndStatus();
 		verify(processLifecycle, times(1)).getExitCode();
 		reset(processLifecycle);
@@ -352,11 +316,12 @@ class MediaAnalyserSessionTest {
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(sourceFile);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 		assertEquals(List.of(aFilterContext, vFilterContext), result.filters());
+		assertThat(result.r128Target()).isEmpty();
 
 		assertEquals(List.of(
 				"-af",
@@ -403,12 +368,13 @@ class MediaAnalyserSessionTest {
 
 		checksProcess_NoAF();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 
 		assertEquals(List.of(vFilterContext), result.filters());
+		assertThat(result.r128Target()).isEmpty();
 
 		assertEquals(List.of(
 				"-vf",
@@ -436,10 +402,11 @@ class MediaAnalyserSessionTest {
 
 		checksProcess_NoVF();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
+		assertThat(result.r128Target()).isEmpty();
 
 		assertEquals(List.of(aFilterContext), result.filters());
 
@@ -467,9 +434,10 @@ class MediaAnalyserSessionTest {
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
+		assertThat(result.r128Target()).isEmpty();
 
 		assertEquals(1, result.lavfiMetadatas().getEventCount());
 		assertEquals(2, result.lavfiMetadatas().getReportCount());
@@ -524,31 +492,36 @@ class MediaAnalyserSessionTest {
 
 	@Test
 	void testImportFromOffline() {
-		final var result = MediaAnalyserSession.importFromOffline(
-				SYSOUT.lines(), SYSERR.lines(), ebur128EventSingleConsumer, rawStdErrEventSingleConsumer, List.of());
+		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of());
 
 		assertNotNull(result);
-		assertEquals(ebur128Result, result.ebur128Summary().toString());
 		checkMetadatas(result);
 		assertTrue(result.filters().isEmpty());
+		assertTrue(result.r128Target().isEmpty());
+	}
 
-		verify(ebur128EventSingleConsumer, times(1)).accept(ebur128StrErrFilterEventCaptor.capture());
-		assertEquals(ebur128event, ebur128StrErrFilterEventCaptor.getValue().toString());
-		verify(rawStdErrEventSingleConsumer, times(1)).accept(rawStdErrFilterEventCaptor.capture());
-		assertEquals(rawEvent, rawStdErrFilterEventCaptor.getValue().toString());
+	@Test
+	void testImportFromOffline_ebur128() {
+		final var target = faker.random().nextInt();
+		final var filter = new MediaAnalyserSessionFilterContext(null, null, EBUR128_TARGET + target, null);
+		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of(filter));
+
+		assertNotNull(result);
+		checkMetadatas(result);
+		assertEquals(List.of(filter), result.filters());
+		assertThat(result.r128Target()).contains(target);
 	}
 
 	@Test
 	void testExtract() {
-		s.setEbur128EventConsumer(ebur128EventConsumer);
-		s.setRawStdErrEventConsumer(rawStdErrEventConsumer);
-
 		final var sysOutList = new ArrayList<String>();
 		final var sysErrList = new ArrayList<String>();
-		s.extract(sysOutList::add, sysErrList::add);
+		final var cmdLine = s.extract(sysOutList::add, sysErrList::add);
+		assertEquals(commandLine, cmdLine);
 
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 
 		assertEquals(List.of(
 				"-af",
@@ -562,7 +535,6 @@ class MediaAnalyserSessionTest {
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 
 		assertEquals(SYSOUT.lines().toList(), sysOutList);
-		assertEquals(SYSERR.lines().toList(), sysErrList);
 	}
 
 	@Test
@@ -610,6 +582,7 @@ class MediaAnalyserSessionTest {
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
 		verify(ffmpeg, times(1)).addDuration(pgmFFDuration);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 
@@ -625,9 +598,42 @@ class MediaAnalyserSessionTest {
 		checksProcess();
 		verify(ffmpeg, times(1)).addSimpleInputSource(source);
 		verify(ffmpeg, times(1)).addStartPosition(pgmFFStartTime);
+		verify(ffmpeg, times(1)).setLogLevel(WARNING, false, true);
 		verify(processLifecycle, atLeastOnce()).getLauncher();
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 
 		parameters.clear();
 	}
+
+	@Test
+	void testProcessExtractR128Target() {
+		final var target = faker.random().nextInt();
+		when(ffmpeg.getInternalParameters()).thenReturn(Parameters.of("-af", EBUR128_TARGET + target));
+		final var result = s.process(emptyLavfiLinesToMerge);
+
+		checksProcess();
+		Mockito.reset(ffmpeg);
+
+		assertThat(result.r128Target()).contains(target);
+		parameters.clear();
+
+		verify(processLifecycle, atLeastOnce()).getLauncher();
+		verify(processlauncher, atLeastOnce()).getFullCommandLine();
+		verify(aF, atLeastOnce()).getFilterName();
+		verify(aF, atLeastOnce()).toFilter();
+		verify(vF, atLeastOnce()).getFilterName();
+		verify(vF, atLeastOnce()).toFilter();
+	}
+
+	@Test
+	void testExtractEbur128TargetFromAFilterChains() {
+		assertThat(extractEbur128TargetFromAFilterChains(new FilterChains(aFilterValue)))
+				.isEmpty();
+
+		final var target = faker.random().nextInt();
+		assertThat(extractEbur128TargetFromAFilterChains(new FilterChains(EBUR128_TARGET + target)))
+				.contains(target);
+
+	}
+
 }
