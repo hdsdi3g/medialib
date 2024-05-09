@@ -4,10 +4,6 @@ Licence: LGPL v3
 
 Tested on Windows 10 and Linux. Should be ok on macOS.
 
-Please use Maven and Java 11 (OpenJDK) for build and test.
-
-Use internally Log4j2 for logging.
-
 [![Java CI with Maven](https://github.com/hdsdi3g/medialib/actions/workflows/maven-package.yml/badge.svg)](https://github.com/hdsdi3g/medialib/actions/workflows/maven-package.yml)
 
 [![CodeQL](https://github.com/hdsdi3g/medialib/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hdsdi3g/medialib/actions/workflows/codeql-analysis.yml)
