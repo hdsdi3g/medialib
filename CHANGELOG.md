@@ -1,5 +1,7 @@
 # All Medialib projects upgrades needs
 
+## 16.0.0
+
 Correct bugs with FFmpeg v7:
 
  - Parse EBUR128 from lavfi metadata instead of strerr
@@ -7,6 +9,7 @@ Correct bugs with FFmpeg v7:
  - Set ffmpeg loglevel to warn
  - Correct ffprobe result SAX entries (remove `coded_picture_number` and `display_picture_number`, rename `pkt_duration` to `duration`, and `pkt_duration_time` to `duration_time`, but keep previous behavior compatible)
  - Correct FFAbout with the new ffmpeg output syntax
+ - Return ffmpeg and ffprobe runned command lines
 
 ## 15.0.2
 
