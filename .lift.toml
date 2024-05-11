@@ -1,1 +1,0 @@
-ignoreRules = [ "JavaUtilDate", "MissingSummary", "JavaTimeDefaultTimeZone", "ThreadPriorityCheck", "EqualsGetClass", "DefaultCharset", "CanIgnoreReturnValueSuggester", "InvalidParam", "PATH_TRAVERSAL_IN", "OperatorPrecedence", "ReturnValueIgnored", "UNENCRYPTED_SERVER_SOCKET", "Var", "Varifier", "UnnecessarilyFullyQualified", "UnnecessaryFinal" ]
