@@ -267,7 +267,7 @@ public class FFprobeResultSAX extends DefaultHandler implements
 		}
 	}
 
-	public ContainerAnalyserResult getResult(final ContainerAnalyserSession session) {
+	public ContainerAnalyserResult getResult(final ContainerAnalyserSession session, final String ffprobeCommandLine) {
 		return new ContainerAnalyserResult(
 				session,
 				Collections.unmodifiableList(packets),
@@ -276,7 +276,8 @@ public class FFprobeResultSAX extends DefaultHandler implements
 				videoConst,
 				audioConst,
 				Collections.unmodifiableList(olderVideoConsts),
-				Collections.unmodifiableList(olderAudioConsts));
+				Collections.unmodifiableList(olderAudioConsts),
+				ffprobeCommandLine);
 	}
 
 	@Override

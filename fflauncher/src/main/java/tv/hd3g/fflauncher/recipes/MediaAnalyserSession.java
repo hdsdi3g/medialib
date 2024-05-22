@@ -168,7 +168,8 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 					}
 				});
 
-		log.debug("Start {}", processLifecycle.getLauncher().getFullCommandLine());
+		final var ffmpegCommandLine = processLifecycle.getLauncher().getFullCommandLine();
+		log.debug("Start {}", ffmpegCommandLine);
 
 		processLifecycle.waitForEnd();
 		final var execOk = processLifecycle.isCorrectlyDone();
@@ -190,7 +191,8 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 		return new MediaAnalyserResult(
 				lavfiMetadataFilterParser.close(),
 				getFilterContextList(),
-				r128Target);
+				r128Target,
+				ffmpegCommandLine);
 	}
 
 	static Optional<Integer> extractEbur128TargetFromAFilterChains(final FilterChains fchains) {
@@ -218,12 +220,12 @@ public class MediaAnalyserSession extends BaseAnalyserSession {
 	}
 
 	public static MediaAnalyserResult importFromOffline(final Stream<String> stdOutLines,
-														final Collection<MediaAnalyserSessionFilterContext> filters) {
+														final Collection<MediaAnalyserSessionFilterContext> filters,
+														final String ffmpegCommandLine) {
 		final var lavfiMetadataFilterParser = new LavfiMetadataFilterParser();
 		stdOutLines.forEach(lavfiMetadataFilterParser::addLavfiRawLine);
 		final var ebur128Target = extractEbur128TargetFromAFilterChains(getFilterChains(filters));
-
-		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), filters, ebur128Target);
+		return new MediaAnalyserResult(lavfiMetadataFilterParser.close(), filters, ebur128Target, ffmpegCommandLine);
 	}
 
 	public String extract(final Consumer<String> sysOut, final Consumer<String> sysErr) {

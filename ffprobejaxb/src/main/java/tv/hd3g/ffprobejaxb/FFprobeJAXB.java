@@ -136,6 +136,7 @@ public abstract class FFprobeJAXB implements FFprobeReference {
 		return jaxbReference;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected static <T> Stream<T> getSubList(final Object jaxbSubListClass, final Class<T> outputFormat) {
 		if (jaxbSubListClass == null) {
 			return Stream.empty();

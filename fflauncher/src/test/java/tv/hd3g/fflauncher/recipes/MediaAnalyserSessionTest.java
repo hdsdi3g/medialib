@@ -158,6 +158,7 @@ class MediaAnalyserSessionTest {
 		ebur128event = "Ebur128StrErrFilterEvent(t=1.80748, target=-23.0, m=-25.5, s=-120.7, i=-19.2, lra=0.0, spk=Stereo[left=-5.5, right=-5.6], ftpk=Stereo[left=-19.1, right=-21.6], tpk=Stereo[left=-5.5, right=-5.6])";
 
 		when(ffmpeg.execute(eq(executableFinder), any())).thenAnswer(invocation -> {
+			@SuppressWarnings("unchecked")
 			final Consumer<LineEntry> consumer = invocation.getArgument(1, Consumer.class);
 			SYSOUT.lines().forEach(l -> consumer.accept(LineEntry.makeStdOut(l, processLifecycle)));
 			return processLifecycle;
@@ -492,7 +493,7 @@ class MediaAnalyserSessionTest {
 
 	@Test
 	void testImportFromOffline() {
-		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of());
+		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of(), commandLine);
 
 		assertNotNull(result);
 		checkMetadatas(result);
@@ -504,7 +505,7 @@ class MediaAnalyserSessionTest {
 	void testImportFromOffline_ebur128() {
 		final var target = faker.random().nextInt();
 		final var filter = new MediaAnalyserSessionFilterContext(null, null, EBUR128_TARGET + target, null);
-		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of(filter));
+		final var result = MediaAnalyserSession.importFromOffline(SYSOUT.lines(), List.of(filter), commandLine);
 
 		assertNotNull(result);
 		checkMetadatas(result);

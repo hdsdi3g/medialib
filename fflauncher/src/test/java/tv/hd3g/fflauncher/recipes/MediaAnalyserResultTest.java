@@ -46,7 +46,7 @@ class MediaAnalyserResultTest {
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
-		r = new MediaAnalyserResult(lavfiMetadatas, filters, Optional.of(0));
+		r = new MediaAnalyserResult(lavfiMetadatas, filters, Optional.of(0), null);
 	}
 
 	@AfterEach
@@ -59,7 +59,7 @@ class MediaAnalyserResultTest {
 
 	@Test
 	void testIsEmpty_realEmpty() {
-		r = new MediaAnalyserResult(null, null, null);
+		r = new MediaAnalyserResult(null, null, null, null);
 		assertTrue(r.isEmpty());
 	}
 

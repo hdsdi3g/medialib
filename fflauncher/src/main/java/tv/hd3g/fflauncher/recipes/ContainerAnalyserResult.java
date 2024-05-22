@@ -38,7 +38,8 @@ public record ContainerAnalyserResult(ContainerAnalyserSession session,
 									  FFprobeVideoFrameConst videoConst,
 									  FFprobeAudioFrameConst audioConst,
 									  List<FFprobeVideoFrameConst> olderVideoConsts,
-									  List<FFprobeAudioFrameConst> olderAudioConsts) {
+									  List<FFprobeAudioFrameConst> olderAudioConsts,
+									  String ffprobeCommandLine) {
 
 	private static <T> boolean isNotNullAndNotEmpty(final List<T> list) {
 		return Optional.ofNullable(list)

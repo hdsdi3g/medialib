@@ -140,7 +140,7 @@ class ContainerAnalyserSessionTest {
 		final var result = cas.process();
 		assertNotNull(result);
 		assertEquals(new ContainerAnalyserResult(
-				cas, List.of(), List.of(), List.of(), null, null, List.of(), List.of()), result);
+				cas, List.of(), List.of(), List.of(), null, null, List.of(), List.of(), commandLine), result);
 
 		verify(ffprobe, times(1)).setHidebanner();
 		verify(ffprobe, times(1)).setShowFrames();
@@ -169,7 +169,7 @@ class ContainerAnalyserSessionTest {
 		final var result = cas.process();
 		assertNotNull(result);
 		assertEquals(new ContainerAnalyserResult(
-				cas, List.of(), List.of(), List.of(), null, null, List.of(), List.of()), result);
+				cas, List.of(), List.of(), List.of(), null, null, List.of(), List.of(), commandLine), result);
 
 		verify(ffprobe, times(1)).setHidebanner();
 		verify(ffprobe, times(1)).setShowFrames();
@@ -191,7 +191,7 @@ class ContainerAnalyserSessionTest {
 	@Test
 	void testImportFromOffline() throws IOException {
 		try (var ffprobeStdOut = openExampleFile()) {
-			final var result = importFromOffline(ffprobeStdOut);
+			final var result = importFromOffline(ffprobeStdOut, commandLine);
 
 			assertEquals(2522, result.audioFrames().size());
 			final var audioPktSizeStats = result.audioFrames().stream()

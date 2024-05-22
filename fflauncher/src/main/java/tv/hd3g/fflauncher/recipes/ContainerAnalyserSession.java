@@ -71,17 +71,19 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 
 		final var parser = new FFprobeResultSAX();
 		final var runTool = ffprobe.executeDirectStdout(containerAnalyser.getExecutableFinder(), parser);
-		log.debug("Start {}", runTool.getLifecyle().getLauncher().getFullCommandLine());
+		final var ffprobeCommandLine = runTool.getLifecyle().getLauncher().getFullCommandLine();
+		log.debug("Start {}", ffprobeCommandLine);
 		runTool.waitForEndAndCheckExecution();
 
-		return parser.getResult(this);
+		return parser.getResult(this, ffprobeCommandLine);
 	}
 
-	public static ContainerAnalyserResult importFromOffline(final InputStream ffprobeStdOut) {
+	public static ContainerAnalyserResult importFromOffline(final InputStream ffprobeStdOut,
+															final String ffprobeCommandLine) {
 		final var parser = new FFprobeResultSAX();
 		parser.onProcessStart(ffprobeStdOut, null);
 		parser.onClose(null);
-		return parser.getResult(null);
+		return parser.getResult(null, ffprobeCommandLine);
 	}
 
 	public String extract(final Consumer<String> sysOut) {

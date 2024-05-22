@@ -84,7 +84,7 @@ class FFprobeResultSAXTest {
 	@Test
 	void testFull() {
 		s.onProcessStart(IOUtils.toInputStream(XML, UTF_8), source);
-		r = s.getResult(session);
+		r = s.getResult(session, null);
 		assertNotNull(r);
 
 		assertEquals(List.of(
@@ -133,7 +133,7 @@ class FFprobeResultSAXTest {
 
 	@Test
 	void testEmpty() {
-		final var XML = """
+		final var testXML = """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<a><b>
 				<packet nope1="nothing" />
@@ -144,8 +144,8 @@ class FFprobeResultSAXTest {
 				</b></a>
 				""";
 
-		s.onProcessStart(IOUtils.toInputStream(XML, UTF_8), source);
-		r = s.getResult(session);
+		s.onProcessStart(IOUtils.toInputStream(testXML, UTF_8), source);
+		r = s.getResult(session, null);
 		assertNotNull(r);
 
 		assertEquals(List.of(), r.packets());
@@ -160,7 +160,7 @@ class FFprobeResultSAXTest {
 
 	@Test
 	void testUpdConsts() {
-		final var XML = """
+		final var testXML = """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<a><b>
 				<frame media_type="audio" stream_index="1" key_frame="1" pts="2555904" pts_time="57.957007" pkt_dts="2555904" pkt_dts_time="57.957007" best_effort_timestamp="2555904" best_effort_timestamp_time="57.957007" pkt_duration="1024" pkt_duration_time="0.023220" pkt_pos="84622585" pkt_size="442" sample_fmt="fuuu" nb_samples="1024" channels="1" channel_layout="mono"/>
@@ -170,8 +170,8 @@ class FFprobeResultSAXTest {
 				</b></a>
 				""";
 
-		s.onProcessStart(IOUtils.toInputStream(XML, UTF_8), source);
-		r = s.getResult(session);
+		s.onProcessStart(IOUtils.toInputStream(testXML, UTF_8), source);
+		r = s.getResult(session, null);
 		assertNotNull(r);
 
 		assertEquals(

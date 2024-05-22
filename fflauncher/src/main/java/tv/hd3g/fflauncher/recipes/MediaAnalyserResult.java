@@ -23,7 +23,8 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 
 public record MediaAnalyserResult(LavfiMetadataFilterParser lavfiMetadatas,
 								  Collection<MediaAnalyserSessionFilterContext> filters,
-								  Optional<Integer> r128Target) {
+								  Optional<Integer> r128Target,
+								  String ffmpegCommandLine) {
 
 	public static final int R128_DEFAULT_LUFS_TARGET = -23;
 

@@ -94,7 +94,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 	}
 
 	@AfterEach
@@ -136,7 +137,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -152,7 +154,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -168,7 +171,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -184,7 +188,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -200,7 +205,8 @@ class ContainerAnalyserResultTest {
 				null,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -214,7 +220,8 @@ class ContainerAnalyserResultTest {
 				videoConst,
 				null,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
@@ -228,7 +235,8 @@ class ContainerAnalyserResultTest {
 				null,
 				audioConst,
 				olderVideoConsts,
-				olderAudioConsts);
+				olderAudioConsts,
+				null);
 		assertFalse(r.isEmpty());
 	}
 
