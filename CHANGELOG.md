@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 16.1.0
+
+Add ffmpeg and ffprobe command lines in Media/ContainerAnalyserResult, code clean #92
+
 ## 16.0.0
 
 Correct bugs with FFmpeg v7:
