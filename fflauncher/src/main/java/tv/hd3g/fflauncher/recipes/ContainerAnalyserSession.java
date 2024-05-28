@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.processlauncher.InvalidExecution;
 
 @Getter
@@ -39,14 +40,19 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 	private final ContainerAnalyser containerAnalyser;
 	private final String source;
 	private final File sourceFile;
+	private final FFprobeXMLProgressWatcher ffprobeXMLProgressWatcher;
 
-	ContainerAnalyserSession(final ContainerAnalyser containerAnalyser, final String source, final File sourceFile) {
+	ContainerAnalyserSession(final ContainerAnalyser containerAnalyser,
+							 final String source,
+							 final File sourceFile,
+							 final FFprobeXMLProgressWatcher ffprobeXMLProgressWatcher) {
 		this.containerAnalyser = containerAnalyser;
 		if (source == null && sourceFile == null) {
 			throw new IllegalArgumentException("No source for ffmpeg");
 		}
 		this.source = source;
 		this.sourceFile = sourceFile;
+		this.ffprobeXMLProgressWatcher = ffprobeXMLProgressWatcher;
 	}
 
 	private FFprobe prepareFFprobe() {
@@ -89,6 +95,7 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 	public String extract(final Consumer<String> sysOut) {
 		final var ffprobe = prepareFFprobe();
 
+		final var onLineToProgress = ffprobeXMLProgressWatcher.createProgress(this);
 		final var stdErrLinesBucket = new CircularFifoQueue<String>(10);
 		final var processLifecycle = ffprobe.execute(containerAnalyser.getExecutableFinder(),
 				lineEntry -> {
@@ -96,11 +103,11 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 					log.trace("Line: {}", line);
 					if (lineEntry.isStdErr() == false) {
 						sysOut.accept(line);
+						onLineToProgress.accept(line);
 					} else {
 						stdErrLinesBucket.add(line.trim());
 					}
 				});
-
 		final var fullCommandLine = processLifecycle.getLauncher().getFullCommandLine();
 		log.debug("Start {}", fullCommandLine);
 

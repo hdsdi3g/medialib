@@ -63,6 +63,8 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrameConst;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobePacket;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher.ProgressConsumer;
 import tv.hd3g.processlauncher.ExecutableToolRunning;
 import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.Processlauncher;
@@ -101,6 +103,11 @@ class ContainerAnalyserSessionTest {
 	ProcesslauncherLifecycle processLifecycle;
 	@Mock
 	Processlauncher processlauncher;
+	@Mock
+	FFprobeXMLProgressWatcher ffprobeXMLProgressWatcher;
+	@Mock
+	ProgressConsumer progressConsumer;
+
 	String source;
 	String commandLine;
 	File sourceFile;
@@ -112,7 +119,7 @@ class ContainerAnalyserSessionTest {
 		openMocks(this).close();
 		source = faker.numerify("source###");
 		sourceFile = new File(source);
-		cas = new ContainerAnalyserSession(containerAnalyser, source, sourceFile);
+		cas = new ContainerAnalyserSession(containerAnalyser, source, sourceFile, ffprobeXMLProgressWatcher);
 
 		when(executableToolRunning.getLifecyle()).thenReturn(processLifecycle);
 		when(processLifecycle.getLauncher()).thenReturn(processlauncher);
@@ -128,7 +135,9 @@ class ContainerAnalyserSessionTest {
 				executableFinder,
 				executableToolRunning,
 				processLifecycle,
-				processlauncher);
+				processlauncher,
+				ffprobeXMLProgressWatcher,
+				progressConsumer);
 	}
 
 	@Test
@@ -161,7 +170,7 @@ class ContainerAnalyserSessionTest {
 
 	@Test
 	void testProcess_sourceFile() {
-		cas = new ContainerAnalyserSession(containerAnalyser, null, sourceFile);
+		cas = new ContainerAnalyserSession(containerAnalyser, null, sourceFile, ffprobeXMLProgressWatcher);
 		when(containerAnalyser.createFFprobe()).thenReturn(ffprobe);
 		when(containerAnalyser.getExecutableFinder()).thenReturn(executableFinder);
 		when(ffprobe.executeDirectStdout(eq(executableFinder), any())).thenReturn(executableToolRunning);
@@ -233,7 +242,8 @@ class ContainerAnalyserSessionTest {
 
 	@Test
 	void testProcess_NoSourceFile() {
-		assertThrows(IllegalArgumentException.class, () -> new ContainerAnalyserSession(containerAnalyser, null, null));
+		assertThrows(IllegalArgumentException.class,
+				() -> new ContainerAnalyserSession(containerAnalyser, null, null, ffprobeXMLProgressWatcher));
 	}
 
 	@Test
@@ -242,6 +252,7 @@ class ContainerAnalyserSessionTest {
 		when(containerAnalyser.getExecutableFinder()).thenReturn(executableFinder);
 		when(ffprobe.execute(eq(executableFinder), any())).thenReturn(processLifecycle);
 		when(processLifecycle.isCorrectlyDone()).thenReturn(true);
+		when(ffprobeXMLProgressWatcher.createProgress(cas)).thenReturn(progressConsumer);
 
 		final var sysOutList = new ArrayList<String>();
 		final var cmdLine = cas.extract(sysOutList::add);
@@ -256,6 +267,7 @@ class ContainerAnalyserSessionTest {
 		verify(ffprobe, times(1)).execute(eq(executableFinder), lineEntryCaptor.capture());
 
 		lineEntryCaptor.getValue().accept(makeStdErr(faker.numerify("stderr###"), processLifecycle));
+
 		final var lineOut = faker.numerify("stdout###");
 		lineEntryCaptor.getValue().accept(makeStdOut(lineOut, processLifecycle));
 
@@ -268,6 +280,9 @@ class ContainerAnalyserSessionTest {
 		verify(processlauncher, atLeastOnce()).getFullCommandLine();
 		verify(processLifecycle, atLeastOnce()).isCorrectlyDone();
 		verify(processLifecycle, atLeastOnce()).waitForEnd();
+
+		verify(ffprobeXMLProgressWatcher, times(1)).createProgress(cas);
+		verify(progressConsumer, times(1)).accept(lineOut);
 	}
 
 }

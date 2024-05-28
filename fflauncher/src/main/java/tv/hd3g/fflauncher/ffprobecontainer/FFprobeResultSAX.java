@@ -55,7 +55,7 @@ public class FFprobeResultSAX extends DefaultHandler implements
 							  InputStreamConsumer {
 	private static final String CAN_T_PARSE_NUMBER = "Can't parse number: {}";
 	private static final String STREAM_INDEX = "stream_index";
-	private static final SAXParserFactory factory;
+	public static final SAXParserFactory factory;
 
 	static {
 		try {

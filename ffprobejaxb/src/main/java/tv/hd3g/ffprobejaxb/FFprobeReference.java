@@ -16,6 +16,7 @@
  */
 package tv.hd3g.ffprobejaxb;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -90,6 +91,15 @@ public interface FFprobeReference {
 				.map(FFProbeKeyValue::value)
 				.findFirst()
 				.filter(tc -> (tc.equals("00:00:00:00") && discard0TC ? false : true));
+	}
+
+	default Optional<Duration> getDuration() {
+		return getFormat()
+				.map(FFProbeFormat::duration)
+				.filter(d -> d > 0d)
+				.map(d -> d * 1000d)
+				.map(Math::round)
+				.map(Duration::ofMillis);
 	}
 
 }

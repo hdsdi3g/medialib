@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -306,4 +307,19 @@ class FFprobeReferenceTest {
 		verify(format, atLeast(1)).tags();
 		verify(stream, atLeast(1)).tags();
 	}
+
+	@Test
+	void testGetDuration_empty() {
+		assertThat(r.getDuration()).isEmpty();
+		verify(format, atLeast(1)).duration();
+	}
+
+	@Test
+	void testGetDuration() {
+		final var duration = Math.abs(faker.random().nextFloat());
+		when(format.duration()).thenReturn(duration);
+		assertThat(r.getDuration()).contains(Duration.ofMillis(Math.round(duration * 1000)));
+		verify(format, atLeast(1)).duration();
+	}
+
 }

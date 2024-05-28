@@ -17,9 +17,11 @@
 package tv.hd3g.fflauncher.recipes;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Objects;
 
 import tv.hd3g.fflauncher.FFprobe;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -30,17 +32,39 @@ public class ContainerAnalyser {
 	private final String execName;
 	private final ExecutableFinder executableFinder;
 
+	private static final FFprobeXMLProgressWatcher emptyWatcher = new FFprobeXMLProgressWatcher(
+			Duration.ZERO,
+			Thread::new,
+			i -> {
+			},
+			x -> {
+			},
+			i -> {
+			});
+
 	public ContainerAnalyser(final String execName, final ExecutableFinder executableFinder) {
 		this.execName = Objects.requireNonNull(execName);
 		this.executableFinder = Objects.requireNonNull(executableFinder);
 	}
 
-	public ContainerAnalyserSession createSession(final File source) {
-		return new ContainerAnalyserSession(this, null, source);
+	public ContainerAnalyserSession createSession(final File source,
+												  final FFprobeXMLProgressWatcher progressWatcher) {
+		return new ContainerAnalyserSession(this, null, source, progressWatcher);
 	}
 
-	public ContainerAnalyserSession createSession(final String source) {
-		return new ContainerAnalyserSession(this, source, null);
+	@Deprecated(forRemoval = true)
+	public ContainerAnalyserSession createSession(final File source) {// NOSONAR S1123
+		return createSession(source, emptyWatcher);
+	}
+
+	public ContainerAnalyserSession createSession(final String source,
+												  final FFprobeXMLProgressWatcher progressWatcher) {
+		return new ContainerAnalyserSession(this, source, null, progressWatcher);
+	}
+
+	@Deprecated(forRemoval = true)
+	public ContainerAnalyserSession createSession(final String source) {// NOSONAR S1123
+		return createSession(source, emptyWatcher);
 	}
 
 	public FFprobe createFFprobe() {
