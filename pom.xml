@@ -5,7 +5,7 @@
 
     <artifactId>starter-medialib</artifactId>
     <packaging>pom</packaging>
-    <version>16.1.0</version>
+    <version>16.2.0-SNAPSHOT</version>
 
     <name>Commons Maven medialib starter project</name>
     <url>https://github.com/hdsdi3g/medialib</url>
