@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 16.2.0
+
+Add ffprobe container analysing progress #97
+
 ## 16.1.0
 
 Add ffmpeg and ffprobe command lines in Media/ContainerAnalyserResult, code clean #92
