@@ -58,6 +58,10 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 	}
 
 	public interface ProgressConsumer extends Consumer<String> {
+
+		default void waitForEnd() {
+		}
+
 	}
 
 	private class Progress extends DefaultHandler implements ProgressConsumer, Runnable, ErrorHandler {
@@ -76,7 +80,7 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 		public Progress(final ContainerAnalyserSession session) {
 			this.session = session;
 			worker = threadFactory.newThread(this);
-			linesBytes = new LinkedBlockingQueue<>(10000);
+			linesBytes = new LinkedBlockingQueue<>();
 			ended = false;
 			lastPtsTime = -1;
 			startdate = System.currentTimeMillis();
@@ -99,24 +103,6 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 			};
 		}
 
-		private void onUpdate() {
-			final var progress = lastPtsTime / durationTime;
-			if (progress > 1d) {
-				return;
-			}
-			if (lastProgressDate <= startdate) {
-				progressCallback.accept(new FFprobeXMLProgressEvent(progress, 1f, session));
-				lastProgressDate = System.currentTimeMillis();
-				return;
-			} else if (System.currentTimeMillis() - lastProgressDate < 100) {
-				return;
-			}
-
-			final var speed = (System.currentTimeMillis() - startdate) / lastPtsTime * 1000f;
-			lastProgressDate = System.currentTimeMillis();
-			progressCallback.accept(new FFprobeXMLProgressEvent(progress, (float) speed, session));
-		}
-
 		@Override
 		public synchronized void accept(final String t) {
 			if (ended) {
@@ -130,6 +116,7 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 					throw new IllegalStateException(e);
 				}
 			});
+
 			if (worker.getState() == NEW) {
 				worker.start();
 			}
@@ -160,7 +147,22 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 				final var ptsTime = Float.parseFloat(sPtsTime);
 				if (ptsTime > lastPtsTime) {
 					lastPtsTime = ptsTime;
-					onUpdate();
+					final var progress = lastPtsTime / durationTime;
+					if (progress > 1d || durationTime - lastPtsTime < 1d) {
+						return;
+					}
+
+					if (lastProgressDate <= startdate) {
+						progressCallback.accept(new FFprobeXMLProgressEvent(progress, 1f, session));
+						lastProgressDate = System.currentTimeMillis();
+						return;
+					} else if (System.currentTimeMillis() - lastProgressDate < 500) {
+						return;
+					}
+
+					final var speed = (System.currentTimeMillis() - startdate) / lastPtsTime * 1000f;
+					lastProgressDate = System.currentTimeMillis();
+					progressCallback.accept(new FFprobeXMLProgressEvent(progress, (float) speed, session));
 				}
 			}
 		}
@@ -178,6 +180,13 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 		public void endElement(final String uri, final String localName, final String qName) throws SAXException {
 			if (qName.equals("ffprobe") || qName.equals("packets_and_frames")) {
 				endDocument();
+			}
+		}
+
+		@Override
+		public void waitForEnd() {
+			while (worker.isAlive()) {
+				Thread.onSpinWait();
 			}
 		}
 

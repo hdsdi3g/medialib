@@ -112,6 +112,7 @@ public class ContainerAnalyserSession extends BaseAnalyserSession {
 		log.debug("Start {}", fullCommandLine);
 
 		processLifecycle.waitForEnd();
+		onLineToProgress.waitForEnd();
 		final var execOk = processLifecycle.isCorrectlyDone();
 		if (execOk == false) {
 			final var stdErr = stdErrLinesBucket.stream().collect(Collectors.joining("|"));

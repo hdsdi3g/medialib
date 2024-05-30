@@ -283,6 +283,7 @@ class ContainerAnalyserSessionTest {
 
 		verify(ffprobeXMLProgressWatcher, times(1)).createProgress(cas);
 		verify(progressConsumer, times(1)).accept(lineOut);
+		verify(progressConsumer, times(1)).waitForEnd();
 	}
 
 }
