@@ -44,7 +44,7 @@ public class AudioFilterAstats implements AudioFilterSupplier {
 	 */
 	public AudioFilterAstats setSelectedMetadatas() {
 		metadata = "1";
-		measurePerchannel = "DC_offset+Peak_level+Flat_factor+Peak_count+Noise_floor+Noise_floor_count+Entropy";
+		measurePerchannel = "all";
 		measureOverall = "none";
 		return this;
 	}

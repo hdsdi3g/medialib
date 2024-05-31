@@ -275,44 +275,49 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 			while (channelId >= channelsContent.size()) {
 				channelsContent.add(new HashMap<>());
 			}
-			channelsContent.get(channelId).put(key, entry.getValue());
+			channelsContent.get(channelId).put(key.replace(" ", "_"), entry.getValue());
 		});
 
 		final var channels = channelsContent.stream()
 				.map(content -> {
-					final var dcOffset = Optional.ofNullable(content.remove("DC_offset"))
-							.map(this::parseFloat)
-							.orElse(Float.NaN);
-					final var peakLevel = Optional.ofNullable(content.remove("Peak_level"))
-							.map(this::parseFloat)
-							.orElse(Float.NaN);
-					final var flatness = Optional.ofNullable(content.remove("Flat_factor"))
-							.flatMap(this::parseLong)
-							.orElse(0l);
-					final var peakCount = Optional.ofNullable(content.remove("Peak_count"))
-							.flatMap(this::parseLong)
-							.orElse(0L);
-					final var noiseFloor = Optional.ofNullable(content.remove("Noise_floor"))
-							.map(this::parseFloat)
-							.orElse(Float.NaN);
-					final var noiseFloorCount = Optional.ofNullable(content.remove("Noise_floor_count"))
-							.flatMap(this::parseLong)
-							.orElse(0L);
-					final var entropy = Optional.ofNullable(content.remove("Entropy"))
-							.map(this::parseFloat)
-							.orElse(Float.NaN);
+					final var dcOffset = getFloat("DC_offset", content);
+					final var peakLevel = getFloat("Peak_level", content);
+					final var flatness = getLong("Flat_factor", content);
+					final var peakCount = getLong("Peak_count", content);
+					final var noiseFloor = getFloat("Noise_floor", content);
+					final var noiseFloorCount = getLong("Noise_floor_count", content);
+					final var entropy = getFloat("Entropy", content);
+					final var bitDepth = getInt("Bit_depth", content);
+					final var crestFactor = getFloat("Crest_factor", content);
+					final var dynamicRange = getFloat("Dynamic_range", content);
+					final var flatFactor = getFloat("Flat_factor", content);
+					final var maxDifference = getFloat("Max_difference", content);
+					final var maxLevel = getFloat("Max_level", content);
+					final var meanDifference = getFloat("Mean_difference", content);
+					final var minDifference = getFloat("Min_difference", content);
+					final var minLevel = getFloat("Min_level", content);
+					final var rmsDifference = getFloat("RMS_difference", content);
+					final var rmsLevel = getFloat("RMS_level", content);
+					final var rmsPeak = getFloat("RMS_peak", content);
+					final var rmsTrough = getFloat("RMS_trough", content);
+					final var zeroCrossings = getFloat("Zero_crossings", content);
+					final var zeroCrossingsRate = getFloat("Zero_crossings_rate", content);
+					final var numberOfInfs = getLong("Number_of_Infs", content);
+					final var numberOfNaNs = getLong("Number_of_NaNs", content);
+					final var numberOfDenormals = getLong("Number_of_denormals", content);
+					final var numberOfSamples = getLong("Number_of_samples", content);
+					final var absPeakCount = getLong("Abs_Peak_count", content);
+
 					final var other = content.entrySet().stream()
 							.collect(toUnmodifiableMap(Entry::getKey,
 									entry -> parseFloat(entry.getValue())));
 
-					return new LavfiMtdAstatsChannel(
-							dcOffset,
-							peakLevel,
-							flatness,
-							peakCount,
-							noiseFloor,
-							noiseFloorCount,
-							entropy,
+					return new LavfiMtdAstatsChannel(dcOffset, peakLevel, flatness, peakCount, noiseFloor,
+							noiseFloorCount, entropy, bitDepth, crestFactor, dynamicRange, flatFactor, maxDifference,
+							maxLevel, meanDifference, minDifference, minLevel, rmsDifference, rmsLevel,
+							rmsPeak, rmsTrough, zeroCrossings, zeroCrossingsRate,
+							numberOfInfs, numberOfNaNs,
+							numberOfDenormals, numberOfSamples, absPeakCount,
 							other);
 				})
 				.toList();
@@ -322,6 +327,24 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		}
 
 		return Optional.ofNullable(new LavfiMtdAstats(channels));
+	}
+
+	private float getFloat(final String key, final Map<String, String> content) {
+		return Optional.ofNullable(content.remove(key))
+				.map(this::parseFloat)
+				.orElse(Float.NaN);
+	}
+
+	private long getLong(final String key, final Map<String, String> content) {
+		return Optional.ofNullable(content.remove(key))
+				.flatMap(this::parseLong)
+				.orElse(0l);
+	}
+
+	private int getInt(final String key, final Map<String, String> content) {
+		return Optional.ofNullable(content.remove(key))
+				.flatMap(this::parseInt)
+				.orElse(0);
 	}
 
 	/**

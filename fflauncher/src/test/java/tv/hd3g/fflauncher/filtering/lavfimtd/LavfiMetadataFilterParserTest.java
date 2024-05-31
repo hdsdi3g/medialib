@@ -16,6 +16,7 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static java.lang.Float.NaN;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -159,27 +160,32 @@ class LavfiMetadataFilterParserTest {
 				new LavfiMtdValue<>(3306, 3173808, 66.121f, 5.744382f)),
 				p.getBlurDetectReport());
 
+		final var l = new LavfiMtdAstatsChannel(
+				0.000001f,
+				-0.622282f,
+				0l,
+				2l,
+				-78.266739f,
+				708l,
+				0.788192f,
+				0, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+				0l, 0l, 0l, 0l, 0l,
+				Map.of());
+
+		final var r = new LavfiMtdAstatsChannel(
+				0.000002f,
+				-0.622282f,
+				0l,
+				2l,
+				-78.266739f,
+				1074l,
+				0.788152f,
+				0, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+				0l, 0l, 0l, 0l, 0l,
+				Map.of());
+
 		assertEquals(List.of(
-				new LavfiMtdValue<>(87883, 84367728, 1757.66f,
-						new LavfiMtdAstats(List.of(
-								new LavfiMtdAstatsChannel(
-										0.000001f,
-										-0.622282f,
-										0l,
-										2l,
-										-78.266739f,
-										708l,
-										0.788192f,
-										Map.of()),
-								new LavfiMtdAstatsChannel(
-										0.000002f,
-										-0.622282f,
-										0l,
-										2l,
-										-78.266739f,
-										1074l,
-										0.788152f,
-										Map.of()))))),
+				new LavfiMtdValue<>(87883, 84367728, 1757.66f, new LavfiMtdAstats(List.of(l, r)))),
 				p.getAStatsReport());
 
 		assertEquals(List.of(

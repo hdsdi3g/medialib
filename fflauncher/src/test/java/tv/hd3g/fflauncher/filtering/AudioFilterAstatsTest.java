@@ -26,7 +26,7 @@ class AudioFilterAstatsTest {
 	AudioFilterAstats f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new AudioFilterAstats();
 	}
 
@@ -39,7 +39,7 @@ class AudioFilterAstatsTest {
 	void testSetSelectedMetadatas() {
 		f.setSelectedMetadatas();
 		assertEquals(
-				"astats=metadata=1:measure_perchannel=DC_offset+Peak_level+Flat_factor+Peak_count+Noise_floor+Noise_floor_count+Entropy:measure_overall=none",
+				"astats=metadata=1:measure_perchannel=all:measure_overall=none",
 				f.toFilter().toString());
 	}
 
