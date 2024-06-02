@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.openMocks;
+import static tv.hd3g.fflauncher.recipes.ContainerAnalyser.emptyWatcher;
 
 import java.io.File;
 
@@ -60,7 +61,7 @@ class ContainerAnalyserTest {
 
 	@Test
 	void testCreateSessionFile() {
-		cas = ca.createSession(new File(fileName));
+		cas = ca.createSession(new File(fileName), emptyWatcher);
 		assertNotNull(cas);
 		assertNull(cas.getSource());
 		assertEquals(new File(fileName), cas.getSourceFile());
@@ -69,7 +70,7 @@ class ContainerAnalyserTest {
 
 	@Test
 	void testCreateSessionString() {
-		cas = ca.createSession(fileName);
+		cas = ca.createSession(fileName, emptyWatcher);
 		assertNotNull(cas);
 		assertEquals(fileName, cas.getSource());
 		assertNull(cas.getSourceFile());

@@ -32,7 +32,7 @@ public class ContainerAnalyser {
 	private final String execName;
 	private final ExecutableFinder executableFinder;
 
-	private static final FFprobeXMLProgressWatcher emptyWatcher = new FFprobeXMLProgressWatcher(
+	static final FFprobeXMLProgressWatcher emptyWatcher = new FFprobeXMLProgressWatcher(
 			Duration.ZERO,
 			Thread::new,
 			i -> {
