@@ -1,5 +1,11 @@
 # All Medialib projects upgrades needs
 
+## 16.3.0
+
+Set astat measure per channel to "all" instead of a closed list #94
+
+Correct tests after #99
+
 ## 16.2.1
 
 Correct bug introduced by #97: add sync in ffprobe container analysing progress to correct (and concurent edits bug) #99
