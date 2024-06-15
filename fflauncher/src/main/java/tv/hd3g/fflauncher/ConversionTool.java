@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -408,10 +408,21 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 		return outputExpectedDestinations.stream().map(ConversionToolParameterReference::getRessource).flatMap(
 				ressource -> {
 					try {
-						final var url = new URL(ressource);
+						final var url = URI.create(ressource).toURL();
 						if (url.getProtocol().equals("file")) {
 							return Stream.of(Paths.get(url.toURI()).toFile());
 						}
+
+					} catch (final IllegalArgumentException e) {
+						final var m = e.getMessage();
+						if (m.equals("URI is not absolute")
+							|| m.startsWith("Illegal character in opaque part")) {
+							/**
+							 * Not an URL, maybe a file
+							 */
+							return Stream.of(new File(ressource));
+						}
+						throw e;
 					} catch (final MalformedURLException e) {
 						/**
 						 * Not an URL, maybe a file

@@ -4,6 +4,8 @@ Licence: LGPL v3
 
 Tested on Windows 10 and Linux. Should be ok on macOS.
 
+Java 21
+
 [![Java CI with Maven](https://github.com/hdsdi3g/medialib/actions/workflows/maven-package.yml/badge.svg)](https://github.com/hdsdi3g/medialib/actions/workflows/maven-package.yml)
 
 [![CodeQL](https://github.com/hdsdi3g/medialib/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hdsdi3g/medialib/actions/workflows/codeql-analysis.yml)
