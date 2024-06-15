@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 17.0.0
+
+Switch to Java 21 (LTS) and update to parent version (21.0.0) #102
+
 ## 16.3.0
 
 Set astat measure per channel to "all" instead of a closed list #94
