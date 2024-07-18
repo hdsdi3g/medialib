@@ -16,6 +16,9 @@
  */
 package tv.hd3g.fflauncher.about;
 
+import static tv.hd3g.processlauncher.cmdline.Parameters.bulk;
+
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.FFbase;
 import tv.hd3g.processlauncher.CapturedStdOutErrTextRetention;
 import tv.hd3g.processlauncher.InvalidExecution;
+import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
+import tv.hd3g.processlauncher.processingtool.KeepStdoutAndErrToLogWatcher;
+import tv.hd3g.processlauncher.processingtool.ProcessingToolBuilder;
 
 /**
  * Threadsafe
@@ -57,15 +62,39 @@ public class FFAbout {
 
 	private CapturedStdOutErrTextRetention internalRun(final String bulkParameters) {
 		try {
-			final var referer = new FFbase(execName, Parameters.bulk(bulkParameters));
-			referer.setMaxExecTimeScheduler(maxExecTimeScheduler);
-			return referer.execute(executableFinder).checkExecutionGetText();
+			final var builder = new ExecBuilder(new FFbase(execName, bulk(bulkParameters)));
+			builder.setExecutableFinder(executableFinder);
+			builder.setMaxExecutionTime(Duration.ofSeconds(1), maxExecTimeScheduler);
+			return builder.process(bulkParameters).getResult();
 		} catch (final InvalidExecution e) {
 			if (log.isDebugEnabled()) {
 				log.debug("Can't execute {}, it return: {}", execName, e.getStdErr());
 			}
 			throw e;
 		}
+	}
+
+	private class ExecBuilder extends
+							  ProcessingToolBuilder<String, FFbase, CapturedStdOutErrTextRetention, KeepStdoutAndErrToLogWatcher> {
+
+		final FFbase ffbase;
+
+		protected ExecBuilder(final FFbase ffbase) {
+			super(ffbase.getExecutableName(), new KeepStdoutAndErrToLogWatcher());
+			this.ffbase = ffbase;
+		}
+
+		@Override
+		protected FFbase getParametersProvider(final String sourceOrigin) {
+			return ffbase;
+		}
+
+		@Override
+		protected CapturedStdOutErrTextRetention compute(final String sourceOrigin,
+														 final ProcesslauncherLifecycle lifeCycle) {
+			return executorWatcher.getTextRetention();
+		}
+
 	}
 
 	private FFAboutVersion version;

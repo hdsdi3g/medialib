@@ -14,16 +14,30 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-package tv.hd3g.fflauncher;
+package tv.hd3g.fflauncher.processingtool;
 
-public class UnknownFormatException extends RuntimeException {
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-	public UnknownFormatException(final String message) {
-		super(message);
-	}
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 
-	public UnknownFormatException(final String message, final Throwable cause) {
-		super(message, cause);
+import tv.hd3g.commons.testtools.MockToolsExtendsJunit;
+import tv.hd3g.fflauncher.SimpleSourceTraits;
+
+@ExtendWith(MockToolsExtendsJunit.class)
+class FFSourceDefinitionTest {
+
+	@Mock
+	SimpleSourceTraits input;
+
+	FFSourceDefinition ffsd;
+
+	@Test
+	void testNoSourceInput() {
+		ffsd = FFSourceDefinition.noSourceInput();
+		assertNotNull(ffsd);
+		ffsd.applySourceToFF(input);
 	}
 
 }

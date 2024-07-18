@@ -22,10 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import net.datafaker.Faker;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class TemporalProcessTraitsTest {
-
 	static Faker faker = net.datafaker.Faker.instance();
 
 	FFmpeg ffmpeg;
@@ -35,7 +33,7 @@ class TemporalProcessTraitsTest {
 	void init() {
 		value = faker.numerify("value###");
 
-		ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		ffmpeg = new FFmpeg("ffmpeg");
 	}
 
 	@Test

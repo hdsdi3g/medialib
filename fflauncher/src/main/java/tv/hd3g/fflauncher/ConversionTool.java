@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.io.FileUtils.forceDelete;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
@@ -42,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -51,29 +48,31 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.enums.OutputFilePresencePolicy;
 import tv.hd3g.processlauncher.CapturedStdOutErrToPrintStream;
-import tv.hd3g.processlauncher.ExecutableTool;
 import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
+import tv.hd3g.processlauncher.processingtool.ParametersProvider;
+import tv.hd3g.processlauncher.processingtool.ProcessingToolCallback;
 
 @Slf4j
-public class ConversionTool implements ExecutableTool, InternalParametersSupplier, InputSourceProviderTraits {
+public class ConversionTool implements
+							ParametersProvider,
+							InternalParametersSupplier,
+							InputSourceProviderTraits {
 	private static final Predicate<LineEntry> ignoreAllLinesEventsToDisplay = le -> false;
 
 	protected final String execName;
 	protected final List<ConversionToolParameterReference> inputSources;
 	protected final List<ConversionToolParameterReference> outputExpectedDestinations;
-
+	protected final Parameters parameters;
 	private final LinkedHashMap<String, Parameters> parametersVariables;
 
-	private File workingDirectory;
-	private long maxExecTimeMs;
-	private ScheduledExecutorService maxExecTimeScheduler;
 	private boolean removeParamsIfNoVarToInject;
-	protected final Parameters parameters;
 	private boolean onErrorDeleteOutFiles;
 	private boolean checkSourcesBeforeReady;
 	private Optional<Predicate<LineEntry>> filterForLinesEventsToDisplay;
+	private BiConsumer<Parameters, String> onMissingInputVar;
+	private BiConsumer<Parameters, String> onMissingOutputVar;
 
 	public ConversionTool(final String execName) {
 		this(execName, new Parameters());
@@ -82,12 +81,13 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	protected ConversionTool(final String execName, final Parameters parameters) {
 		this.execName = Objects.requireNonNull(execName, "\"execName\" can't to be null");
 		this.parameters = Objects.requireNonNull(parameters, "\"parameters\" can't to be null");
-		maxExecTimeMs = 5000;
 		inputSources = new ArrayList<>();
 		outputExpectedDestinations = new ArrayList<>();
 		parametersVariables = new LinkedHashMap<>();
 		checkSourcesBeforeReady = true;
 		filterForLinesEventsToDisplay = Optional.ofNullable(ignoreAllLinesEventsToDisplay);
+		onMissingInputVar = APPEND_PARAM_AT_END;
+		onMissingOutputVar = APPEND_PARAM_AT_END;
 	}
 
 	public boolean isRemoveParamsIfNoVarToInject() {
@@ -97,30 +97,6 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	public ConversionTool setRemoveParamsIfNoVarToInject(final boolean remove_params_if_no_var_to_inject) {
 		removeParamsIfNoVarToInject = remove_params_if_no_var_to_inject;
 		return this;
-	}
-
-	/**
-	 * You needs to provide a maxExecTimeScheduler
-	 */
-	public ConversionTool setMaxExecutionTimeForShortCommands(final long max_exec_time, final TimeUnit unit) {
-		maxExecTimeMs = unit.toMillis(max_exec_time);
-		return this;
-	}
-
-	/**
-	 * Enable the execution time limitation
-	 */
-	public ConversionTool setMaxExecTimeScheduler(final ScheduledExecutorService maxExecTimeScheduler) {
-		this.maxExecTimeScheduler = maxExecTimeScheduler;
-		return this;
-	}
-
-	public long getMaxExecTime(final TimeUnit unit) {
-		return unit.convert(maxExecTimeMs, TimeUnit.MILLISECONDS);
-	}
-
-	public ScheduledExecutorService getMaxExecTimeScheduler() {
-		return maxExecTimeScheduler;
 	}
 
 	public ConversionTool setFilterForLinesEventsToDisplay(final Predicate<LineEntry> filterForLinesEventsToDisplay) {
@@ -269,27 +245,6 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 				var_name, getInternalParameters(), ressource);
 	}
 
-	/**
-	 * @return Can be null.
-	 */
-	public File getWorkingDirectory() {
-		return workingDirectory;
-	}
-
-	public ConversionTool setWorkingDirectory(final File workingDirectory) throws IOException {
-		Objects.requireNonNull(workingDirectory, "\"workingDirectory\" can't to be null");
-
-		if (workingDirectory.exists() == false) {
-			throw new FileNotFoundException("\"" + workingDirectory.getPath() + "\" in filesytem");
-		} else if (workingDirectory.canRead() == false) {
-			throw new IOException("Can't read workingDirectory \"" + workingDirectory.getPath() + "\"");
-		} else if (workingDirectory.isDirectory() == false) {
-			throw new FileNotFoundException("\"" + workingDirectory.getPath() + "\" is not a directory");
-		}
-		this.workingDirectory = workingDirectory;
-		return this;
-	}
-
 	public boolean isOnErrorDeleteOutFiles() {
 		return onErrorDeleteOutFiles;
 	}
@@ -299,39 +254,45 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 		return this;
 	}
 
-	@Override
-	public void beforeRun(final ProcesslauncherBuilder processBuilder) {
-		if (maxExecTimeScheduler != null) {
-			processBuilder.setExecutionTimeLimiter(maxExecTimeMs, TimeUnit.MILLISECONDS, maxExecTimeScheduler);
-		}
-		if (workingDirectory != null) {
-			try {
-				processBuilder.setWorkingDirectory(workingDirectory);
-			} catch (final IOException e) {// NOSONAR
-			}
-		}
-		if (onErrorDeleteOutFiles) {
-			/**
-			 * If fail transcoding or shutdown hook, delete out files (optional)
-			 */
-			processBuilder.addExecutionCallbacker(lifecycle -> {
-				if (lifecycle.isCorrectlyDone() == false) {
-					log.warn("Error during execution of \"{}\", remove output files", lifecycle);
-					cleanUpOutputFiles(true, true);
-				}
-			});
+	public class ConversionHooks implements ProcessingToolCallback {
+
+		private ConversionHooks() {
 		}
 
-		filterForLinesEventsToDisplay
-				.filter(ffletd -> ignoreAllLinesEventsToDisplay.equals(ffletd) == false)
-				.ifPresent(
-						filter -> {
-							final var psOut = new CapturedStdOutErrToPrintStream(
-									getStdOutPrintStreamToDisplayLinesEvents(),
-									getStdErrPrintStreamToDisplayLinesEvents());
-							psOut.setFilter(filter);
-							processBuilder.getSetCaptureStandardOutputAsOutputText().addObserver(psOut);
-						});
+		@Override
+		public void beforeRun(final ProcesslauncherBuilder processBuilder) {
+			if (processBuilder.getEnvironmentVar("AV_LOG_FORCE_COLOR") == null) {
+				processBuilder.setEnvironmentVarIfNotFound("AV_LOG_FORCE_NOCOLOR", "1");
+			}
+
+			if (onErrorDeleteOutFiles) {
+				/**
+				 * If fail transcoding or shutdown hook, delete out files (optional)
+				 */
+				processBuilder.addExecutionCallbacker(lifecycle -> {
+					if (lifecycle.isCorrectlyDone() == false) {
+						log.warn("Error during execution of \"{}\", remove output files", lifecycle);
+						cleanUpOutputFiles(true, true, processBuilder.getWorkingDirectory());
+					}
+				});
+			}
+
+			filterForLinesEventsToDisplay
+					.filter(ffletd -> ignoreAllLinesEventsToDisplay.equals(ffletd) == false)
+					.ifPresent(
+							filter -> {
+								final var psOut = new CapturedStdOutErrToPrintStream(
+										getStdOutPrintStreamToDisplayLinesEvents(),
+										getStdErrPrintStreamToDisplayLinesEvents());
+								psOut.setFilter(filter);
+								processBuilder.getSetCaptureStandardOutputAsOutputText().addObserver(psOut);
+							});
+		}
+
+	}
+
+	public ConversionHooks makeConversionHooks() {
+		return new ConversionHooks();
 	}
 
 	protected PrintStream getStdOutPrintStreamToDisplayLinesEvents() {
@@ -404,7 +365,7 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	/**
 	 * Don't need to be executed before, only checks.
 	 */
-	public List<File> getOutputFiles(final OutputFilePresencePolicy filterPolicy) {
+	public List<File> getOutputFiles(final OutputFilePresencePolicy filterPolicy, final File workingDirectory) {
 		return outputExpectedDestinations.stream().map(ConversionToolParameterReference::getRessource).flatMap(
 				ressource -> {
 					try {
@@ -435,8 +396,8 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 					}
 					return Stream.empty();
 				}).map(file -> {
-					if (file.exists() == false && getWorkingDirectory() != null) {
-						return new File(getWorkingDirectory().getAbsolutePath() + File.separator + file.getPath());
+					if (file.exists() == false && workingDirectory != null) {
+						return new File(workingDirectory.getAbsolutePath() + File.separator + file.getPath());
 					}
 					return file;
 				}).distinct().filter(filterPolicy.filter()).toList();
@@ -446,8 +407,10 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	 * Don't need to be executed before.
 	 * @param remove_all if false, remove only empty files.
 	 */
-	public ConversionTool cleanUpOutputFiles(final boolean remove_all, final boolean clean_output_directories) {
-		getOutputFiles(OutputFilePresencePolicy.MUST_EXISTS).stream()
+	public ConversionTool cleanUpOutputFiles(final boolean remove_all,
+											 final boolean clean_output_directories,
+											 final File workingDirectory) {
+		getOutputFiles(OutputFilePresencePolicy.MUST_EXISTS, workingDirectory).stream()
 				.filter(file -> {
 					if (file.isFile() == false) {
 						/**
@@ -555,13 +518,18 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	public static final BiConsumer<Parameters, String> APPEND_PARAM_AT_END = Parameters::addParameters;
 	public static final BiConsumer<Parameters, String> PREPEND_PARAM_AT_START = Parameters::prependParameters;
 
+	public void setFixIOParametredVars(final BiConsumer<Parameters, String> onMissingInputVar,
+									   final BiConsumer<Parameters, String> onMissingOutputVar) {
+		this.onMissingInputVar = Objects.requireNonNull(onMissingInputVar, "\"onMissingInputVar\" can't to be null");
+		this.onMissingOutputVar = Objects.requireNonNull(onMissingOutputVar, "\"onMissingOutputVar\" can't to be null");
+	}
+
 	/**
 	 * Search and patch missing I/O parameter vars, and manageCollisionsParameters for each I/O entries.
 	 * @param onMissingInputVar you can manually add the var (the String value provided) in the provided Parameters
 	 * @param onMissingOutputVar you can manually add the var (the String value provided) in the provided Parameters
 	 */
-	public void fixIOParametredVars(final BiConsumer<Parameters, String> onMissingInputVar,
-									final BiConsumer<Parameters, String> onMissingOutputVar) {
+	private void fixIOParametredVars(final Parameters parameters) {
 		final var actualTaggedParameters = parameters.getParameters().stream()
 				.filter(parameters::isTaggedParameter)
 				.distinct()
@@ -580,13 +548,6 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 	}
 
 	/**
-	 * Default with prependBulkParameters and prependParameters
-	 */
-	public void fixIOParametredVars() {
-		fixIOParametredVars(PREPEND_PARAM_AT_START, APPEND_PARAM_AT_END);
-	}
-
-	/**
 	 * @return a copy form internal parameters, with variable injection
 	 */
 	@Override
@@ -597,6 +558,7 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 		final var allVarsToInject = new HashMap<>(parametersVariables);
 
 		final var newerParameters = parameters.duplicate();
+		fixIOParametredVars(newerParameters);
 
 		Stream.concat(inputSources.stream(), outputExpectedDestinations.stream()).forEach(paramRef -> {
 			final var taggedVarName = paramRef.getVarNameInParameters();
@@ -621,7 +583,6 @@ public class ConversionTool implements ExecutableTool, InternalParametersSupplie
 		return newerParameters.injectVariables(allVarsToInject, removeParamsIfNoVarToInject);
 	}
 
-	@Override
 	public String getExecutableName() {
 		return execName;
 	}

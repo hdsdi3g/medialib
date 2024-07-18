@@ -36,7 +36,7 @@ import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
 
 class MediaAnalyserResultTest {
 
-	MediaAnalyserResult r;
+	MediaAnalyserProcessResult r;
 
 	@Mock
 	LavfiMetadataFilterParser lavfiMetadatas;
@@ -46,7 +46,7 @@ class MediaAnalyserResultTest {
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
-		r = new MediaAnalyserResult(lavfiMetadatas, filters, Optional.of(0), null);
+		r = new MediaAnalyserProcessResult(lavfiMetadatas, filters, Optional.of(0), null);
 	}
 
 	@AfterEach
@@ -59,7 +59,7 @@ class MediaAnalyserResultTest {
 
 	@Test
 	void testIsEmpty_realEmpty() {
-		r = new MediaAnalyserResult(null, null, null, null);
+		r = new MediaAnalyserProcessResult(null, null, null, null);
 		assertTrue(r.isEmpty());
 	}
 

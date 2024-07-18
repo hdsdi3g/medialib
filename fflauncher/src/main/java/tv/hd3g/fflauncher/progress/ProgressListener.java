@@ -30,7 +30,7 @@ public class ProgressListener {
 		this(r -> {
 			final var t = new Thread(r);
 			t.setDaemon(true);
-			t.setName("Socket watcher for ffmpeg progress");
+			t.setName("Socket progressWatcher for ffmpeg progress");
 			return t;
 		});
 	}

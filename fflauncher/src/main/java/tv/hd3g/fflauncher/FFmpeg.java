@@ -17,32 +17,25 @@
 package tv.hd3g.fflauncher;
 
 import static java.util.Objects.requireNonNull;
-import static tv.hd3g.fflauncher.progress.ProgressListenerSession.LOCALHOST_IPV4;
 
 import java.io.File;
-import java.time.Duration;
-import java.util.Objects;
-import java.util.function.Consumer;
 
-import tv.hd3g.fflauncher.progress.ProgressCallback;
-import tv.hd3g.fflauncher.progress.ProgressListener;
-import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 public class FFmpeg extends FFbase implements
-					InputGeneratorsTraits,
+					SimpleSourceTraits,
 					HardwareProcessTraits,
 					VideoOutputTrait,
 					TemporalProcessTraits {
 
-	public static final Duration statsPeriod = Duration.ofSeconds(1);
-
 	private int deviceIdToUse = -1;
-	protected ProgressListener progressListener;
-	protected ProgressCallback progressCallback;
 
 	public FFmpeg(final String execName, final Parameters parameters) {
 		super(execName, parameters);
+	}
+
+	public FFmpeg(final String execName) {
+		super(execName, new Parameters());
 	}
 
 	public FFmpeg setNostats() {
@@ -136,42 +129,6 @@ public class FFmpeg extends FFbase implements
 	public FFmpeg addMap(final int sourceIndex, final int streamIndexInSource) {
 		getInternalParameters().addParameters("-map", sourceIndex + ":" + streamIndexInSource);
 		return this;
-	}
-
-	public FFmpeg setProgressListener(final ProgressListener progressListener,
-									  final ProgressCallback progressCallback) {
-		this.progressListener = Objects.requireNonNull(progressListener, "\"progressListener\" can't to be null");
-		this.progressCallback = Objects.requireNonNull(progressCallback, "\"progressCallback\" can't to be null");
-		return this;
-	}
-
-	public FFmpeg resetProgressListener() {
-		progressListener = null;
-		progressCallback = null;
-		return this;
-	}
-
-	@Override
-	public Consumer<ProcesslauncherBuilder> beforeExecute() {
-		if (progressListener != null && progressCallback != null) {
-			if (parameters.hasParameters("-progress")) {
-				throw new IllegalArgumentException(
-						"ffmpeg command line as already \"-progress\" option: " + parameters);
-			}
-			parameters.ifHasNotParameter(
-					() -> parameters.prependParameters("-stats_period", String.valueOf(statsPeriod.toSeconds())),
-					"-stats_period");
-
-			final var session = progressListener.createSession(progressCallback, statsPeriod);
-			final var port = session.start();
-			parameters.prependParameters("-progress", "tcp://" + LOCALHOST_IPV4 + ":" + port);
-
-			return builder -> {
-				super.beforeExecute().accept(builder);
-				builder.addExecutionCallbacker(processlauncherLifecycle -> session.manualClose());
-			};
-		}
-		return super.beforeExecute();
 	}
 
 }

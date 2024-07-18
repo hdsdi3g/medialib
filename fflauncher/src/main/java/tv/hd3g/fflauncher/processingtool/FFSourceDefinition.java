@@ -14,16 +14,18 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-package tv.hd3g.fflauncher;
+package tv.hd3g.fflauncher.processingtool;
 
-public class UnknownFormatException extends RuntimeException {
+import tv.hd3g.fflauncher.SimpleSourceTraits;
 
-	public UnknownFormatException(final String message) {
-		super(message);
-	}
+@FunctionalInterface
+public interface FFSourceDefinition {
 
-	public UnknownFormatException(final String message, final Throwable cause) {
-		super(message, cause);
+	void applySourceToFF(SimpleSourceTraits input);
+
+	static FFSourceDefinition noSourceInput() {
+		return input -> {
+		};
 	}
 
 }

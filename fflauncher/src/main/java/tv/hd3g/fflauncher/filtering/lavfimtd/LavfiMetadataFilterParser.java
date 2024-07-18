@@ -16,20 +16,24 @@
  */
 package tv.hd3g.fflauncher.filtering.lavfimtd;
 
+import static java.lang.Integer.MAX_VALUE;
+import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static tv.hd3g.fflauncher.filtering.AudioFilterAPhasemeter.APHASEMETER;
-import static tv.hd3g.fflauncher.recipes.MediaAnalyser.assertAndParse;
-import static tv.hd3g.fflauncher.recipes.MediaAnalyser.splitter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.SequencedMap;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -279,47 +283,35 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		});
 
 		final var channels = channelsContent.stream()
-				.map(content -> {
-					final var dcOffset = getFloat("DC_offset", content);
-					final var peakLevel = getFloat("Peak_level", content);
-					final var flatness = getLong("Flat_factor", content);
-					final var peakCount = getLong("Peak_count", content);
-					final var noiseFloor = getFloat("Noise_floor", content);
-					final var noiseFloorCount = getLong("Noise_floor_count", content);
-					final var entropy = getFloat("Entropy", content);
-					final var bitDepth = getInt("Bit_depth", content);
-					final var crestFactor = getFloat("Crest_factor", content);
-					final var dynamicRange = getFloat("Dynamic_range", content);
-					final var flatFactor = getFloat("Flat_factor", content);
-					final var maxDifference = getFloat("Max_difference", content);
-					final var maxLevel = getFloat("Max_level", content);
-					final var meanDifference = getFloat("Mean_difference", content);
-					final var minDifference = getFloat("Min_difference", content);
-					final var minLevel = getFloat("Min_level", content);
-					final var rmsDifference = getFloat("RMS_difference", content);
-					final var rmsLevel = getFloat("RMS_level", content);
-					final var rmsPeak = getFloat("RMS_peak", content);
-					final var rmsTrough = getFloat("RMS_trough", content);
-					final var zeroCrossings = getFloat("Zero_crossings", content);
-					final var zeroCrossingsRate = getFloat("Zero_crossings_rate", content);
-					final var numberOfInfs = getLong("Number_of_Infs", content);
-					final var numberOfNaNs = getLong("Number_of_NaNs", content);
-					final var numberOfDenormals = getLong("Number_of_denormals", content);
-					final var numberOfSamples = getLong("Number_of_samples", content);
-					final var absPeakCount = getLong("Abs_Peak_count", content);
-
-					final var other = content.entrySet().stream()
-							.collect(toUnmodifiableMap(Entry::getKey,
-									entry -> parseFloat(entry.getValue())));
-
-					return new LavfiMtdAstatsChannel(dcOffset, peakLevel, flatness, peakCount, noiseFloor,
-							noiseFloorCount, entropy, bitDepth, crestFactor, dynamicRange, flatFactor, maxDifference,
-							maxLevel, meanDifference, minDifference, minLevel, rmsDifference, rmsLevel,
-							rmsPeak, rmsTrough, zeroCrossings, zeroCrossingsRate,
-							numberOfInfs, numberOfNaNs,
-							numberOfDenormals, numberOfSamples, absPeakCount,
-							other);
-				})
+				.map(content -> new LavfiMtdAstatsChannel(
+						getFloat("DC_offset", content),
+						getFloat("Peak_level", content),
+						getLong("Flat_factor", content),
+						getLong("Peak_count", content),
+						getFloat("Noise_floor", content),
+						getLong("Noise_floor_count", content),
+						getFloat("Entropy", content),
+						getInt("Bit_depth", content),
+						getFloat("Crest_factor", content),
+						getFloat("Dynamic_range", content),
+						getFloat("Flat_factor", content),
+						getFloat("Max_difference", content),
+						getFloat("Max_level", content),
+						getFloat("Mean_difference", content),
+						getFloat("Min_difference", content),
+						getFloat("Min_level", content),
+						getFloat("RMS_difference", content),
+						getFloat("RMS_level", content),
+						getFloat("RMS_peak", content),
+						getFloat("RMS_trough", content),
+						getFloat("Zero_crossings", content),
+						getFloat("Zero_crossings_rate", content),
+						getLong("Number_of_Infs", content),
+						getLong("Number_of_NaNs", content),
+						getLong("Number_of_denormals", content),
+						getLong("Number_of_samples", content),
+						getLong("Abs_Peak_count", content),
+						getOthers(content)))
 				.toList();
 
 		if (channels.isEmpty()) {
@@ -327,6 +319,15 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		}
 
 		return Optional.ofNullable(new LavfiMtdAstats(channels));
+	}
+
+	private SequencedMap<String, Float> getOthers(final Map<String, String> content) {
+		final var others = new LinkedHashMap<String, Float>();
+		content.keySet()
+				.stream()
+				.sorted()
+				.forEach(key -> others.put(key, parseFloat(content.get(key))));
+		return Collections.unmodifiableSequencedMap(others);
 	}
 
 	private float getFloat(final String key, final Map<String, String> content) {
@@ -592,6 +593,51 @@ public class LavfiMetadataFilterParser implements NumberParserTraits {
 		final var si = sitiReport.stream().map(LavfiMtdValue::value).mapToDouble(LavfiMtdSiti::si).summaryStatistics();
 		final var ti = sitiReport.stream().map(LavfiMtdValue::value).mapToDouble(LavfiMtdSiti::ti).summaryStatistics();
 		return new LavfiMtdSitiSummary(si, ti);
+	}
+
+	/**
+	 * @param item like "AABB"
+	 * @param assertStarts like "AA"
+	 * @return like "BB"
+	 */
+	public static String assertAndParse(final String item, final String assertStarts) {
+		return assertAndParse(item, assertStarts, l -> l);
+	}
+
+	public static <T> T assertAndParse(final String item, final String assertStarts, final Function<String, T> parser) {
+		if (item.startsWith(assertStarts) == false) {
+			throw new IllegalArgumentException("Not a " + assertStarts + ": " + item);
+		}
+		return parser.apply(item.substring(assertStarts.length()));
+	}
+
+	public static List<String> splitter(final String line, final char with) {
+		return splitter(line, with, MAX_VALUE);
+	}
+
+	public static List<String> splitter(final String line, final char with, final int max) {
+		var currentChars = new StringBuilder();
+		final List<String> result = new ArrayList<>();
+
+		char chr;
+		for (var pos = 0; pos < line.length(); pos++) {
+			chr = line.charAt(pos);
+			if (chr != with) {
+				currentChars.append(chr);
+			} else if (currentChars.isEmpty() == false) {
+				result.add(currentChars.toString());
+				currentChars = new StringBuilder();
+				if (result.size() >= max) {
+					return unmodifiableList(result);
+				}
+			}
+		}
+
+		if (currentChars.isEmpty() == false) {
+			result.add(currentChars.toString());
+		}
+
+		return unmodifiableList(result);
 	}
 
 }

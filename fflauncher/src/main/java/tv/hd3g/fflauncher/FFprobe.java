@@ -32,6 +32,10 @@ public class FFprobe extends FFbase {
 	private static final String P_PRINT_FORMAT = "-print_format";
 	private static final String P_PRETTY = "-pretty";
 
+	public FFprobe(final String execName) {
+		super(execName, new Parameters());
+	}
+
 	public FFprobe(final String execName, final Parameters parameters) {
 		super(execName, parameters);
 	}
@@ -73,7 +77,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setPrintFormat(final FFPrintFormat printFormat) {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_PRINT_FORMAT,
-		        printFormat.toString().toLowerCase()), P_PRINT_FORMAT, "-of");
+				printFormat.toString().toLowerCase()), P_PRINT_FORMAT, "-of");
 		return this;
 	}
 
@@ -86,7 +90,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowFormat() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_FORMAT),
-		        P_SHOW_FORMAT);
+				P_SHOW_FORMAT);
 		return this;
 	}
 
@@ -99,7 +103,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowData() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_DATA),
-		        P_SHOW_DATA);
+				P_SHOW_DATA);
 		return this;
 	}
 
@@ -112,7 +116,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowError() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_ERROR),
-		        P_SHOW_ERROR);
+				P_SHOW_ERROR);
 		return this;
 	}
 
@@ -125,7 +129,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowFrames() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_FRAMES),
-		        P_SHOW_FRAMES);
+				P_SHOW_FRAMES);
 		return this;
 	}
 
@@ -150,7 +154,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowPackets() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_PACKETS),
-		        P_SHOW_PACKETS);
+				P_SHOW_PACKETS);
 		return this;
 	}
 
@@ -163,7 +167,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowPrograms() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_PROGRAMS),
-		        P_SHOW_PROGRAMS);
+				P_SHOW_PROGRAMS);
 		return this;
 	}
 
@@ -176,7 +180,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowStreams() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_STREAMS),
-		        P_SHOW_STREAMS);
+				P_SHOW_STREAMS);
 		return this;
 	}
 
@@ -189,7 +193,7 @@ public class FFprobe extends FFbase {
 	 */
 	public FFprobe setShowChapters() {
 		getInternalParameters().ifHasNotParameter(() -> getInternalParameters().addParameters(P_SHOW_CHAPTERS),
-		        P_SHOW_CHAPTERS);
+				P_SHOW_CHAPTERS);
 		return this;
 	}
 

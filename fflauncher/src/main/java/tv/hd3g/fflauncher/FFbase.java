@@ -17,11 +17,12 @@
 package tv.hd3g.fflauncher;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -30,7 +31,6 @@ import tv.hd3g.fflauncher.enums.FFLogLevel;
 import tv.hd3g.fflauncher.enums.FilterConnectorType;
 import tv.hd3g.fflauncher.filtering.Filter;
 import tv.hd3g.fflauncher.filtering.FilterChains;
-import tv.hd3g.processlauncher.ProcesslauncherBuilder;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
@@ -39,18 +39,11 @@ public class FFbase extends ConversionTool implements SimpleSourceTraits {
 	private static final String IN_AUTOMATIC = "IN_AUTOMATIC_";
 	private static final String P_LOGLEVEL = "-loglevel";
 	private static final String P_HIDE_BANNER = "-hide_banner";
+
 	private FFAbout about;
 
 	public FFbase(final String execName, final Parameters parameters) {
 		super(execName, parameters);
-	}
-
-	@Override
-	public void beforeRun(final ProcesslauncherBuilder processBuilder) {
-		super.beforeRun(processBuilder);
-		if (processBuilder.getEnvironmentVar("AV_LOG_FORCE_COLOR") == null) {
-			processBuilder.setEnvironmentVarIfNotFound("AV_LOG_FORCE_NOCOLOR", "1");
-		}
 	}
 
 	@Override
@@ -192,39 +185,7 @@ public class FFbase extends ConversionTool implements SimpleSourceTraits {
 		return super.addSimpleOutputDestination(destinationFile);
 	}
 
-	public synchronized FFAbout getAbout(final ExecutableFinder executableFinder) {
-		if (about == null) {
-			final var maxExecTimeScheduler = getMaxExecTimeScheduler();
-			if (maxExecTimeScheduler == null) {
-				about = new FFAbout(execName, executableFinder, Executors.newSingleThreadScheduledExecutor());
-			} else {
-				about = new FFAbout(execName, executableFinder, maxExecTimeScheduler);
-			}
-		}
-		return about;
-	}
-
-	public synchronized List<Filter> checkFiltersAvailability(final ExecutableFinder executableFinder) {
-		getAbout(executableFinder);
-
-		final var badVideoFilters = FilterChains.merge(FilterChains.parse("-vf", this))
-				.checkFiltersAvailability(about, FilterConnectorType.VIDEO);
-		final var badAudioFilters = FilterChains.merge(FilterChains.parse("-af", this))
-				.checkFiltersAvailability(about, FilterConnectorType.AUDIO);
-		final var badGenericFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter", this))
-				.checkFiltersAvailability(about);
-		final var badGenericComplexFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter_complex", this))
-				.checkFiltersAvailability(about);
-
-		return Stream.of(badVideoFilters.stream(),
-				badAudioFilters.stream(),
-				badGenericFilterChainsLists.stream(),
-				badGenericComplexFilterChainsLists.stream())
-				.flatMap(s -> s)
-				.toList();
-	}
-
-	private static final Predicate<String> filterOutErrorLines = rawL -> {
+	public static final Predicate<String> filterOutErrorLines = rawL -> {
 		final var l = rawL.trim();
 		if (l.startsWith("[")) {
 			return true;
@@ -247,8 +208,33 @@ public class FFbase extends ConversionTool implements SimpleSourceTraits {
 		return true;
 	};
 
-	@Override
 	public Predicate<String> filterOutErrorLines() {
 		return filterOutErrorLines;
 	}
+
+	public synchronized FFAbout getAbout(final ExecutableFinder executableFinder) {
+		return Optional.ofNullable(about)
+				.orElseGet(() -> new FFAbout(execName, executableFinder, newSingleThreadScheduledExecutor()));
+	}
+
+	public synchronized List<Filter> checkFiltersAvailability(final ExecutableFinder executableFinder) {
+		getAbout(executableFinder);
+
+		final var badVideoFilters = FilterChains.merge(FilterChains.parse("-vf", this))
+				.checkFiltersAvailability(about, FilterConnectorType.VIDEO);
+		final var badAudioFilters = FilterChains.merge(FilterChains.parse("-af", this))
+				.checkFiltersAvailability(about, FilterConnectorType.AUDIO);
+		final var badGenericFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter", this))
+				.checkFiltersAvailability(about);
+		final var badGenericComplexFilterChainsLists = FilterChains.merge(FilterChains.parse("-filter_complex", this))
+				.checkFiltersAvailability(about);
+
+		return Stream.of(badVideoFilters.stream(),
+				badAudioFilters.stream(),
+				badGenericFilterChainsLists.stream(),
+				badGenericComplexFilterChainsLists.stream())
+				.flatMap(s -> s)
+				.toList();
+	}
+
 }

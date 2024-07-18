@@ -23,15 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import tv.hd3g.fflauncher.FFprobe.FFPrintFormat;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class FFprobeTest {
 
 	@Test
 	void test() {
-		final var parameters = new Parameters();
-		final var p = new FFprobe("ffprobe", parameters);
-
+		final var p = new FFprobe("ffprobe");
+		final var parameters = p.getInternalParameters();
 		final var skip_base_cmdline = parameters.toString().length();
 
 		assertFalse(p.isPretty());

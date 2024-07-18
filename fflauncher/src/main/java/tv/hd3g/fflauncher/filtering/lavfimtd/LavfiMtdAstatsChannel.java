@@ -20,7 +20,7 @@ import static java.lang.reflect.Modifier.isStatic;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
+import java.util.SequencedMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -79,7 +79,7 @@ public record LavfiMtdAstatsChannel(
 									long numberOfSamples,
 									/** Number of occasions that the absolute samples taken from the signal attained max absolute value of Min_level and Max_level */
 									long absPeakCount,
-									Map<String, Float> other) {
+									SequencedMap<String, Float> other) {
 
 	private static final List<Field> declaredFields = Stream.of(LavfiMtdAstatsChannel.class.getDeclaredFields())
 			.filter(f -> isStatic(f.getModifiers()) == false)
@@ -93,7 +93,7 @@ public record LavfiMtdAstatsChannel(
 
 	public Stream<Number> getValues() {
 		return declaredFields.stream()
-				.filter(f -> f.getType().equals(Map.class) == false)
+				.filter(f -> f.getName().equals("other") == false)
 				.map(f -> {
 					try {
 						return (Number) f.get(this);

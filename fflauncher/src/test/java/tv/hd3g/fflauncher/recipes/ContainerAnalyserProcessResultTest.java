@@ -16,6 +16,7 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,8 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
@@ -34,6 +33,7 @@ import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.I;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.P;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobePictType.UNKNOWN;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -41,8 +41,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 
+import tv.hd3g.commons.testtools.Fake;
+import tv.hd3g.commons.testtools.MockToolsExtendsJunit;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeAudioFrameConst;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeBaseFrame;
@@ -50,12 +53,11 @@ import tv.hd3g.fflauncher.ffprobecontainer.FFprobePacket;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrame;
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeVideoFrameConst;
 
-class ContainerAnalyserResultTest {
+@ExtendWith(MockToolsExtendsJunit.class)
+class ContainerAnalyserProcessResultTest {
 
-	ContainerAnalyserResult r;
+	ContainerAnalyserProcessResult r;
 
-	@Mock
-	ContainerAnalyserSession session;
 	@Mock
 	List<FFprobePacket> packets;
 	@Mock
@@ -77,6 +79,9 @@ class ContainerAnalyserResultTest {
 	@Mock
 	FFprobeBaseFrame frameB;
 
+	@Fake
+	String ffprobeCommandLine;
+
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
@@ -86,8 +91,7 @@ class ContainerAnalyserResultTest {
 		when(olderVideoConsts.isEmpty()).thenReturn(true);
 		when(olderAudioConsts.isEmpty()).thenReturn(true);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -105,19 +109,6 @@ class ContainerAnalyserResultTest {
 		verify(videoFrames, atMostOnce()).isEmpty();
 		verify(olderVideoConsts, atMostOnce()).isEmpty();
 		verify(olderAudioConsts, atMostOnce()).isEmpty();
-
-		verifyNoMoreInteractions(
-				session,
-				packets,
-				audioFrames,
-				videoFrames,
-				videoConst,
-				audioConst,
-				olderVideoConsts,
-				olderAudioConsts,
-				frameI,
-				frameP,
-				frameB);
 	}
 
 	@Test
@@ -129,8 +120,7 @@ class ContainerAnalyserResultTest {
 	void testIsEmpty_partial_packets() {
 		when(packets.isEmpty()).thenReturn(false);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -146,8 +136,7 @@ class ContainerAnalyserResultTest {
 	void testIsEmpty_partial_audioFrames() {
 		when(audioFrames.isEmpty()).thenReturn(false);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -163,8 +152,7 @@ class ContainerAnalyserResultTest {
 	void testIsEmpty_partial_videoFrames() {
 		when(videoFrames.isEmpty()).thenReturn(false);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -180,8 +168,7 @@ class ContainerAnalyserResultTest {
 	void testIsEmpty_partial_olderVideoConsts() {
 		when(olderVideoConsts.isEmpty()).thenReturn(false);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -197,8 +184,7 @@ class ContainerAnalyserResultTest {
 	void testIsEmpty_partial_olderAudioConsts() {
 		when(olderAudioConsts.isEmpty()).thenReturn(false);
 
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -212,8 +198,7 @@ class ContainerAnalyserResultTest {
 
 	@Test
 	void testIsEmpty_partial_videoConst() {
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -227,8 +212,7 @@ class ContainerAnalyserResultTest {
 
 	@Test
 	void testIsEmpty_partial_audioConst() {
-		r = new ContainerAnalyserResult(
-				session,
+		r = new ContainerAnalyserProcessResult(
 				packets,
 				audioFrames,
 				videoFrames,
@@ -311,10 +295,30 @@ class ContainerAnalyserResultTest {
 
 		@AfterEach
 		void ends() {
-			verifyNoInteractions(session);
-			reset(videoFrames, session);
+			reset((Object) videoFrames);
 		}
 
+	}
+
+	@Test
+	void testImportFromOffline() {
+		final var xml = """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<ffprobe>
+				    <packets_and_frames>
+				        <packet codec_type="video" stream_index="0" pts="0" pts_time="0.000000" dts="0" dts_time="0.000000" duration="640" duration_time="0.040000" size="678" pos="36" flags="K__"/>
+				        <frame media_type="video" stream_index="0" key_frame="1" pts="0" pts_time="0.000000" pkt_dts="0" pkt_dts_time="0.000000" best_effort_timestamp="0" best_effort_timestamp_time="0.000000" duration="640" duration_time="0.040000" pkt_pos="36" pkt_size="678" width="352" height="288" crop_top="0" crop_bottom="0" crop_left="0" crop_right="0" pix_fmt="yuv420p" sample_aspect_ratio="1:1" pict_type="I" interlaced_frame="0" top_field_first="0" repeat_pict="0"/>
+				        <packet codec_type="audio" stream_index="1" pts="0" pts_time="0.000000" dts="0" dts_time="0.000000" duration="1024" duration_time="0.021333" size="4096" pos="714" flags="K__"/>
+				        <frame media_type="audio" stream_index="1" key_frame="1" pts="0" pts_time="0.000000" pkt_dts="0" pkt_dts_time="0.000000" best_effort_timestamp="0" best_effort_timestamp_time="0.000000" duration="1024" duration_time="0.021333" pkt_pos="714" pkt_size="4096" sample_fmt="s16" nb_samples="1024" channels="2" channel_layout="stereo"/>
+				    </packets_and_frames>
+				</ffprobe>
+				""";
+		final var bais = new ByteArrayInputStream(xml.getBytes());
+		final var result = ContainerAnalyserProcessResult.importFromOffline(bais, ffprobeCommandLine);
+		assertNotNull(result);
+		assertThat(result.audioFrames()).size().isEqualTo(1);
+		assertThat(result.videoFrames()).size().isEqualTo(1);
+		assertThat(result.packets()).size().isEqualTo(2);
 	}
 
 }

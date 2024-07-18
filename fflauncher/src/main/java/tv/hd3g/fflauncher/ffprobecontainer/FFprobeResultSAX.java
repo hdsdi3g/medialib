@@ -16,6 +16,7 @@
  */
 package tv.hd3g.fflauncher.ffprobecontainer;
 
+import static java.util.Collections.unmodifiableList;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.AUDIO;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.OTHER;
 import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
@@ -23,7 +24,6 @@ import static tv.hd3g.fflauncher.ffprobecontainer.FFprobeCodecType.VIDEO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,8 +44,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.processlauncher.InputStreamConsumer;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
@@ -267,16 +266,15 @@ public class FFprobeResultSAX extends DefaultHandler implements
 		}
 	}
 
-	public ContainerAnalyserResult getResult(final ContainerAnalyserSession session, final String ffprobeCommandLine) {
-		return new ContainerAnalyserResult(
-				session,
-				Collections.unmodifiableList(packets),
-				Collections.unmodifiableList(audioFrames),
-				Collections.unmodifiableList(videoFrames),
+	public ContainerAnalyserProcessResult getResult(final String ffprobeCommandLine) {
+		return new ContainerAnalyserProcessResult(
+				unmodifiableList(packets),
+				unmodifiableList(audioFrames),
+				unmodifiableList(videoFrames),
 				videoConst,
 				audioConst,
-				Collections.unmodifiableList(olderVideoConsts),
-				Collections.unmodifiableList(olderAudioConsts),
+				unmodifiableList(olderVideoConsts),
+				unmodifiableList(olderAudioConsts),
 				ffprobeCommandLine);
 	}
 

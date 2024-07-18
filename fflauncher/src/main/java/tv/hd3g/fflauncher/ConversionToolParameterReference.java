@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 @Slf4j
-class ConversionToolParameterReference {
+public class ConversionToolParameterReference {
 
 	private static final int TRY_COUNT_TO_OPEN_FILE = 5;
 
@@ -49,13 +49,13 @@ class ConversionToolParameterReference {
 	 * @param parametersBeforeRef can be null
 	 */
 	ConversionToolParameterReference(final String reference, final String varNameInParameters,
-	                                 final Collection<String> parametersBeforeRef) {
+									 final Collection<String> parametersBeforeRef) {
 		ressource = Objects.requireNonNull(reference, "\"reference\" can't to be null");
 		this.varNameInParameters = Objects.requireNonNull(varNameInParameters,
-		        "\"var_name_in_parameters\" can't to be null");
+				"\"var_name_in_parameters\" can't to be null");
 		this.parametersBeforeRef = Optional.ofNullable(parametersBeforeRef)
-		        .map(Parameters::of)
-		        .orElseGet(Parameters::of);
+				.map(Parameters::of)
+				.orElseGet(Parameters::of);
 		ressourceAsFile = false;
 	}
 
@@ -63,13 +63,13 @@ class ConversionToolParameterReference {
 	 * @param parametersBeforeRef can be null
 	 */
 	ConversionToolParameterReference(final File reference, final String varNameInParameters,
-	                                 final Collection<String> parametersBeforeRef) {
+									 final Collection<String> parametersBeforeRef) {
 		ressource = Objects.requireNonNull(reference, "\"reference\" can't to be null").getPath();
 		this.varNameInParameters = Objects.requireNonNull(varNameInParameters,
-		        "\"var_name_in_parameters\" can't to be null");
+				"\"var_name_in_parameters\" can't to be null");
 		this.parametersBeforeRef = Optional.ofNullable(parametersBeforeRef)
-		        .map(Parameters::of)
-		        .orElseGet(Parameters::of);
+				.map(Parameters::of)
+				.orElseGet(Parameters::of);
 		ressourceAsFile = true;
 	}
 
@@ -93,8 +93,8 @@ class ConversionToolParameterReference {
 		}
 		final var actual = actualParameters.getParameters();
 		final var allNParamBeforeThisVarCount = (int) actual.stream()
-		        .takeWhile(arg -> arg.equals(varNameInParameters) == false)
-		        .count();
+				.takeWhile(arg -> arg.equals(varNameInParameters) == false)
+				.count();
 
 		/**
 		 * Trim by ends
@@ -127,7 +127,7 @@ class ConversionToolParameterReference {
 		 * ...=> [c, d] => Yes, trim => [a, b, c, d] / [e]
 		 */
 		for (var windowsWidth = 0; windowsWidth < Math.min(parametersList.size(),
-		        allNParamBeforeThisVarCount) - 1; windowsWidth++) {
+				allNParamBeforeThisVarCount) - 1; windowsWidth++) {
 			final var actualMinBound = allNParamBeforeThisVarCount - (windowsWidth + 1);
 			final var actualMaxBound = allNParamBeforeThisVarCount;
 			final var beforePMinBound = 0;

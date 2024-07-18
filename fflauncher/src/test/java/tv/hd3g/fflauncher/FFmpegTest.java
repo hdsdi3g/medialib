@@ -16,28 +16,24 @@
  */
 package tv.hd3g.fflauncher;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
 import static tv.hd3g.fflauncher.ConversionTool.PREPEND_PARAM_AT_START;
-import static tv.hd3g.fflauncher.FFmpeg.statsPeriod;
-import static tv.hd3g.fflauncher.progress.ProgressListenerSession.LOCALHOST_IPV4;
-import static tv.hd3g.processlauncher.cmdline.Parameters.bulk;
+import static tv.hd3g.fflauncher.FFbase.filterOutErrorLines;
+import static tv.hd3g.fflauncher.processingtool.FFmpegToolBuilder.statsPeriod;
+import static tv.hd3g.processlauncher.CapturedStreams.BOTH_STDOUT_STDERR;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
@@ -60,12 +56,17 @@ import tv.hd3g.fflauncher.progress.ProgressCallback;
 import tv.hd3g.fflauncher.progress.ProgressListener;
 import tv.hd3g.fflauncher.progress.ProgressListenerSession;
 import tv.hd3g.fflauncher.recipes.ProbeMedia;
+import tv.hd3g.processlauncher.CapturedStdOutErrTextRetention;
 import tv.hd3g.processlauncher.ExecutionCallbacker;
+import tv.hd3g.processlauncher.InvalidExecution;
+import tv.hd3g.processlauncher.ProcessLifeCycleException;
 import tv.hd3g.processlauncher.ProcesslauncherBuilder;
+import tv.hd3g.processlauncher.cmdline.CommandLine;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class FFmpegTest {
+	private static final String FFMPEG_EXEC_NAME = "ffmpeg";
+
 	static Faker faker = net.datafaker.Faker.instance();
 
 	final ExecutableFinder executableFinder;
@@ -75,24 +76,25 @@ class FFmpegTest {
 	FFmpegTest() {
 		executableFinder = new ExecutableFinder();
 		maxExecTimeScheduler = Executors.newSingleThreadScheduledExecutor();
-		probeMedia = new ProbeMedia(executableFinder, maxExecTimeScheduler);
+		probeMedia = new ProbeMedia(maxExecTimeScheduler);
+		probeMedia.setExecutableFinder(executableFinder);
 	}
 
 	private FFmpeg create() {
-		return new FFmpeg("ffmpeg", new Parameters());
+		return new FFmpeg(FFMPEG_EXEC_NAME);
 	}
 
 	@Test
 	void testSimpleOutputDestination() {
 		final var ffmpeg = create();
 		ffmpeg.addSimpleOutputDestination("dest", "container");
-		ffmpeg.fixIOParametredVars(PREPEND_PARAM_AT_START, APPEND_PARAM_AT_END);
+		ffmpeg.setFixIOParametredVars(PREPEND_PARAM_AT_START, APPEND_PARAM_AT_END);
 
 		assertTrue(ffmpeg.getReadyToRunParameters().toString().endsWith("-f container dest"));
 	}
 
 	@Test
-	void testParameters() throws FileNotFoundException {
+	void testParameters() {
 		final var ffmpeg = create();
 		final var header = ffmpeg.getInternalParameters().toString().length();
 
@@ -113,6 +115,31 @@ class FFmpegTest {
 				ffmpeg.getInternalParameters().toString().substring(header));
 	}
 
+	private void execute(final FFmpeg ffmpeg, final ExecutableFinder executableFinder) {
+		final var executableName = ffmpeg.getExecutableName();
+		try {
+			final var cmd = new CommandLine(executableName, ffmpeg.getReadyToRunParameters(), executableFinder);
+			final var builder = new ProcesslauncherBuilder(cmd);
+
+			final var textRetention = new CapturedStdOutErrTextRetention();
+			builder.getSetCaptureStandardOutputAsOutputText(BOTH_STDOUT_STDERR).addObserver(textRetention);
+
+			ffmpeg.makeConversionHooks().beforeRun(builder);
+			final var lifeCycle = builder.start();
+
+			try {
+				lifeCycle.checkExecution();
+				textRetention.waitForClosedStreams();
+			} catch (final InvalidExecution e) {
+				throw e.injectStdErr(textRetention.getStderrLines(false)
+						.filter(filterOutErrorLines)
+						.map(String::trim).collect(Collectors.joining("|")));
+			}
+		} catch (final IOException e) {
+			throw new ProcessLifeCycleException("Can't start " + executableName, e);
+		}
+	}
+
 	@Test
 	void testNV() throws IOException, MediaException {
 		if (System.getProperty("ffmpeg.test.nvidia", "").equals("1") == false) {
@@ -124,9 +151,6 @@ class FFmpegTest {
 		ffmpeg.setOnErrorDeleteOutFiles(true);
 
 		final var about = ffmpeg.getAbout(new ExecutableFinder());
-
-		// this is buggy... assertTrue("NV Toolkit is not avaliable: " + about.getAvailableHWAccelerationMethods(), about.isNVToolkitIsAvaliable());
-
 		final var cmd = ffmpeg.getInternalParameters();
 		cmd.addBulkParameters("-f lavfi -i smptehdbars=duration=" + 5 + ":size=1280x720:rate=25");
 
@@ -136,37 +160,37 @@ class FFmpegTest {
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("No codecs was added: " + cmd)).contains("nvenc"));
 
-		final var test_file = File.createTempFile("smptebars", ".mkv");
-		ffmpeg.addSimpleOutputDestination(test_file.getPath());
+		final var testFile = File.createTempFile("smptebars", ".mkv");
+		ffmpeg.addSimpleOutputDestination(testFile.getPath());
 
-		System.out.println("Generate test file to \"" + test_file.getPath() + "\"");
+		System.out.println("Generate test file to \"" + testFile.getPath() + "\"");
 
-		ffmpeg.execute(executableFinder).checkExecutionGetText();
+		execute(ffmpeg, executableFinder);
 
-		assertTrue(test_file.exists());
+		assertTrue(testFile.exists());
 
 		ffmpeg = create();
 		ffmpeg.setOverwriteOutputFiles();
 		ffmpeg.setOnErrorDeleteOutFiles(true);
 
-		ffmpeg.addHardwareVideoDecoding(test_file.getPath(), probeMedia.doAnalysing(test_file.getPath()),
+		ffmpeg.addHardwareVideoDecoding(testFile.getPath(), probeMedia.process(testFile.getPath()).getResult(),
 				FFHardwareCodec.NV, about);
 		ffmpeg.addHardwareVideoEncoding("h264", -1, FFHardwareCodec.NV, about);
 		ffmpeg.addCRF(40);
 
-		final var test_file2 = File.createTempFile("smptebars", ".mkv");
-		ffmpeg.addSimpleOutputDestination(test_file2.getPath());
+		final var testFile2 = File.createTempFile("smptebars", ".mkv");
+		ffmpeg.addSimpleOutputDestination(testFile2.getPath());
 
-		System.out.println("Hardware decoding to \"" + test_file.getPath() + "\"");
-		ffmpeg.execute(executableFinder).checkExecutionGetText();
+		System.out.println("Hardware decoding to \"" + testFile.getPath() + "\"");
+		execute(ffmpeg, executableFinder);
 
-		assertTrue(test_file2.exists());
-		assertTrue(test_file.delete());
-		assertTrue(test_file2.delete());
+		assertTrue(testFile2.exists());
+		assertTrue(testFile.delete());
+		assertTrue(testFile2.delete());
 	}
 
 	@Test
-	void testGetFirstVideoStream() throws IOException, InterruptedException, ExecutionException, MediaException {
+	void testGetFirstVideoStream() throws IOException {
 		if (System.getProperty("ffmpeg.test.nvidia", "").equals("1") == false) {
 			return;
 		}
@@ -179,15 +203,15 @@ class FFmpegTest {
 		cmd.addBulkParameters("-f lavfi -i smptehdbars=duration=" + 5 + ":size=1280x720:rate=25");
 		ffmpeg.addVideoCodecName("ffv1", -1);
 
-		final var test_file = File.createTempFile("smptebars", ".mkv");
-		ffmpeg.addSimpleOutputDestination(test_file.getPath());
+		final var testFile = File.createTempFile("smptebars", ".mkv");
+		ffmpeg.addSimpleOutputDestination(testFile.getPath());
 
-		System.out.println("Generate test file to \"" + test_file.getPath() + "\"");
-		ffmpeg.execute(executableFinder).checkExecutionGetText();
+		System.out.println("Generate test file to \"" + testFile.getPath() + "\"");
+		execute(ffmpeg, executableFinder);
 
-		assertTrue(test_file.exists());
+		assertTrue(testFile.exists());
 
-		final var s = probeMedia.doAnalysing(test_file.getPath()).getFirstVideoStream().get();
+		final var s = probeMedia.process(testFile.getPath()).getResult().getFirstVideoStream().get();
 		assertEquals("ffv1", s.codecName());
 	}
 
@@ -203,7 +227,7 @@ class FFmpegTest {
 						throw new UncheckedIOException(e);
 					}
 				})
-				.collect(toUnmodifiableList());
+				.toList();
 
 		ffmpeg.addSimpleInputSource(files.get(0));
 		ffmpeg.addSimpleInputSource(files.get(1).getPath());
@@ -213,10 +237,10 @@ class FFmpegTest {
 		ffmpeg.addSimpleOutputDestination(files.get(5).getPath());
 		ffmpeg.addSimpleOutputDestination(files.get(6), "-opts6");
 		ffmpeg.addSimpleOutputDestination(files.get(7).getPath(), "-opts7");
-		ffmpeg.fixIOParametredVars();
+		ffmpeg.setFixIOParametredVars(PREPEND_PARAM_AT_START, APPEND_PARAM_AT_END);
 
 		final var p = ffmpeg.getReadyToRunParameters();
-		final var filesNames = files.stream().map(File::getPath).collect(Collectors.toUnmodifiableList());
+		final var filesNames = files.stream().map(File::getPath).toList();
 
 		final var params = new ArrayList<>();
 		for (var pos = 0; pos < 4; pos++) {
@@ -266,42 +290,43 @@ class FFmpegTest {
 			verifyNoMoreInteractions(progressListener, progressCallback, progressListenerSession, builder);
 		}
 
-		@Test
-		void testWithProgress() {
-			f.setProgressListener(progressListener, progressCallback);
-			f.beforeExecute().accept(builder);
+	}
 
-			verify(progressListener, times(1)).createSession(progressCallback, statsPeriod);
-			verify(progressListenerSession, times(1)).start();
-			verify(builder, times(1)).addExecutionCallbacker(executionCallbackerCaptor.capture());
-			verifyNoMoreInteractions(progressListenerSession);
+	@Test
+	void testBase() {
+		final var b = new FFmpeg(FFMPEG_EXEC_NAME);
+		final var about = b.getAbout(executableFinder);
 
-			executionCallbackerCaptor.getValue().onEndExecution(null);
-			verify(progressListenerSession, times(1)).manualClose();
-			assertEquals(bulk("-progress tcp://" + LOCALHOST_IPV4 + ":" + port
-							  + " -stats_period " + statsPeriod.toSeconds()),
-					f.parameters);
+		assertNotNull(about.getVersion(), "version");
+		assertFalse(about.getCodecs().isEmpty(), "codecs empty");
+		assertFalse(about.getFormats().isEmpty(), "formats empty");
+		assertFalse(about.getDevices().isEmpty(), "devices empty");
+		assertFalse(about.getBitStreamFilters().isEmpty(), "bitstream empty");
+		assertNotNull(about.getProtocols(), "protocols");
+		assertFalse(about.getFilters().isEmpty(), "filters empty");
+		assertFalse(about.getPixelFormats().isEmpty(), "pixelFormats empty");
+
+		assertTrue(about.isCoderIsAvaliable("ffv1"), "Coder Avaliable");
+		assertFalse(about.isCoderIsAvaliable("nonono"), "Coder notAvaliable");
+		assertTrue(about.isDecoderIsAvaliable("rl2"), "Decoder Avaliable");
+		assertFalse(about.isDecoderIsAvaliable("nonono"), "Decoder notAvaliable");
+		assertTrue(about.isFilterIsAvaliable("color"), "Filter Avaliable");
+		assertFalse(about.isFilterIsAvaliable("nonono"), "Filter notAvaliable");
+		assertTrue(about.isToFormatIsAvaliable("wav"), "Format Avaliable");
+		assertFalse(about.isToFormatIsAvaliable("nonono"), "Format notAvaliable");
+	}
+
+	@Test
+	void testNVPresence() {
+		final var b = new FFmpeg(FFMPEG_EXEC_NAME);
+
+		if (System.getProperty("ffmpeg.test.nvidia", "").equals("1")) {
+			assertTrue(b.getAbout(executableFinder)
+					.isNVToolkitIsAvaliable(), "Can't found NV lib like cuda, cuvid and nvenc");
 		}
-
-		@Test
-		void testWithoutProgress() {// NOSONAR S2699
-			f.beforeExecute().accept(builder);
+		if (System.getProperty("ffmpeg.test.libnpp", "").equals("1")) {
+			assertTrue(b.getAbout(executableFinder).isHardwareNVScalerFilterIsAvaliable(), "Can't found libnpp");
 		}
-
-		@Test
-		void testResetProgress() {// NOSONAR S2699
-			f.setProgressListener(progressListener, progressCallback);
-			f.resetProgressListener();
-			f.beforeExecute().accept(builder);
-		}
-
-		@Test
-		void testWasProgress() {
-			f.setProgressListener(progressListener, progressCallback);
-			f.parameters.addParameters("-progress", "aaa");
-			assertThrows(IllegalArgumentException.class, () -> f.beforeExecute());
-		}
-
 	}
 
 }

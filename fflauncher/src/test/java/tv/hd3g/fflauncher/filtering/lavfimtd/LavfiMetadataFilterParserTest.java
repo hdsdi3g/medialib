@@ -26,8 +26,8 @@ import static tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMtdIdetSingleFrameType.
 
 import java.time.Duration;
 import java.util.DoubleSummaryStatistics;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -170,7 +170,7 @@ class LavfiMetadataFilterParserTest {
 				0.788192f,
 				0, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
 				0l, 0l, 0l, 0l, 0l,
-				Map.of());
+				new LinkedHashMap<>());
 
 		final var r = new LavfiMtdAstatsChannel(
 				0.000002f,
@@ -182,7 +182,7 @@ class LavfiMetadataFilterParserTest {
 				0.788152f,
 				0, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
 				0l, 0l, 0l, 0l, 0l,
-				Map.of());
+				new LinkedHashMap<>());
 
 		assertEquals(List.of(
 				new LavfiMtdValue<>(87883, 84367728, 1757.66f, new LavfiMtdAstats(List.of(l, r)))),

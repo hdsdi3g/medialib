@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,19 +30,19 @@ import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
 class GenerateVideoFileTest {
 
 	@Test
-	void test() throws InterruptedException, ExecutionException, IOException {
+	void test() throws IOException {
 		final var executableFinder = new ExecutableFinder();
 		final var gvf = new GenerateVideoFile(executableFinder);
 
-		final var test_file = File.createTempFile("smptebars", ".mkv");
+		final var testFile = File.createTempFile("smptebars", ".mkv");
 
-		final var ffmpeg = gvf.generateBarsAnd1k(test_file, 5, new Point(1280, 720));
+		final var ffmpeg = gvf.generateBarsAnd1k(testFile, 5, new Point(1280, 720));
 
-		assertTrue(test_file.exists());
+		assertTrue(testFile.exists());
 
 		ffmpeg.checkDestinations();
-		ffmpeg.cleanUpOutputFiles(true, true);
-		assertFalse(test_file.exists());
+		ffmpeg.cleanUpOutputFiles(true, true, null);
+		assertFalse(testFile.exists());
 	}
 
 }

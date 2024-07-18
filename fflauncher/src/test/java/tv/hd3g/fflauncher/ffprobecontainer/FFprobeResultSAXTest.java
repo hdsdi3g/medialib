@@ -44,14 +44,13 @@ import org.mockito.Mock;
 import org.xml.sax.Attributes;
 
 import net.datafaker.Faker;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserResult;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
 class FFprobeResultSAXTest {
 	static Faker faker = net.datafaker.Faker.instance();
 
-	static String XML = """
+	static final String XML = """
 			<?xml version="1.0" encoding="UTF-8"?>
 			<a><b>
 			<packet codec_type="audio" stream_index="1" pts="2555904" pts_time="57.957007" dts="2555904" dts_time="57.957007" duration="1024" duration_time="0.023220" size="442" pos="84622585" flags="K_"/>
@@ -62,12 +61,12 @@ class FFprobeResultSAXTest {
 			""";
 
 	FFprobeResultSAX s;
-	ContainerAnalyserResult r;
+	ContainerAnalyserProcessResult r;
 
 	@Mock
 	ProcesslauncherLifecycle source;
 	@Mock
-	ContainerAnalyserSession session;
+	Object session;
 
 	@BeforeEach
 	void init() throws Exception {
@@ -84,7 +83,7 @@ class FFprobeResultSAXTest {
 	@Test
 	void testFull() {
 		s.onProcessStart(IOUtils.toInputStream(XML, UTF_8), source);
-		r = s.getResult(session, null);
+		r = s.getResult(null);
 		assertNotNull(r);
 
 		assertEquals(List.of(
@@ -120,7 +119,6 @@ class FFprobeResultSAXTest {
 						"tv", "bt709", "bt709", "bt709"),
 				r.videoConst());
 
-		assertEquals(session, r.session());
 		assertEquals(List.of(), r.olderAudioConsts());
 		assertEquals(List.of(), r.olderVideoConsts());
 	}
@@ -145,7 +143,7 @@ class FFprobeResultSAXTest {
 				""";
 
 		s.onProcessStart(IOUtils.toInputStream(testXML, UTF_8), source);
-		r = s.getResult(session, null);
+		r = s.getResult(null);
 		assertNotNull(r);
 
 		assertEquals(List.of(), r.packets());
@@ -153,7 +151,6 @@ class FFprobeResultSAXTest {
 		assertEquals(List.of(), r.videoFrames());
 		assertNull(r.audioConst());
 		assertNull(r.videoConst());
-		assertEquals(session, r.session());
 		assertEquals(List.of(), r.olderAudioConsts());
 		assertEquals(List.of(), r.olderVideoConsts());
 	}
@@ -171,7 +168,7 @@ class FFprobeResultSAXTest {
 				""";
 
 		s.onProcessStart(IOUtils.toInputStream(testXML, UTF_8), source);
-		r = s.getResult(session, null);
+		r = s.getResult(null);
 		assertNotNull(r);
 
 		assertEquals(
@@ -185,7 +182,6 @@ class FFprobeResultSAXTest {
 						"tv", "bt709", "bt709", "bt709"),
 				r.videoConst());
 
-		assertEquals(session, r.session());
 		assertEquals(List.of(
 				new FFprobeAudioFrameConst(r.audioFrames().get(0), "fuuu", 1, MONO)),
 				r.olderAudioConsts());

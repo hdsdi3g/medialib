@@ -16,80 +16,39 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
-
-import java.io.File;
-import java.util.Objects;
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.FFprobe.FFPrintFormat;
 import tv.hd3g.fflauncher.enums.FFLogLevel;
+import tv.hd3g.fflauncher.processingtool.FFSourceDefinition;
+import tv.hd3g.fflauncher.processingtool.FFprobeToolBuilder;
 import tv.hd3g.ffprobejaxb.FFprobeJAXB;
-import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
+import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
+import tv.hd3g.processlauncher.processingtool.KeepStdoutAndErrToLogWatcher;
 
-public class ProbeMedia {
+public class ProbeMedia extends FFprobeToolBuilder<FFprobeJAXB, KeepStdoutAndErrToLogWatcher> {
 
-	private final String execName;
-	private final ExecutableFinder executableFinder;
-	private final ScheduledExecutorService maxExecTimeScheduler;
-
-	public ProbeMedia(final ExecutableFinder executableFinder, final ScheduledExecutorService maxExecTimeScheduler) {
-		this("ffprobe", executableFinder, maxExecTimeScheduler);
-	}
-
-	public ProbeMedia(final String execName, final ExecutableFinder executableFinder,
+	public ProbeMedia(final String execName,
 					  final ScheduledExecutorService maxExecTimeScheduler) {
-		this.execName = Objects.requireNonNull(execName);
-		this.executableFinder = Objects.requireNonNull(executableFinder);
-		this.maxExecTimeScheduler = Objects.requireNonNull(maxExecTimeScheduler);
-	}
-
-	private FFprobe internal() {
-		final var parameters = new Parameters();
-		final var ffprobe = new FFprobe(execName, parameters);
+		super(new FFprobe(execName), new KeepStdoutAndErrToLogWatcher());
+		setMaxExecutionTime(Duration.ofSeconds(5), maxExecTimeScheduler);
 
 		ffprobe.setPrintFormat(FFPrintFormat.XML).setShowStreams().setShowFormat().setShowChapters().isHidebanner();
-		ffprobe.setMaxExecTimeScheduler(maxExecTimeScheduler);
 		ffprobe.setLogLevel(FFLogLevel.ERROR, false, false);
-		ffprobe.setFilterForLinesEventsToDisplay(l -> (l.isStdErr() && ffprobe.filterOutErrorLines().test(l
-				.getLine())));
-
-		return ffprobe;
+		ffprobe.setFilterForLinesEventsToDisplay(
+				l -> (l.stdErr()
+					  && ffprobe.filterOutErrorLines().test(l.line())));
 	}
 
-	private FFprobeJAXB execute(final FFprobe ffprobe) {
-		final var rtFFprobe = ffprobe.execute(executableFinder);
-		final var textRetention = rtFFprobe.checkExecutionGetText();
-		final var stdOut = textRetention.getStdout(false, System.lineSeparator());
-		return FFprobeJAXB.load(stdOut);
+	public ProbeMedia(final ScheduledExecutorService maxExecTimeScheduler) {
+		this("ffprobe", maxExecTimeScheduler);
 	}
 
-	/**
-	 * Stateless
-	 * Get streams, format and chapters.
-	 * Can throw an InvalidExecution in CompletableFuture, with stderr embedded.
-	 * @see FFprobe to get cool FfprobeType parsers
-	 */
-	public FFprobeJAXB doAnalysing(final String source) {
-		final var ffprobe = internal();
-		ffprobe.addSimpleInputSource(source);
-		ffprobe.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
-		return execute(ffprobe);
-	}
-
-	/**
-	 * Stateless
-	 * Get streams, format and chapters.
-	 * Can throw an InvalidExecution in CompletableFuture, with stderr embedded.
-	 * @see FFprobe to get cool FfprobeType parsers
-	 */
-	public FFprobeJAXB doAnalysing(final File source) {
-		final var ffprobe = internal();
-		ffprobe.addSimpleInputSource(source);
-		ffprobe.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
-		return execute(ffprobe);
+	@Override
+	protected FFprobeJAXB compute(final FFSourceDefinition sourceOrigin, final ProcesslauncherLifecycle lifeCycle) {
+		return FFprobeJAXB.load(executorWatcher.getTextRetention().getStdout(false, System.lineSeparator()));
 	}
 
 }

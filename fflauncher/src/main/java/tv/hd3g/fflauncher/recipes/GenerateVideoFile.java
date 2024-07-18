@@ -16,16 +16,20 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import static tv.hd3g.fflauncher.ConversionTool.APPEND_PARAM_AT_END;
+import static tv.hd3g.fflauncher.SimpleSourceTraits.addSineAudioGeneratorAsInputSource;
+import static tv.hd3g.fflauncher.SimpleSourceTraits.addSmptehdbarsGeneratorAsInputSource;
 
 import java.awt.Point;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 
 import tv.hd3g.fflauncher.FFmpeg;
+import tv.hd3g.fflauncher.processingtool.FFmpegToolBuilder;
+import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
+import tv.hd3g.processlauncher.processingtool.CallbackWatcher;
 
 public class GenerateVideoFile {
 
@@ -41,54 +45,70 @@ public class GenerateVideoFile {
 		this.executableFinder = Objects.requireNonNull(executableFinder);
 	}
 
-	/**
-	 * Stateless
-	 */
-	private FFmpeg internal(final int duration_in_sec, final Point resolution) throws IOException {
-		final var parameters = new Parameters();
-		final var ffmpeg = new FFmpeg(execName, parameters);
+	private record Conf(int durationInSec, Point resolution) {
+	}
 
-		final var about = ffmpeg.getAbout(executableFinder);
-		if (about.isFromFormatIsAvaliable("lavfi") == false) {
-			final var exec = executableFinder.get(ffmpeg.getExecutableName());
-			throw new IOException("This ffmpeg (" + exec + ") can't handle \"lavfi\"");
+	private class Builder extends FFmpegToolBuilder<Conf, Void, CallbackWatcher> {
+
+		protected Builder(final FFmpeg ffmpeg) {
+			super(ffmpeg, new CallbackWatcher());
 		}
 
-		ffmpeg.setOverwriteOutputFiles();
-		ffmpeg.setOnErrorDeleteOutFiles(true);
-		ffmpeg.setFilterForLinesEventsToDisplay(l -> (l.isStdErr() == false || l.isStdErr() && ffmpeg
-				.filterOutErrorLines().test(l.getLine())));
-
-		parameters.addBulkParameters("-f lavfi -i smptehdbars=duration=" + duration_in_sec + ":size=" + resolution.x
-									 + "x" + resolution.y + ":rate=25");
-		parameters.addBulkParameters("-f lavfi -i sine=frequency=1000:sample_rate=48000:duration=" + duration_in_sec);
-
-		if (about.isCoderIsAvaliable("h264")) {
-			ffmpeg.addVideoCodecName("h264", -1);
-			ffmpeg.addCRF(1);
-		} else {
-			ffmpeg.addVideoCodecName("ffv1", -1);
+		@Override
+		protected Void compute(final Conf sourceOrigin, final ProcesslauncherLifecycle lifeCycle) {
+			return null;
 		}
 
-		if (about.isCoderIsAvaliable("aac")) {
-			ffmpeg.addAudioCodecName("aac", -1);
-		} else {
-			ffmpeg.addAudioCodecName("opus", -1);
+		@Override
+		protected FFmpeg getParametersProvider(final Conf sourceOrigin) {
+			final var about = ffmpeg.getAbout(executableFinder);
+			if (about.isFromFormatIsAvaliable("lavfi") == false) {
+				try {
+					final var exec = executableFinder.get(execName);
+					throw new IllegalArgumentException("This ffmpeg (" + exec + ") can't handle \"lavfi\"");
+				} catch (final FileNotFoundException e) {
+					throw new UncheckedIOException("Can't found ffmpeg", e);
+				}
+			}
+
+			ffmpeg.setOverwriteOutputFiles();
+			ffmpeg.setOnErrorDeleteOutFiles(true);
+			ffmpeg.setFilterForLinesEventsToDisplay(l -> (l.stdErr() == false
+														  || l.stdErr()
+															 && ffmpeg.filterOutErrorLines().test(l.line())));
+
+			if (about.isCoderIsAvaliable("h264")) {
+				ffmpeg.addVideoCodecName("h264", -1);
+				ffmpeg.addCRF(1);
+			} else {
+				ffmpeg.addVideoCodecName("ffv1", -1);
+			}
+
+			if (about.isCoderIsAvaliable("aac")) {
+				ffmpeg.addAudioCodecName("aac", -1);
+			} else {
+				ffmpeg.addAudioCodecName("opus", -1);
+			}
+
+			addSmptehdbarsGeneratorAsInputSource(ffmpeg, sourceOrigin.resolution, sourceOrigin.durationInSec, "25");
+			addSineAudioGeneratorAsInputSource(ffmpeg, 1000, sourceOrigin.durationInSec, 48000);
+
+			return ffmpeg;
 		}
 
-		return ffmpeg;
 	}
 
 	/**
 	 * Stateless
 	 */
 	public FFmpeg generateBarsAnd1k(final String destination,
-									final int duration_in_sec,
-									final Point resolution) throws IOException {
-		final var ffmpeg = internal(duration_in_sec, resolution);
+									final int durationInSec,
+									final Point resolution) {
+		final var ffmpeg = new FFmpeg(execName);
+		final var builder = new Builder(ffmpeg);
+		builder.setExecutableFinder(executableFinder);
 		ffmpeg.addSimpleOutputDestination(destination);
-		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
-		ffmpeg.execute(executableFinder).waitForEndAndCheckExecution();
+		builder.process(new Conf(durationInSec, resolution));
 		return ffmpeg;
 	}
 
@@ -96,12 +116,13 @@ public class GenerateVideoFile {
 	 * Stateless
 	 */
 	public FFmpeg generateBarsAnd1k(final File destination,
-									final int duration_in_sec,
-									final Point resolution) throws IOException {
-		final var ffmpeg = internal(duration_in_sec, resolution);
+									final int durationInSec,
+									final Point resolution) {
+		final var ffmpeg = new FFmpeg(execName);
+		final var builder = new Builder(ffmpeg);
+		builder.setExecutableFinder(executableFinder);
 		ffmpeg.addSimpleOutputDestination(destination);
-		ffmpeg.fixIOParametredVars(APPEND_PARAM_AT_END, APPEND_PARAM_AT_END);
-		ffmpeg.execute(executableFinder).waitForEndAndCheckExecution();
+		builder.process(new Conf(durationInSec, resolution));
 		return ffmpeg;
 	}
 

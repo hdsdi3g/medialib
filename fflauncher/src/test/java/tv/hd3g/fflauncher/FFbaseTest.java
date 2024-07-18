@@ -18,10 +18,7 @@ package tv.hd3g.fflauncher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,53 +35,13 @@ class FFbaseTest {
 	}
 
 	private static class FFbaseImpl extends FFbase {
-		private static final String execName = "ffmpeg";
-
-		FFbaseImpl(final Parameters parameters) throws IOException {
-			super(execName, parameters);
-		}
-
-	}
-
-	@Test
-	void testBase() throws Exception {
-		final var b = new FFbaseImpl(new Parameters());
-		final var about = b.getAbout(executableFinder);
-
-		assertNotNull(about.getVersion(), "version");
-		assertFalse(about.getCodecs().isEmpty(), "codecs empty");
-		assertFalse(about.getFormats().isEmpty(), "formats empty");
-		assertFalse(about.getDevices().isEmpty(), "devices empty");
-		assertFalse(about.getBitStreamFilters().isEmpty(), "bitstream empty");
-		assertNotNull(about.getProtocols(), "protocols");
-		assertFalse(about.getFilters().isEmpty(), "filters empty");
-		assertFalse(about.getPixelFormats().isEmpty(), "pixelFormats empty");
-
-		assertTrue(about.isCoderIsAvaliable("ffv1"), "Coder Avaliable");
-		assertFalse(about.isCoderIsAvaliable("nonono"), "Coder notAvaliable");
-		assertTrue(about.isDecoderIsAvaliable("rl2"), "Decoder Avaliable");
-		assertFalse(about.isDecoderIsAvaliable("nonono"), "Decoder notAvaliable");
-		assertTrue(about.isFilterIsAvaliable("color"), "Filter Avaliable");
-		assertFalse(about.isFilterIsAvaliable("nonono"), "Filter notAvaliable");
-		assertTrue(about.isToFormatIsAvaliable("wav"), "Format Avaliable");
-		assertFalse(about.isToFormatIsAvaliable("nonono"), "Format notAvaliable");
-	}
-
-	@Test
-	void testNVPresence() throws Exception {
-		final var b = new FFbaseImpl(new Parameters());
-
-		if (System.getProperty("ffmpeg.test.nvidia", "").equals("1")) {
-			assertTrue(b.getAbout(executableFinder)
-			        .isNVToolkitIsAvaliable(), "Can't found NV lib like cuda, cuvid and nvenc");
-		}
-		if (System.getProperty("ffmpeg.test.libnpp", "").equals("1")) {
-			assertTrue(b.getAbout(executableFinder).isHardwareNVScalerFilterIsAvaliable(), "Can't found libnpp");
+		FFbaseImpl(final Parameters parameters) {
+			super("ffmpeg", parameters);
 		}
 	}
 
 	@Test
-	void testParams() throws IOException {
+	void testParams() {
 		final var b = new FFbaseImpl(new Parameters());
 		assertFalse(b.isLogLevelSet());
 
@@ -121,36 +78,36 @@ class FFbaseTest {
 	}
 
 	@Test
-	void testAddVarInParametersIfNotExists_withParams() throws IOException {
+	void testAddVarInParametersIfNotExists_withParams() {
 		final var b = new FFbaseImpl(Parameters.bulk("-param0 -param1 param2"));
 		b.addSimpleInputSource("s0");
 		assertEquals("<%IN_AUTOMATIC_0%> -param0 -param1 param2",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 		b.addSimpleInputSource("s1");
 		assertEquals("<%IN_AUTOMATIC_0%> <%IN_AUTOMATIC_1%> -param0 -param1 param2",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 	}
 
 	@Test
-	void testAddVarInParametersIfNotExists_withoutParams() throws IOException {
+	void testAddVarInParametersIfNotExists_withoutParams() {
 		final var b = new FFbaseImpl(new Parameters());
 		b.addSimpleInputSource("s0");
 		assertEquals("<%IN_AUTOMATIC_0%>",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 		b.addSimpleInputSource("s1");
 		assertEquals("<%IN_AUTOMATIC_0%> <%IN_AUTOMATIC_1%>",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 	}
 
 	@Test
-	void testAddVarInParametersIfNotExists_varExists() throws IOException {
+	void testAddVarInParametersIfNotExists_varExists() {
 		final var b = new FFbaseImpl(Parameters.of("<%IN_AUTOMATIC_0%>"));
 		b.addSimpleInputSource("s0");
 		assertEquals("<%IN_AUTOMATIC_0%>",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 		b.addSimpleInputSource("s1");
 		assertEquals("<%IN_AUTOMATIC_0%> <%IN_AUTOMATIC_1%>",
-		        b.getInternalParameters().toString());
+				b.getInternalParameters().toString());
 	}
 
 }

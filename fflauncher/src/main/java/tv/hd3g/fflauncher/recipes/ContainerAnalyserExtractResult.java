@@ -14,16 +14,10 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-package tv.hd3g.fflauncher;
+package tv.hd3g.fflauncher.recipes;
 
-public class UnknownFormatException extends RuntimeException {
+import java.util.List;
 
-	public UnknownFormatException(final String message) {
-		super(message);
-	}
-
-	public UnknownFormatException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
+public record ContainerAnalyserExtractResult(List<String> sysOut, String ffprobeCommandLine) {
 
 }

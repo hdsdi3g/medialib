@@ -40,7 +40,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import tv.hd3g.fflauncher.FFmpeg;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class MakeScriptTest {
 
@@ -59,8 +58,8 @@ class MakeScriptTest {
 		content.add("# Create initial test files");
 		IntStream.range(0, 4).forEach(pos -> content.add(createAudioGeneratedFile(pos)));
 		final var inStreams = IntStream.range(0, 8)
-		        .mapToObj(pos -> new InputAudioStream(MONO, pos, 0))
-		        .collect(toUnmodifiableList());
+				.mapToObj(pos -> new InputAudioStream(MONO, pos, 0))
+				.collect(toUnmodifiableList());
 
 		content.add("# createMerge");
 		final var fileToSplit = createMerge(content, inStreams);
@@ -88,18 +87,18 @@ class MakeScriptTest {
 	static String createAudioGeneratedFile(final int pos) {
 		final var fq = pos + 1;
 		return "ffmpeg -y -f lavfi -i sine=frequency=" + fq
-		       + "000:sample_rate=48000:duration=1 -codec:a pcm_s16le -f wav "
-		       + fq + "000hz.wav";
+			   + "000:sample_rate=48000:duration=1 -codec:a pcm_s16le -f wav "
+			   + fq + "000hz.wav";
 	}
 
 	static String createMerge(final ArrayList<String> content, final List<InputAudioStream> inStreams) {
 		final var outStreamSimpleStereo = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStreams.get(0), IN_CH0)
-		        .mapChannel(inStreams.get(1), IN_CH0);
+				.mapChannel(inStreams.get(0), IN_CH0)
+				.mapChannel(inStreams.get(1), IN_CH0);
 		final var outFile = "1000L+2000R.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleStereo));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource("1000hz.wav");
 		ffmpeg.addSimpleInputSource("2000hz.wav");
 		pushFFmpeg(content, ffmpeg, outFile, acm, false);
@@ -108,12 +107,12 @@ class MakeScriptTest {
 
 	static String createJoin(final ArrayList<String> content, final List<InputAudioStream> inStreams) {
 		final var outStreamSimpleStereo = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStreams.get(0), IN_CH0)
-		        .mapChannel(inStreams.get(1), IN_CH0);
+				.mapChannel(inStreams.get(0), IN_CH0)
+				.mapChannel(inStreams.get(1), IN_CH0);
 		final var outFile = "1000L+2000R.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleStereo));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource("1000hz.wav");
 		ffmpeg.addSimpleInputSource("2000hz.wav");
 		pushFFmpeg(content, ffmpeg, "JOIN" + outFile, acm, true);
@@ -127,22 +126,22 @@ class MakeScriptTest {
 		final var outFile = "2000,1000.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStream0, outStream1));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource(inFile);
 		pushFFmpeg(content, ffmpeg, outFile, acm, false);
 	}
 
 	static String createMultipleMerge(final ArrayList<String> content, final List<InputAudioStream> inStreams) {
 		final var outStreamSimpleStereo0 = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStreams.get(0), IN_CH0)
-		        .mapChannel(inStreams.get(1), IN_CH0);
+				.mapChannel(inStreams.get(0), IN_CH0)
+				.mapChannel(inStreams.get(1), IN_CH0);
 		final var outStreamSimpleStereo1 = new OutputAudioStream(STEREO, 0, 1)
-		        .mapChannel(inStreams.get(2), IN_CH0)
-		        .mapChannel(inStreams.get(3), IN_CH0);
+				.mapChannel(inStreams.get(2), IN_CH0)
+				.mapChannel(inStreams.get(3), IN_CH0);
 		final var outFile = "1000+2000,3000+4000.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleStereo0, outStreamSimpleStereo1));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource("1000hz.wav");
 		ffmpeg.addSimpleInputSource("2000hz.wav");
 		ffmpeg.addSimpleInputSource("3000hz.wav");
@@ -153,15 +152,15 @@ class MakeScriptTest {
 
 	static void createMultipleJoin(final ArrayList<String> content, final List<InputAudioStream> inStreams) {
 		final var outStreamSimpleStereo0 = new OutputAudioStream(STEREO, 0, 0)
-		        .mapChannel(inStreams.get(0), IN_CH0)
-		        .mapChannel(inStreams.get(1), IN_CH0);
+				.mapChannel(inStreams.get(0), IN_CH0)
+				.mapChannel(inStreams.get(1), IN_CH0);
 		final var outStreamSimpleStereo1 = new OutputAudioStream(STEREO, 0, 1)
-		        .mapChannel(inStreams.get(2), IN_CH0)
-		        .mapChannel(inStreams.get(3), IN_CH0);
+				.mapChannel(inStreams.get(2), IN_CH0)
+				.mapChannel(inStreams.get(3), IN_CH0);
 		final var outFile = "1000+2000,3000+4000.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleStereo0, outStreamSimpleStereo1));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource("1000hz.wav");
 		ffmpeg.addSimpleInputSource("2000hz.wav");
 		ffmpeg.addSimpleInputSource("3000hz.wav");
@@ -173,15 +172,15 @@ class MakeScriptTest {
 		final var inStream0 = new InputAudioStream(STEREO, 0, 0);
 		final var inStream1 = new InputAudioStream(STEREO, 0, 1);
 		final var outStreamSimpleQuad = new OutputAudioStream(CH4_0, 0, 0)
-		        .mapChannel(inStream0, IN_CH0)
-		        .mapChannel(inStream0, IN_CH1)
-		        .mapChannel(inStream1, IN_CH0)
-		        .mapChannel(inStream1, IN_CH1);
+				.mapChannel(inStream0, IN_CH0)
+				.mapChannel(inStream0, IN_CH1)
+				.mapChannel(inStream1, IN_CH0)
+				.mapChannel(inStream1, IN_CH1);
 
 		final var outFile = "1000+2000+3000+4000.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleQuad));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource(fileToSplitMerge);
 		pushFFmpeg(content, ffmpeg, outFile, acm, false);
 		return outFile;
@@ -190,24 +189,24 @@ class MakeScriptTest {
 	static void createShuffle(final ArrayList<String> content, final String fileToShuffle) {
 		final var inStream0 = new InputAudioStream(CH4_0, 0, 0);
 		final var outStreamSimpleQuad = new OutputAudioStream(CH4_0, 0, 0)
-		        .mapChannel(inStream0, IN_CH3)
-		        .mapChannel(inStream0, IN_CH2)
-		        .mapChannel(inStream0, IN_CH1)
-		        .mapChannel(inStream0, IN_CH0);
+				.mapChannel(inStream0, IN_CH3)
+				.mapChannel(inStream0, IN_CH2)
+				.mapChannel(inStream0, IN_CH1)
+				.mapChannel(inStream0, IN_CH0);
 
 		final var outFile = "4000+3000+2000+1000.mov";
 		final var acm = new AudioChannelManipulation(List.of(outStreamSimpleQuad));
 
-		final var ffmpeg = new FFmpeg("ffmpeg", new Parameters());
+		final var ffmpeg = new FFmpeg("ffmpeg");
 		ffmpeg.addSimpleInputSource(fileToShuffle);
 		pushFFmpeg(content, ffmpeg, outFile, acm, false);
 	}
 
 	static void pushFFmpeg(final ArrayList<String> content,
-	                       final FFmpeg ffmpeg,
-	                       final String outFile,
-	                       final AudioChannelManipulation acm,
-	                       final boolean useJoinInsteadOfMerge) {
+						   final FFmpeg ffmpeg,
+						   final String outFile,
+						   final AudioChannelManipulation acm,
+						   final boolean useJoinInsteadOfMerge) {
 		acm.getFilterChains(useJoinInsteadOfMerge).pushFilterChainTo("-filter_complex", ffmpeg);
 		ffmpeg.setOverwriteOutputFiles();
 		ffmpeg.getInternalParameters().addAllFrom(acm.getMapParameters().get(0));

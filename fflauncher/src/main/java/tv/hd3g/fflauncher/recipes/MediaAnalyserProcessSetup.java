@@ -11,27 +11,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  *
- * Copyright (C) hdsdi3g for hd3g.tv 2022
+ * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
 package tv.hd3g.fflauncher.recipes;
 
-import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import tv.hd3g.fflauncher.filtering.lavfimtd.LavfiMetadataFilterParser;
-
-public record MediaAnalyserResult(LavfiMetadataFilterParser lavfiMetadatas,
-								  Collection<MediaAnalyserSessionFilterContext> filters,
-								  Optional<Integer> r128Target,
-								  String ffmpegCommandLine) {
-
-	public static final int R128_DEFAULT_LUFS_TARGET = -23;
-
-	public boolean isEmpty() {
-		return Optional.ofNullable(lavfiMetadatas)
-				.map(l -> l.getReportCount() > 0 || l.getEventCount() > 0)
-				.orElse(false) == false;
-	}
+public record MediaAnalyserProcessSetup(
+										/**
+										 * oLavfiLinesToMerge Sometimes ffmpeg ametadata and metadata must output lines to somewhere.
+										 * One can be stdout, but not the both.
+										 * So, if a metadata output to a file, this file can be read *after* the process with the Supplier.
+										 */
+										Optional<Supplier<Stream<String>>> oLavfiLinesToMerge) {
 
 }

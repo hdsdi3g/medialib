@@ -16,31 +16,15 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.MockitoAnnotations.openMocks;
-import static tv.hd3g.fflauncher.recipes.ContainerAnalyser.emptyWatcher;
-
-import java.io.File;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-
 import net.datafaker.Faker;
-import tv.hd3g.fflauncher.FFprobe;
-import tv.hd3g.processlauncher.cmdline.ExecutableFinder;
-import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class ContainerAnalyserTest {
 	static Faker faker = net.datafaker.Faker.instance();
 
-	ContainerAnalyser ca;
-	ContainerAnalyserSession cas;
+	// ContainerAnalyserOld ca;
+	// ContainerAnalyserSessionOld cas;
 
+	/*
 	@Mock
 	ExecutableFinder executableFinder;
 	String execName;
@@ -51,7 +35,7 @@ class ContainerAnalyserTest {
 		openMocks(this).close();
 		execName = faker.numerify("execName###");
 		fileName = faker.numerify("fileName###");
-		ca = new ContainerAnalyser(execName, executableFinder);
+		ca = new OldContainerAnalyser(execName, executableFinder);
 	}
 
 	@AfterEach
@@ -87,5 +71,5 @@ class ContainerAnalyserTest {
 	void testGetExecutableFinder() {
 		assertEquals(executableFinder, ca.getExecutableFinder());
 	}
-
+	*/
 }

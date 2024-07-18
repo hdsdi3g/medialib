@@ -37,18 +37,18 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserBase;
 
 public record FFprobeXMLProgressWatcher(Duration programDuration,
 										ThreadFactory threadFactory,
-										Consumer<ContainerAnalyserSession> onStartCallback,
+										Consumer<ContainerAnalyserBase<?, ?>> onStartCallback,
 										Consumer<FFprobeXMLProgressEvent> progressCallback,
-										Consumer<ContainerAnalyserSession> onEndCallback) {
+										Consumer<ContainerAnalyserBase<?, ?>> onEndCallback) {
 
-	public static record FFprobeXMLProgressEvent(double progress, float speed, ContainerAnalyserSession session) {
+	public static record FFprobeXMLProgressEvent(double progress, float speed, Object session) {
 	}
 
-	public ProgressConsumer createProgress(final ContainerAnalyserSession session) {
+	public <T extends ContainerAnalyserBase<?, ?>> ProgressConsumer createProgress(final T session) {
 		if (programDuration.isZero() || programDuration.isNegative()) {
 			return t -> {
 			};
@@ -65,8 +65,7 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 	}
 
 	private class Progress extends DefaultHandler implements ProgressConsumer, Runnable, ErrorHandler {
-
-		private final ContainerAnalyserSession session;
+		private final ContainerAnalyserBase<?, ?> session;
 		private final Thread worker;
 		private final LinkedBlockingQueue<Integer> linesBytes;
 		private final InputStream source;
@@ -77,7 +76,7 @@ public record FFprobeXMLProgressWatcher(Duration programDuration,
 		private long lastProgressDate;
 		private double durationTime;
 
-		public Progress(final ContainerAnalyserSession session) {
+		public Progress(final ContainerAnalyserBase<?, ?> session) {
 			this.session = session;
 			worker = threadFactory.newThread(this);
 			linesBytes = new LinkedBlockingQueue<>();

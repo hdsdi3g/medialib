@@ -45,7 +45,7 @@ import org.mockito.MockitoAnnotations;
 
 import net.datafaker.Faker;
 import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher.FFprobeXMLProgressEvent;
-import tv.hd3g.fflauncher.recipes.ContainerAnalyserSession;
+import tv.hd3g.fflauncher.recipes.ContainerAnalyserBase;
 
 class FFprobeXMLProgressWatcherTest {
 	static Faker faker = net.datafaker.Faker.instance();
@@ -67,13 +67,13 @@ class FFprobeXMLProgressWatcherTest {
 	@Mock
 	ThreadFactory threadFactory;
 	@Mock
-	Consumer<ContainerAnalyserSession> onStartCallback;
+	Consumer<ContainerAnalyserBase<?, ?>> onStartCallback;
 	@Mock
 	Consumer<FFprobeXMLProgressEvent> progressCallback;
 	@Mock
-	Consumer<ContainerAnalyserSession> onEndCallback;
+	Consumer<ContainerAnalyserBase<?, ?>> onEndCallback;
 	@Mock
-	ContainerAnalyserSession session;
+	ContainerAnalyserBase<?, ?> session;
 	@Mock
 	Thread thread;
 	@Captor

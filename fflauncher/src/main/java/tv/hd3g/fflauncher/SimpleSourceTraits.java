@@ -18,10 +18,13 @@ package tv.hd3g.fflauncher;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.Point;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import tv.hd3g.fflauncher.filtering.Filter;
 
 public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalParametersSupplier {
 
@@ -58,4 +61,26 @@ public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalP
 	void addSimpleInputSource(final String sourceName, final List<String> sourceOptions);
 
 	void addSimpleInputSource(final File file, final List<String> sourceOptions);
+
+	static void addSmptehdbarsGeneratorAsInputSource(final SimpleSourceTraits source,
+													 final Point resolution,
+													 final int durationInSec,
+													 final String frameRate) {
+		final var f = new Filter("smptehdbars");
+		f.addArgument("duration", durationInSec);
+		f.addArgument("size", resolution.x + "x" + resolution.y);
+		f.addArgument("rate", frameRate);
+		source.addSimpleInputSource(f.toString(), "-f", "lavfi");
+	}
+
+	static void addSineAudioGeneratorAsInputSource(final SimpleSourceTraits source,
+												   final int frequency,
+												   final int durationInSec,
+												   final int sampleRate) {
+		final var f = new Filter("sine");
+		f.addArgument("duration", durationInSec);
+		f.addArgument("frequency", frequency);
+		f.addArgument("sample_rate", sampleRate);
+		source.addSimpleInputSource(f.toString(), "-f", "lavfi");
+	}
 }

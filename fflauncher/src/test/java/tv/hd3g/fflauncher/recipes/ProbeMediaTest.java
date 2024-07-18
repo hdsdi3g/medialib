@@ -37,26 +37,27 @@ class ProbeMediaTest {
 	}
 
 	@Test
-	void test() throws Exception {
+	void test() {
 		final var gvf = new GenerateVideoFile(executableFinder);
 
 		final var tDir = System.getProperty("java.io.tmpdir");
-		final var test_file_to_create = new File(tDir + File.separator + "smptebars-" + System.nanoTime() + ".mkv");
-		final var ffmpeg = gvf.generateBarsAnd1k(test_file_to_create, 1, new Point(768, 432));
+		final var testFileToCreate = new File(tDir + File.separator + "smptebars-" + System.nanoTime() + ".mkv");
+		final var ffmpeg = gvf.generateBarsAnd1k(testFileToCreate, 1, new Point(768, 432));
 
 		ffmpeg.checkDestinations();
-		final var outputFiles = ffmpeg.getOutputFiles(OutputFilePresencePolicy.ALL);
-		assertEquals(test_file_to_create, outputFiles.get(0));
+		final var outputFiles = ffmpeg.getOutputFiles(OutputFilePresencePolicy.ALL, null);
+		assertEquals(testFileToCreate, outputFiles.get(0));
 		assertEquals(1, outputFiles.size());
-		assertNotSame(0, test_file_to_create.length());
+		assertNotSame(0, testFileToCreate.length());
 
-		final var probe = new ProbeMedia(executableFinder, Executors.newSingleThreadScheduledExecutor());
-		final var result = probe.doAnalysing(test_file_to_create);
+		final var probe = new ProbeMedia(Executors.newSingleThreadScheduledExecutor());
+		probe.setExecutableFinder(executableFinder);
+		final var result = probe.process(testFileToCreate).getResult();
 
 		assertEquals(1, Math.round(result.getFormat().get().duration()));
 		assertEquals(432, result.getVideoStreams().findFirst().get().height());
 
-		ffmpeg.cleanUpOutputFiles(true, false);
+		ffmpeg.cleanUpOutputFiles(true, false, null);
 	}
 
 }
