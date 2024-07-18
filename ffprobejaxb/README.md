@@ -33,7 +33,9 @@ Do an *add*.
 On both *upgrade* and *add*:
 
   - put the new XSD on `src/main/resources`
-  - update pom.xml: change the generated package name      `project/build/plugins/plugin[jaxb-maven-plugin]/configuration/generatePackage` from `org.ffmpeg.ffprobeXXX` to `org.ffmpeg.ffprobeYYY` where XXX and YYY are the current/newer ffmpeg release version dot less.
+  - update pom.xml
+    - Uncomment the `jaxb-maven-plugin` build plugin
+    - change the generated package name `project/build/plugins/plugin[jaxb-maven-plugin]/configuration/generatePackage` from `org.ffmpeg.ffprobeXXX` to `org.ffmpeg.ffprobeYYY` where XXX and YYY are the current/newer ffmpeg release version dot less.
   - `mvn clean` / `mvn compile`
   - Move the new generated code from `target/generated-sources/xjc` to `src/main/java`.
   - Move the XSD from `src/main/resources` to the `old xsd refs` dir.

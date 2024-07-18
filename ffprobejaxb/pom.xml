@@ -50,7 +50,8 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
+    
+    <!-- NOSONAR S125
     <build>
         <plugins>
             <plugin>
@@ -86,4 +87,5 @@
             </plugin>
         </plugins>
     </build>
+    -->
 </project>
