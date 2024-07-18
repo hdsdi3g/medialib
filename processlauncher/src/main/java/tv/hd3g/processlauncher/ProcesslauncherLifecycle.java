@@ -128,7 +128,7 @@ public class ProcesslauncherLifecycle {
 	public String getExecNameWithoutExt() {
 		final var execName = launcher.getExecutableName();
 		if (ExecutableFinder.WINDOWS_EXEC_EXTENSIONS.stream()
-		        .anyMatch(ext -> execName.toLowerCase().endsWith(ext.toLowerCase()))) {
+				.anyMatch(ext -> execName.toLowerCase().endsWith(ext.toLowerCase()))) {
 			return execName.substring(0, execName.length() - 4);
 		} else {
 			return execName;
@@ -143,7 +143,7 @@ public class ProcesslauncherLifecycle {
 	public String toString() {
 		if (process.isAlive()) {
 			return "Process" + getPID().map(pid -> " #" + pid).orElse("") + " " + fullCommandLine + " ; since "
-			       + getUptime(TimeUnit.SECONDS) + " sec";
+				   + getUptime(TimeUnit.SECONDS) + " sec";
 		} else {
 			return "Exec " + getEndStatus() + " " + fullCommandLine;
 		}
@@ -152,8 +152,8 @@ public class ProcesslauncherLifecycle {
 	private static String processHandleToString(final ProcessHandle processHandle, final boolean verbose) {
 		if (verbose) {
 			return processHandle.info().command().orElse("<?>") + " #" + processHandle.pid() + " by " + processHandle
-			        .info().user().orElse("<?>") + " since " + processHandle.info().totalCpuDuration().orElse(
-			                Duration.ZERO).getSeconds() + " sec";
+					.info().user().orElse("<?>") + " since " + processHandle.info().totalCpuDuration().orElse(
+							Duration.ZERO).getSeconds() + " sec";
 		} else {
 			return processHandle.info().commandLine().orElse("<?>") + " #" + processHandle.pid();
 		}
@@ -304,7 +304,7 @@ public class ProcesslauncherLifecycle {
 		return stdInInjection;
 	}
 
-	String getFullCommandLine() {
+	public String getFullCommandLine() {
 		return fullCommandLine;
 	}
 

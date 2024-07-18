@@ -69,11 +69,11 @@ class CaptureStandardOutputTextTest {
 		cdl.await(1, TimeUnit.SECONDS);
 
 		assertEquals(textLinesStdOut.size() + textLinesStdErr.size(), capturedlines.size());
-		assertTrue(capturedlines.stream().anyMatch(le -> le.getSource().equals(source)));
+		assertTrue(capturedlines.stream().anyMatch(le -> le.source().equals(source)));
 
-		final var capturedlinesOut = capturedlines.stream().filter(le -> le.isStdErr() == false).map(
-		        LineEntry::getLine).collect(Collectors.toList());
-		final var capturedlinesErr = capturedlines.stream().filter(LineEntry::isStdErr).map(LineEntry::getLine)
+		final var capturedlinesOut = capturedlines.stream().filter(le -> le.stdErr() == false).map(
+		        LineEntry::line).collect(Collectors.toList());
+		final var capturedlinesErr = capturedlines.stream().filter(LineEntry::stdErr).map(LineEntry::line)
 		        .collect(Collectors.toList());
 
 		assertTrue(CollectionUtils.isEqualCollection(textLinesStdOut, capturedlinesOut));

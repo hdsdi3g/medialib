@@ -46,29 +46,29 @@ public class CapturedStdOutErrToPrintStream extends CapturedStdOutErrText {
 	static final String STDERR_SEPARATOR = "\t! ";
 
 	@Override
-	void onText(final LineEntry lineEntry) {
+	public void onText(final LineEntry lineEntry) {
 		if (filter.map(f -> f.test(lineEntry)).orElse(true) == false) {
 			return;
 		}
 
 		final PrintStream out;
-		if (lineEntry.isStdErr()) {
+		if (lineEntry.stdErr()) {
 			out = printStreamStdErr;
 		} else {
 			out = printStreamStdOut;
 		}
 
-		final var source = lineEntry.getSource();
+		final var source = lineEntry.source();
 		out.print(source.getExecNameWithoutExt());
 		out.print(source.getPID().map(pid -> "#" + pid).orElse(""));
 
-		if (lineEntry.isStdErr()) {
+		if (lineEntry.stdErr()) {
 			out.print(STDERR_SEPARATOR);
 		} else {
 			out.print(STDOUT_SEPARATOR);
 		}
 
-		out.println(lineEntry.getLine());
+		out.println(lineEntry.line());
 		out.flush();
 	}
 

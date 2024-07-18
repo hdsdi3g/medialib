@@ -39,7 +39,7 @@ public class CapturedStdOutErrTextRetention extends CapturedStdOutErrText {
 	}
 
 	@Override
-	void onText(final LineEntry lineEntry) {
+	public void onText(final LineEntry lineEntry) {
 		if (lineEntry.canUseThis(streamToKeep) == false) {
 			return;
 		}
@@ -50,12 +50,15 @@ public class CapturedStdOutErrTextRetention extends CapturedStdOutErrText {
 	 * Only set if setKeepStdout is set (false by default), else return empty stream.
 	 */
 	public Stream<String> getStdoutLines(final boolean keepEmptyLines) {
-		return lineEntries.stream().filter(le -> {
-			if (keepEmptyLines) {
-				return true;
-			}
-			return le.getLine().equals("") == false;
-		}).filter(le -> (le.isStdErr() == false)).map(LineEntry::getLine);
+		return lineEntries.stream()
+				.filter(le -> {
+					if (keepEmptyLines) {
+						return true;
+					}
+					return le.isEmpty() == false;
+				})
+				.filter(le -> (le.stdErr() == false))
+				.map(LineEntry::line);
 	}
 
 	/**
@@ -63,12 +66,15 @@ public class CapturedStdOutErrTextRetention extends CapturedStdOutErrText {
 	 * @param keepEmptyLines if set false, discard all empty trimed lines
 	 */
 	public Stream<String> getStderrLines(final boolean keepEmptyLines) {
-		return lineEntries.stream().filter(le -> {
-			if (keepEmptyLines) {
-				return true;
-			}
-			return le.getLine().equals("") == false;
-		}).filter(LineEntry::isStdErr).map(LineEntry::getLine);
+		return lineEntries.stream()
+				.filter(le -> {
+					if (keepEmptyLines) {
+						return true;
+					}
+					return le.isEmpty() == false;
+				})
+				.filter(LineEntry::stdErr)
+				.map(LineEntry::line);
 	}
 
 	/**
@@ -76,12 +82,14 @@ public class CapturedStdOutErrTextRetention extends CapturedStdOutErrText {
 	 * @param keepEmptyLines if set false, discard all empty trimed lines
 	 */
 	public Stream<String> getStdouterrLines(final boolean keepEmptyLines) {
-		return lineEntries.stream().filter(le -> {
-			if (keepEmptyLines) {
-				return true;
-			}
-			return le.getLine().equals("") == false;
-		}).map(LineEntry::getLine);
+		return lineEntries.stream()
+				.filter(le -> {
+					if (keepEmptyLines) {
+						return true;
+					}
+					return le.isEmpty() == false;
+				})
+				.map(LineEntry::line);
 	}
 
 	/**

@@ -34,7 +34,7 @@ public class CapturedStdOutErrTextInteractive extends CapturedStdOutErrText {
 	 * @param destCharset used for injected String to byte[] in stream
 	 */
 	public CapturedStdOutErrTextInteractive(final Function<LineEntry, String> interactive,
-	                                        final Charset destCharset) {
+											final Charset destCharset) {
 		this.interactive = Objects.requireNonNull(interactive, "\"interactive\" can't to be null");
 		this.destCharset = Objects.requireNonNull(destCharset, "\"destCharset\" can't to be null");
 	}
@@ -47,9 +47,9 @@ public class CapturedStdOutErrTextInteractive extends CapturedStdOutErrText {
 	}
 
 	@Override
-	void onText(final LineEntry lineEntry) {
+	public void onText(final LineEntry lineEntry) {
 		final var result = interactive.apply(lineEntry);
-		final var source = lineEntry.getSource();
+		final var source = lineEntry.source();
 
 		if (result != null && source.isRunning()) {
 			try {

@@ -1,10 +1,12 @@
 package tv.hd3g.processlauncher;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,17 +38,17 @@ public class ProcesslauncherBuilder {
 	private Optional<ExternalProcessStartup> externalProcessStartup;
 
 	public ProcesslauncherBuilder(final File executable, final Collection<String> parameters,
-	                              final ExecutableFinder execFinder) {
+								  final ExecutableFinder execFinder) {
 		this.executable = Objects.requireNonNull(executable, "\"executable\" can't to be null");
 		this.parameters = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(parameters,
-		        "\"parameters\" can't to be null")));
+				"\"parameters\" can't to be null")));
 
 		environment = new LinkedHashMap<>();
 
 		environment.putAll(System.getenv());
 		if (environment.containsKey("LANG") == false) {
 			environment.put("LANG",
-			        Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry() + "." + UTF_8);
+					Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry() + "." + UTF_8);
 		}
 		if (execFinder != null) {
 			environment.put("PATH", execFinder.getFullPathToString());
@@ -66,7 +68,7 @@ public class ProcesslauncherBuilder {
 
 	public ProcesslauncherBuilder(final CommandLine commandLine) {
 		this(commandLine.getExecutable(), commandLine.getParameters().getParameters(), commandLine.getExecutableFinder()
-		        .orElseGet(ExecutableFinder::new));
+				.orElseGet(ExecutableFinder::new));
 	}
 
 	/**
@@ -78,7 +80,7 @@ public class ProcesslauncherBuilder {
 
 	public ProcesslauncherBuilder setEnvironmentVar(final String key, final String value) {
 		if (key.equalsIgnoreCase("path")
-		    && Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().indexOf("win") >= 0) {
+			&& Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().indexOf("win") >= 0) {
 			environment.put("PATH", value);
 			environment.put("Path", value);
 		} else {
@@ -239,9 +241,9 @@ public class ProcesslauncherBuilder {
 	 */
 	public CaptureStandardOutputText getSetCaptureStandardOutputAsOutputText(final CapturedStreams defaultCaptureOutStreamsBehavior) {
 		final var csot = getCaptureStandardOutput()
-		        .filter(CaptureStandardOutputText.class::isInstance)
-		        .map(CaptureStandardOutputText.class::cast)
-		        .orElseGet(() -> new CaptureStandardOutputText(defaultCaptureOutStreamsBehavior));
+				.filter(CaptureStandardOutputText.class::isInstance)
+				.map(CaptureStandardOutputText.class::cast)
+				.orElseGet(() -> new CaptureStandardOutputText(defaultCaptureOutStreamsBehavior));
 
 		setCaptureStandardOutput(csot);
 		return csot;
@@ -264,9 +266,20 @@ public class ProcesslauncherBuilder {
 	/**
 	 * Shortcut for setExecutionTimeLimiter
 	 */
+	public ProcesslauncherBuilder setExecutionTimeLimiter(final Duration maxExecTime,
+														  final ScheduledExecutorService maxExecTimeScheduler) {
+		return setExecutionTimeLimiter(new ExecutionTimeLimiter(
+				maxExecTime.toMillis(),
+				MILLISECONDS,
+				maxExecTimeScheduler));
+	}
+
+	/**
+	 * Shortcut for setExecutionTimeLimiter
+	 */
 	public ProcesslauncherBuilder setExecutionTimeLimiter(final long maxExecTime,
-	                                                      final TimeUnit unit,
-	                                                      final ScheduledExecutorService maxExecTimeScheduler) {
+														  final TimeUnit unit,
+														  final ScheduledExecutorService maxExecTimeScheduler) {
 		return setExecutionTimeLimiter(new ExecutionTimeLimiter(maxExecTime, unit, maxExecTimeScheduler));
 	}
 

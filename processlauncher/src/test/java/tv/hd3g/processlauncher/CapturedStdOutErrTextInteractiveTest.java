@@ -40,11 +40,11 @@ class CapturedStdOutErrTextInteractiveTest {
 
 		final List<LineEntry> capturedLe = new ArrayList<>();
 		final Function<LineEntry, String> interactive = le -> {
-			if (le.getSource().equals(source) == false) {
+			if (le.source().equals(source) == false) {
 				throw new IllegalStateException("Invalid source");
 			}
 			capturedLe.add(le);
-			return le.getLine().toUpperCase();
+			return le.line().toUpperCase();
 		};
 
 		final var csoeti = new CapturedStdOutErrTextInteractive(interactive);

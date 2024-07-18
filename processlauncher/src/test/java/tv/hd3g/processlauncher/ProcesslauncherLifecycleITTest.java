@@ -261,8 +261,8 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 		final var errors = new LinkedBlockingQueue<Exception>();
 
 		final Function<LineEntry, String> interactive = lineEntry -> {
-			final var line = lineEntry.getLine();
-			if (lineEntry.isStdErr()) {
+			final var line = lineEntry.line();
+			if (lineEntry.stdErr()) {
 				System.err.println("Process say: " + line);
 				errors.add(new Exception("isStdErr is true"));
 				return DemoExecInteractive.QUIT;

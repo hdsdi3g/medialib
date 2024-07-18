@@ -68,6 +68,6 @@ public abstract class CapturedStdOutErrText {
 		}
 	}
 
-	abstract void onText(LineEntry lineEntry);
+	public abstract void onText(LineEntry lineEntry);
 
 }

@@ -16,41 +16,20 @@
  */
 package tv.hd3g.processlauncher;
 
-public class LineEntry {
-
-	private final long date;
-	private final String line;
-	private final boolean stdErr;
-	private final ProcesslauncherLifecycle source;
-
-	LineEntry(final long date, final String line, final boolean stdErr, final ProcesslauncherLifecycle source) {
-		this.line = line;
-		this.stdErr = stdErr;
-		this.source = source;
-		this.date = date;
-	}
+public record LineEntry(long date,
+						String line,
+						boolean stdErr,
+						ProcesslauncherLifecycle source) {
 
 	public long getTimeAgo() {
 		return date - source.getStartDate();
 	}
 
-	public long getDate() {
-		return date;
+	public boolean isEmpty() {
+		return line.trim().isEmpty();
 	}
 
-	public String getLine() {
-		return line;
-	}
-
-	public ProcesslauncherLifecycle getSource() {
-		return source;
-	}
-
-	public boolean isStdErr() {
-		return stdErr;
-	}
-
-	boolean canUseThis(final CapturedStreams choosedStream) {
+	public boolean canUseThis(final CapturedStreams choosedStream) {
 		return stdErr && choosedStream.canCaptureStderr() || stdErr == false && choosedStream.canCaptureStdout();
 	}
 

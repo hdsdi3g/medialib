@@ -74,7 +74,7 @@ class CapturedStdOutErrToPrintStreamTest {
 
 	@Test
 	void testOnFilteredText() {
-		capture.setFilter(l -> l.isStdErr() == false);
+		capture.setFilter(l -> l.stdErr() == false);
 		capture.onText(new LineEntry(System.currentTimeMillis(), "content", true, source));
 		assertEquals(0, outStreamContent.size());
 		assertEquals(0, errStreamContent.size());
