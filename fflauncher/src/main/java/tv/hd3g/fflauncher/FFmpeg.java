@@ -26,6 +26,7 @@ public class FFmpeg extends FFbase implements
 					SimpleSourceTraits,
 					HardwareProcessTraits,
 					VideoOutputTrait,
+					AudioOutputTrait,
 					TemporalProcessTraits {
 
 	private int deviceIdToUse = -1;
@@ -107,19 +108,6 @@ public class FFmpeg extends FFbase implements
 	@Override
 	public int getDeviceIdToUse() {
 		return deviceIdToUse;
-	}
-
-	/**
-	 * No checks will be done.
-	 * @param outputAudioStreamIndex -1 by default
-	 */
-	public FFmpeg addAudioCodecName(final String codecName, final int outputAudioStreamIndex) {
-		if (outputAudioStreamIndex > -1) {
-			getInternalParameters().addParameters("-c:a:" + outputAudioStreamIndex, codecName);
-		} else {
-			getInternalParameters().addParameters("-c:a", codecName);
-		}
-		return this;
 	}
 
 	/**
