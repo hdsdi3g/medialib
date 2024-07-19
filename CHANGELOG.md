@@ -1,5 +1,21 @@
 # All Medialib projects upgrades needs
 
+## 18.0.0
+
+Update starter parent to 21.1.0
+
+Big refactoring:
+ - Refactor high level process execution API: create ProcessingTool #105
+ - Upgrade fflauncher with ProcessingTool and clean up relative code #106
+
+Create WavMeasure #96
+
+Code maintenance:
+
+ - Disable default XSD parsing with ffprobejaxb during project build (see README)
+ - Test code clean
+ - Set default ffmpeg about max exec time to 5 sec (it can be now settable by system property)
+
 ## 17.0.0
 
 Switch to Java 21 (LTS) and update to parent version (21.0.0) #102

@@ -1,5 +1,5 @@
 
-Lists of 38 third-party dependencies.
+Lists of 39 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.5.6 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.5.6 - http://logback.qos.ch/logback-core)
      (The Apache Software License, Version 2.0) Generex (com.github.mifmif:generex:1.0.2 - https://github.com/mifmif/Generex/tree/master)
@@ -9,8 +9,8 @@ Lists of 38 third-party dependencies.
      (BSD) Automaton (dk.brics.automaton:automaton:1.11-8 - http://www.brics.dk/automaton/)
      (CeCILL-C) (MIT) Spoon Core (fr.inria.gforge.spoon:spoon-core:11.0.0 - http://spoon.gforge.inria.fr/)
      (Eclipse Distribution License v. 1.0) (Eclipse Public License v. 2.0) Jakarta Persistence API (jakarta.persistence:jakarta.persistence-api:3.1.0 - https://github.com/eclipse-ee4j/jpa-api)
-     (Apache License, Version 2.0) Byte Buddy (without dependencies) (net.bytebuddy:byte-buddy:1.14.16 - https://bytebuddy.net/byte-buddy)
-     (Apache License, Version 2.0) Byte Buddy agent (net.bytebuddy:byte-buddy-agent:1.14.16 - https://bytebuddy.net/byte-buddy-agent)
+     (Apache License, Version 2.0) Byte Buddy (without dependencies) (net.bytebuddy:byte-buddy:1.14.17 - https://bytebuddy.net/byte-buddy)
+     (Apache License, Version 2.0) Byte Buddy agent (net.bytebuddy:byte-buddy-agent:1.14.17 - https://bytebuddy.net/byte-buddy-agent)
      (The Apache Software License, Version 2.0) Data Faker (net.datafaker:datafaker:1.6.0 - https://www.datafaker.net)
      (Apache License, Version 2.0) Apache Commons Collections (org.apache.commons:commons-collections4:4.4 - https://commons.apache.org/proper/commons-collections/)
      (Apache-2.0) Apache Commons Compress (org.apache.commons:commons-compress:1.26.1 - https://commons.apache.org/proper/commons-compress/)
@@ -37,4 +37,5 @@ Lists of 38 third-party dependencies.
      (The MIT License) Project Lombok (org.projectlombok:lombok:1.18.32 - https://projectlombok.org)
      (MIT License) SLF4J API Module (org.slf4j:slf4j-api:2.0.13 - http://www.slf4j.org)
      (GNU Lesser General Public License, Version 3) CodePolicyValidation (tv.hd3g.commons:codepolicyvalidation:3.1.1 - https://github.com/hdsdi3g/codepolicyvalidation)
-     (GNU Lesser General Public License, Version 3) Commons Interfaces (tv.hd3g.commons:interfaces:21.0.0 - https://github.com/hdsdi3g/prodlib)
+     (GNU Lesser General Public License, Version 3) Commons Interfaces (tv.hd3g.commons:interfaces:21.1.0 - https://github.com/hdsdi3g/prodlib)
+     (GNU Lesser General Public License, Version 3) Commons Test tools (tv.hd3g.commons:testtools:21.1.0 - https://github.com/hdsdi3g/prodlib)
