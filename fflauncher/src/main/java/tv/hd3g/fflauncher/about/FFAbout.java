@@ -16,9 +16,10 @@
  */
 package tv.hd3g.fflauncher.about;
 
+import static java.lang.Long.parseLong;
+import static java.time.Duration.ofSeconds;
 import static tv.hd3g.processlauncher.cmdline.Parameters.bulk;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +65,9 @@ public class FFAbout {
 		try {
 			final var builder = new ExecBuilder(new FFbase(execName, bulk(bulkParameters)));
 			builder.setExecutableFinder(executableFinder);
-			builder.setMaxExecutionTime(Duration.ofSeconds(1), maxExecTimeScheduler);
+			builder.setMaxExecutionTime(ofSeconds(
+					parseLong(System.getProperty("fflauncher.about.maxExecTime", "5"))),
+					maxExecTimeScheduler);
 			return builder.process(bulkParameters).getResult();
 		} catch (final InvalidExecution e) {
 			if (log.isDebugEnabled()) {
