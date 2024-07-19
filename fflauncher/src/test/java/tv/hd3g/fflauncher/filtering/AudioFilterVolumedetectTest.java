@@ -25,7 +25,7 @@ class AudioFilterVolumedetectTest {
 	AudioFilterVolumedetect f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new AudioFilterVolumedetect();
 	}
 

@@ -22,7 +22,7 @@ public class DemoExecStdinInjection {
 
 	public static final String QUIT = "q";
 
-	public static void main(final String[] args) throws InterruptedException {
+	public static void main(final String[] args) {
 		final var s = new Scanner(System.in);
 		while (s.hasNext()) {
 			final var line = s.next();

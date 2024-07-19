@@ -19,6 +19,9 @@ package tv.hd3g.processlauncher.demo;
 public class DemoExecEmpty {
 
 	public static void main(final String[] args) {
+		/**
+		 * For test purposes
+		 */
 	}
 
 }

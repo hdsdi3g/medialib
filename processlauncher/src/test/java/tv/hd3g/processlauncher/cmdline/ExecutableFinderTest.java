@@ -33,7 +33,7 @@ class ExecutableFinderTest {
 	}
 
 	@Test
-	void testPreCheck() throws IOException {
+	void testPreCheck() {
 		assertEquals("\\", "/".replaceAll("/", "\\\\"));
 		assertEquals("/", "\\".replaceAll("\\\\", "/"));
 	}

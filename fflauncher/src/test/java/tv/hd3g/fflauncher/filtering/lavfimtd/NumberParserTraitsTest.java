@@ -39,7 +39,7 @@ class NumberParserTraitsTest {
 	double dlb;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		number = new T();
 		flt = faker.random().nextFloat();
 		lgn = faker.random().nextLong();

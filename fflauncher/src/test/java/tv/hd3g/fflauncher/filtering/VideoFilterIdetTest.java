@@ -25,7 +25,7 @@ class VideoFilterIdetTest {
 	VideoFilterIdet f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new VideoFilterIdet();
 	}
 

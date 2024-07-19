@@ -6,5 +6,8 @@ public class CodePolicyValidationTest extends CheckPolicy {
 
 	@Override
 	public void noSysOutSysErr() {
+		/**
+		 * Disabled
+		 */
 	}
 }

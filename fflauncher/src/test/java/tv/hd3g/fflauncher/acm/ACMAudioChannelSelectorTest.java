@@ -16,7 +16,6 @@
  */
 package tv.hd3g.fflauncher.acm;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -50,12 +49,12 @@ class ACMAudioChannelSelectorTest {
 	@Test
 	void testCompareTo() {
 		final var compared = List.of(
-		        new AudioChannelSelector(3),
-		        new AudioChannelSelector(1),
-		        new AudioChannelSelector(2)).stream()
-		        .sorted()
-		        .map(AudioChannelSelector::getPosInStream)
-		        .collect(toUnmodifiableList());
+				new AudioChannelSelector(3),
+				new AudioChannelSelector(1),
+				new AudioChannelSelector(2)).stream()
+				.sorted()
+				.map(AudioChannelSelector::getPosInStream)
+				.toList();
 		assertEquals(List.of(1, 2, 3), compared);
 	}
 

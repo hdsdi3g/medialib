@@ -60,7 +60,7 @@ class AtomicLatchReferenceTest {
 		}
 
 		@Test
-		void testGetEmpty_interrupted() throws InterruptedException {
+		void testGetEmpty_interrupted() {
 			final var checked = new AtomicBoolean();
 			final var t = new Thread(() -> {
 				alr.get(1, SECONDS);
@@ -78,7 +78,7 @@ class AtomicLatchReferenceTest {
 		}
 
 		@Test
-		void testGet_parallel() throws InterruptedException {
+		void testGet_parallel() {
 			final var checked = new AtomicReference<>();
 			final var t = new Thread(() -> {
 				checked.set(alr.get(1, SECONDS));
@@ -111,7 +111,7 @@ class AtomicLatchReferenceTest {
 		}
 
 		@Test
-		void testGetEmpty_interrupted() throws InterruptedException {
+		void testGetEmpty_interrupted() {
 			final var checked = new AtomicBoolean();
 			final var t = new Thread(() -> {
 				alr.get(1, SECONDS, v -> checked.set(true));
@@ -122,7 +122,7 @@ class AtomicLatchReferenceTest {
 		}
 
 		@Test
-		void testGet_parallel() throws InterruptedException {
+		void testGet_parallel() {
 			final var checked = new AtomicReference<>();
 			final var t = new Thread(() -> {
 				alr.get(1, SECONDS, checked::set);

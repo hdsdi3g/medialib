@@ -30,7 +30,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -77,10 +76,11 @@ class AboutTest {
 	void testCodecs() {
 		final var list = FFAboutCodec.parse(readLinesFromResource("test-codecs.txt"));
 
-		final var test1 = list.stream().filter(c -> (c.type == CodecType.AUDIO & c.encodingSupported
-													 & c.decodingSupported & c.lossyCompression
-													 & c.name.equals("adpcm_g722"))).collect(Collectors
-															 .toUnmodifiableList());
+		final var test1 = list.stream()
+				.filter(c -> (c.type == CodecType.AUDIO & c.encodingSupported
+							  & c.decodingSupported & c.lossyCompression
+							  & c.name.equals("adpcm_g722")))
+				.toList();
 
 		assertEquals(1, test1.size());
 		assertEquals("G.722 ADPCM", test1.get(0).longName);
@@ -111,8 +111,9 @@ class AboutTest {
 
 		assertEquals(326, list.size());
 
-		final var test1 = list.stream().filter(f -> (f.muxing == false & f.demuxing == true & f.name.equals(
-				"bfi"))).collect(Collectors.toUnmodifiableList());
+		final var test1 = list.stream()
+				.filter(f -> (f.muxing == false & f.demuxing == true & f.name.equals("bfi")))
+				.toList();
 
 		assertEquals(1, test1.size());
 		assertEquals("Brute Force & Ignorance", test1.get(0).longName);
@@ -135,7 +136,7 @@ class AboutTest {
 		assertEquals("OSS (Open Sound System) playback [oss] muxing and demuxing supported", list.get(i++).toString());
 		assertEquals("Video4Linux2 output device [v4l2] muxing only supported", list.get(i++).toString());
 		assertEquals("Video4Linux2 device grab [video4linux2, v4l2] demuxing only supported", list.get(i++).toString());
-		assertEquals("[libcdio] demuxing only supported", list.get(i++).toString());
+		assertEquals("[libcdio] demuxing only supported", list.get(i).toString());
 	}
 
 	@Test

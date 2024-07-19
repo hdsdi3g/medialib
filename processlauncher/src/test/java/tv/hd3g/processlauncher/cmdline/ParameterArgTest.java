@@ -28,7 +28,7 @@ class ParameterArgTest {
 	private ParameterArg pArg;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		pArg = new ParameterArg(true);
 		pArg.add('a');
 		pArg.add('b');

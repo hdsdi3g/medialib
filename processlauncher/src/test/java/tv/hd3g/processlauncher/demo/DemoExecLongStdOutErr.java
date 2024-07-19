@@ -23,7 +23,7 @@ public class DemoExecLongStdOutErr {
 	public static final String STD_OUT_END = "End";
 	public static final String STD_ERR = "Just an error message...";
 
-	public static void main(final String[] args) throws InterruptedException {
+	public static void main(final String[] args) {
 		var sendedErr = false;
 		for (var pos = 0; pos < COUNT; pos++) {
 			System.out.println(STD_OUT);

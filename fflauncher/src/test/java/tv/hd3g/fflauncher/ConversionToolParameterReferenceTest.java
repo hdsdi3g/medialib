@@ -44,16 +44,15 @@ class ConversionToolParameterReferenceTest {
 	ConversionToolParameterReference ctprF;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		ctprS = new ConversionToolParameterReference("reference", "<%var%>", Arrays.asList("before1", "before2"));
 		ctprF = new ConversionToolParameterReference(tempFile, "<%var%>", Arrays.asList("before1", "before2"));
 	}
 
 	@Test
 	void testNullConstructor() {
-		final var ctprS = new ConversionToolParameterReference("reference", "<%var%>",
-		        null);
-		final var ctprF = new ConversionToolParameterReference(tempFile, "<%var%>", null);
+		ctprS = new ConversionToolParameterReference("reference", "<%var%>", null);
+		ctprF = new ConversionToolParameterReference(tempFile, "<%var%>", null);
 
 		assertEquals(Collections.emptyList(), ctprS.getParametersListBeforeRef());
 		assertEquals(Collections.emptyList(), ctprF.getParametersListBeforeRef());

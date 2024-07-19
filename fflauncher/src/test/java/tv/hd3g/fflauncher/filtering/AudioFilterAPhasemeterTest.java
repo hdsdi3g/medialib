@@ -26,7 +26,7 @@ class AudioFilterAPhasemeterTest {
 	AudioFilterAPhasemeter f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new AudioFilterAPhasemeter();
 	}
 

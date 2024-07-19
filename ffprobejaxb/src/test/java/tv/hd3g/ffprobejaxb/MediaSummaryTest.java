@@ -19,7 +19,6 @@ package tv.hd3g.ffprobejaxb;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +32,7 @@ class MediaSummaryTest {
 	MediaSummary ms;
 
 	@Test
-	void testCreate() throws IOException {
+	void testCreate() {
 		final var source = FFprobeJAXB.load(
 				"""
 						<?xml version="1.0" encoding="UTF-8"?>
@@ -83,7 +82,7 @@ class MediaSummaryTest {
 	}
 
 	@Test
-	void testCreate_smallFile() throws IOException {
+	void testCreate_smallFile() {
 		final var source = FFprobeJAXB.load(
 				"""
 						<?xml version="1.0" encoding="UTF-8"?>
@@ -98,7 +97,7 @@ class MediaSummaryTest {
 	}
 
 	@Test
-	void testCreate_bigFile() throws IOException {
+	void testCreate_bigFile() {
 		final var source = FFprobeJAXB.load("""
 				<?xml version="1.0" encoding="UTF-8"?>
 				<ffprobe>
@@ -112,7 +111,7 @@ class MediaSummaryTest {
 	}
 
 	@Test
-	void testCreate_programs_chapters() throws IOException {
+	void testCreate_programs_chapters() {
 		final var source = FFprobeJAXB.load(
 				"""
 						<?xml version="1.0" encoding="UTF-8"?>
@@ -526,7 +525,7 @@ class MediaSummaryTest {
 	}
 
 	@Test
-	void testNoBitRate() throws IOException {
+	void testNoBitRate() {
 		final var source = FFprobeJAXB.load(
 				"""
 						<?xml version="1.0" encoding="UTF-8"?>
@@ -556,7 +555,7 @@ class MediaSummaryTest {
 	}
 
 	@Test
-	void testEmptyTC() throws IOException {
+	void testEmptyTC() {
 		final var source = FFprobeJAXB.load(
 				"""
 						<?xml version="1.0" encoding="UTF-8"?>

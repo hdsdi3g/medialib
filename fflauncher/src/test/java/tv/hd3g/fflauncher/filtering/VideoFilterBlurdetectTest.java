@@ -26,7 +26,7 @@ class VideoFilterBlurdetectTest {
 	VideoFilterBlurdetect f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new VideoFilterBlurdetect();
 	}
 

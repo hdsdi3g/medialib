@@ -95,7 +95,7 @@ class ExecutionTimeLimiterTest {
 
 		@Override
 		public Void get(final long timeout,
-		                final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+						final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -117,6 +117,9 @@ class ExecutionTimeLimiterTest {
 
 		@Override
 		public void shutdown() {
+			/**
+			 * Not used
+			 */
 		}
 
 		@Override
@@ -161,8 +164,8 @@ class ExecutionTimeLimiterTest {
 
 		@Override
 		public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
-		                                     final long timeout,
-		                                     final TimeUnit unit) throws InterruptedException {
+											 final long timeout,
+											 final TimeUnit unit) throws InterruptedException {
 			throw new UnsupportedOperationException();
 		}
 
@@ -173,8 +176,8 @@ class ExecutionTimeLimiterTest {
 
 		@Override
 		public <T> T invokeAny(final Collection<? extends Callable<T>> tasks,
-		                       final long timeout,
-		                       final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+							   final long timeout,
+							   final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 			throw new UnsupportedOperationException();
 		}
 
@@ -190,17 +193,17 @@ class ExecutionTimeLimiterTest {
 
 		@Override
 		public ScheduledFuture<?> scheduleAtFixedRate(final Runnable command,
-		                                              final long initialDelay,
-		                                              final long period,
-		                                              final TimeUnit unit) {
+													  final long initialDelay,
+													  final long period,
+													  final TimeUnit unit) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command,
-		                                                 final long initialDelay,
-		                                                 final long delay,
-		                                                 final TimeUnit unit) {
+														 final long initialDelay,
+														 final long delay,
+														 final TimeUnit unit) {
 			throw new UnsupportedOperationException();
 		}
 

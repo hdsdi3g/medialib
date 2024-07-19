@@ -18,7 +18,7 @@ package tv.hd3g.processlauncher.demo;
 
 public class DemoExecExitCode {
 
-	public static void main(final String[] args) throws InterruptedException {
+	public static void main(final String[] args) {
 		System.exit(Integer.parseInt(args[0]));
 	}
 

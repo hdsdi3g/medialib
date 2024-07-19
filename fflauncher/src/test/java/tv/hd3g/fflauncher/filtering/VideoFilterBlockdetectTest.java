@@ -26,7 +26,7 @@ class VideoFilterBlockdetectTest {
 	VideoFilterBlockdetect f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new VideoFilterBlockdetect();
 	}
 

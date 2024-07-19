@@ -38,7 +38,7 @@ class FilterParserTest {
 			var i = 0;
 			assertEquals("a", cleaned.get(i++).toString());
 			assertEquals("b", cleaned.get(i++).toString());
-			assertEquals("c", cleaned.get(i++).toString());
+			assertEquals("c", cleaned.get(i).toString());
 		}
 
 		@Test
@@ -50,7 +50,7 @@ class FilterParserTest {
 			assertEquals(3, cleaned.size());
 			assertEquals("a", cleaned.get(i++).toString());
 			assertEquals("b", cleaned.get(i++).toString());
-			assertEquals("c", cleaned.get(i++).toString());
+			assertEquals("c", cleaned.get(i).toString());
 		}
 
 		@Test
@@ -67,7 +67,7 @@ class FilterParserTest {
 			assertEquals("b", cleaned.get(i++).toString());
 			assertEquals(",", cleaned.get(i++).toString());
 			assertEquals(";", cleaned.get(i++).toString());
-			assertEquals("c", cleaned.get(i++).toString());
+			assertEquals("c", cleaned.get(i).toString());
 		}
 
 		@ParameterizedTest
@@ -81,7 +81,7 @@ class FilterParserTest {
 			assertEquals("a", cleaned.get(i++).toString());
 			assertEquals("'d ee f '", cleaned.get(i++).toString());
 			assertEquals("b", cleaned.get(i++).toString());
-			assertEquals("'c'", cleaned.get(i++).toString());
+			assertEquals("'c'", cleaned.get(i).toString());
 		}
 
 		@Test
@@ -94,7 +94,7 @@ class FilterParserTest {
 			assertEquals("a", cleaned.get(i++).toString());
 			assertEquals("\\'", cleaned.get(i++).toString());
 			assertEquals("b", cleaned.get(i++).toString());
-			assertEquals("\\c", cleaned.get(i++).toString());
+			assertEquals("\\c", cleaned.get(i).toString());
 		}
 
 	}
@@ -112,7 +112,7 @@ class FilterParserTest {
 			assertEquals("aa", list.get(i++).toString());
 			assertEquals("bb", list.get(i++).toString());
 			assertEquals("ccc", list.get(i++).toString());
-			assertEquals("dde", list.get(i++).toString());
+			assertEquals("dde", list.get(i).toString());
 		}
 
 		@Test
@@ -123,7 +123,7 @@ class FilterParserTest {
 			assertEquals(2, list.size());
 			var i = 0;
 			assertEquals("aa", list.get(i++).toString());
-			assertEquals("bb", list.get(i++).toString());
+			assertEquals("bb", list.get(i).toString());
 		}
 
 		@Test
@@ -134,7 +134,7 @@ class FilterParserTest {
 			assertEquals(2, list.size());
 			var i = 0;
 			assertEquals("aa", list.get(i++).toString());
-			assertEquals("bb", list.get(i++).toString());
+			assertEquals("bb", list.get(i).toString());
 		}
 
 		@Test

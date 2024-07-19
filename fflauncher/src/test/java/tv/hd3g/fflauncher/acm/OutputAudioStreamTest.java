@@ -34,7 +34,6 @@ import static tv.hd3g.fflauncher.enums.ChannelLayout.MONO;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.STEREO;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +55,7 @@ class OutputAudioStreamTest {
 	@Test
 	void testEqualsObject() {
 		assertEquals(new OutputAudioStream(CH5_1_SIDE, 0, 1),
-		        new OutputAudioStream(CH5_1_SIDE, 0, 1));
+				new OutputAudioStream(CH5_1_SIDE, 0, 1));
 	}
 
 	@Test
@@ -101,42 +100,42 @@ class OutputAudioStreamTest {
 	@Test
 	void testCompareTo() {
 		final var streams = List.of(new OutputAudioStream(STEREO, 1, 1),
-		        new OutputAudioStream(STEREO, 0, 0),
-		        new OutputAudioStream(MONO, 0, 1),
-		        new OutputAudioStream(STEREO, 1, 0)).stream()
-		        .sorted()
-		        .map(OutputAudioStream::toString)
-		        .collect(joining(","));
+				new OutputAudioStream(STEREO, 0, 0),
+				new OutputAudioStream(MONO, 0, 1),
+				new OutputAudioStream(STEREO, 1, 0)).stream()
+				.sorted()
+				.map(OutputAudioStream::toString)
+				.collect(joining(","));
 		assertEquals("0:0(stereo),0:1(mono),1:0(stereo),1:1(stereo)", streams);
 	}
 
 	@Test
 	void testMapChannel_full() {
-		final var inputAudioStream = new InputAudioStream(STEREO, 0, 1);
-		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(inputAudioStream, IN_CH2, OUT_CH0));
-		assertEquals(audioStream, audioStream.mapChannel(inputAudioStream, IN_CH0, OUT_CH0));
-		assertEquals(audioStream, audioStream.mapChannel(inputAudioStream, IN_CH1, OUT_CH1));
-		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(inputAudioStream, IN_CH1, OUT_CH2));
+		final var s = new InputAudioStream(STEREO, 0, 1);
+		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(s, IN_CH2, OUT_CH0));
+		assertEquals(audioStream, audioStream.mapChannel(s, IN_CH0, OUT_CH0));
+		assertEquals(audioStream, audioStream.mapChannel(s, IN_CH1, OUT_CH1));
+		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(s, IN_CH1, OUT_CH2));
 		assertEquals(2, audioStream.getChannels().size());
 		final var channels = audioStream.getChannels().stream()
-		        .sorted()
-		        .map(OutputAudioChannel::toString)
-		        .collect(joining(","));
+				.sorted()
+				.map(OutputAudioChannel::toString)
+				.collect(joining(","));
 		assertEquals("0:1(stereo).CHIN_0->0:1(stereo).CHOUT_0,0:1(stereo).CHIN_1->0:1(stereo).CHOUT_1", channels);
 	}
 
 	@Test
 	void testMapChannel_simpleordered() {
-		final var inputAudioStream = new InputAudioStream(STEREO, 0, 1);
-		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(inputAudioStream, IN_CH2));
-		assertEquals(audioStream, audioStream.mapChannel(inputAudioStream, IN_CH1));
-		assertEquals(audioStream, audioStream.mapChannel(inputAudioStream, IN_CH0));
-		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(inputAudioStream, IN_CH1));
+		final var s = new InputAudioStream(STEREO, 0, 1);
+		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(s, IN_CH2));
+		assertEquals(audioStream, audioStream.mapChannel(s, IN_CH1));
+		assertEquals(audioStream, audioStream.mapChannel(s, IN_CH0));
+		assertThrows(IllegalArgumentException.class, () -> audioStream.mapChannel(s, IN_CH1));
 		assertEquals(2, audioStream.getChannels().size());
 		final var channels = audioStream.getChannels().stream()
-		        .sorted()
-		        .map(OutputAudioChannel::toString)
-		        .collect(joining(","));
+				.sorted()
+				.map(OutputAudioChannel::toString)
+				.collect(joining(","));
 		assertEquals("0:1(stereo).CHIN_1->0:1(stereo).CHOUT_0,0:1(stereo).CHIN_0->0:1(stereo).CHOUT_1", channels);
 	}
 
@@ -153,9 +152,9 @@ class OutputAudioStreamTest {
 		@Test
 		void testOutputAudioChannel() {
 			assertThrows(IllegalArgumentException.class,
-			        () -> audioStream.new OutputAudioChannel(inputAudioStream, IN_CH2, audioStream, OUT_CH0));
+					() -> audioStream.new OutputAudioChannel(inputAudioStream, IN_CH2, audioStream, OUT_CH0));
 			assertThrows(IllegalArgumentException.class,
-			        () -> audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH2));
+					() -> audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH2));
 		}
 
 		@Test
@@ -163,21 +162,21 @@ class OutputAudioStreamTest {
 			final var audioStream2 = new OutputAudioStream(MONO, 0, 0);
 
 			final var channels = List.of(
-			        audioStream.new OutputAudioChannel(inputAudioStream, IN_CH1, audioStream, OUT_CH1),
-			        audioStream.new OutputAudioChannel(inputAudioStream, IN_CH1, audioStream, OUT_CH0),
-			        audioStream2.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream2, OUT_CH0),
-			        audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH1),
-			        audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH0)).stream()
-			        .sorted()
-			        .map(OutputAudioChannel::toString)
-			        .collect(Collectors.toUnmodifiableList());
+					audioStream.new OutputAudioChannel(inputAudioStream, IN_CH1, audioStream, OUT_CH1),
+					audioStream.new OutputAudioChannel(inputAudioStream, IN_CH1, audioStream, OUT_CH0),
+					audioStream2.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream2, OUT_CH0),
+					audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH1),
+					audioStream.new OutputAudioChannel(inputAudioStream, IN_CH0, audioStream, OUT_CH0)).stream()
+					.sorted()
+					.map(OutputAudioChannel::toString)
+					.toList();
 			assertEquals(
-			        List.of("0:1(stereo).CHIN_0->0:0(mono).CHOUT_0",
-			                "0:1(stereo).CHIN_1->0:1(stereo).CHOUT_0",
-			                "0:1(stereo).CHIN_0->0:1(stereo).CHOUT_0",
-			                "0:1(stereo).CHIN_1->0:1(stereo).CHOUT_1",
-			                "0:1(stereo).CHIN_0->0:1(stereo).CHOUT_1"),
-			        channels);
+					List.of("0:1(stereo).CHIN_0->0:0(mono).CHOUT_0",
+							"0:1(stereo).CHIN_1->0:1(stereo).CHOUT_0",
+							"0:1(stereo).CHIN_0->0:1(stereo).CHOUT_0",
+							"0:1(stereo).CHIN_1->0:1(stereo).CHOUT_1",
+							"0:1(stereo).CHIN_0->0:1(stereo).CHOUT_1"),
+					channels);
 		}
 
 		@Test
@@ -208,15 +207,15 @@ class OutputAudioStreamTest {
 			final var audioStream1 = new OutputAudioStream(STEREO, 1, 1);
 
 			assertEquals(audioStream0.new OutputAudioChannel(inputAudioStream0, IN_CH0, audioStream0, OUT_CH0),
-			        channel);
+					channel);
 			assertNotEquals(audioStream0.new OutputAudioChannel(
-			        inputAudioStream0, IN_CH1, audioStream0, OUT_CH0), channel);
+					inputAudioStream0, IN_CH1, audioStream0, OUT_CH0), channel);
 			assertNotEquals(audioStream0.new OutputAudioChannel(
-			        inputAudioStream0, IN_CH0, audioStream0, OUT_CH1), channel);
+					inputAudioStream0, IN_CH0, audioStream0, OUT_CH1), channel);
 			assertNotEquals(audioStream0.new OutputAudioChannel(
-			        inputAudioStream1, IN_CH0, audioStream0, OUT_CH0), channel);
+					inputAudioStream1, IN_CH0, audioStream0, OUT_CH0), channel);
 			assertNotEquals(audioStream0.new OutputAudioChannel(
-			        inputAudioStream0, IN_CH0, audioStream1, OUT_CH0), channel);
+					inputAudioStream0, IN_CH0, audioStream1, OUT_CH0), channel);
 		}
 
 		@Test

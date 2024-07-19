@@ -16,16 +16,24 @@
  */
 package tv.hd3g.processlauncher;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tv.hd3g.processlauncher.EndStatus.TOO_LONG_EXECUTION_TIME;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.ENV_KEY;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.ENV_VALUE;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.EXIT_OK;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.EXPECTED_ERR;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.EXPECTED_IN;
+import static tv.hd3g.processlauncher.demo.DemoExecIOText.EXPECTED_OUT;
+import static tv.hd3g.processlauncher.demo.DemoExecLongSleep.MAX_DURATION;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +84,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	private CapturedStdOutErrTextRetention textRetention;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		textRetention = new CapturedStdOutErrTextRetention();
 	}
 
@@ -88,13 +96,13 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	@Test
 	void testSimpleExec() throws IOException {
 		final var result = captureTextAndStart(prepareBuilder(DemoExecSimple.class)).waitForEnd();
-		assertEquals(DemoExecSimple.expected, textRetention.getStdouterr(true, ""));
+		assertEquals(DemoExecSimple.EXPECTED, textRetention.getStdouterr(true, ""));
 		assertEquals(0, (int) result.getExitCode());
 		assertEquals(EndStatus.CORRECTLY_DONE, result.getEndStatus());
 	}
 
 	@Test
-	void testWorkingDirectory() throws IOException, InterruptedException, ExecutionException {
+	void testWorkingDirectory() throws IOException {
 		final var ept = prepareBuilder(DemoExecWorkingdir.class);
 		final var wd = new File(System.getProperty("user.dir")).getCanonicalFile();
 		ept.setWorkingDirectory(wd);
@@ -138,37 +146,37 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	void testResultValues() throws Exception {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
 				DemoExecIOText.class.getName());
-		parameters.addParameters(DemoExecIOText.expectedIn);
+		parameters.addParameters(EXPECTED_IN);
 		final var cmd = new CommandLine("java", parameters, executableFinder);
 		final var ept = new ProcesslauncherBuilder(cmd);
 
 		ept.setExecCodeMustBeZero(false);
-		ept.setEnvironmentVar(DemoExecIOText.ENV_KEY, DemoExecIOText.ENV_VALUE);
+		ept.setEnvironmentVar(ENV_KEY, ENV_VALUE);
 
 		final var p = captureTextAndStart(ept).waitForEnd();
 
-		assertEquals(DemoExecIOText.expectedOut, textRetention.getStdout(false, ""));
-		assertEquals(DemoExecIOText.expectedErr, textRetention.getStderr(false, ""));
-		assertEquals(DemoExecIOText.exitOk, (int) p.getExitCode());
+		assertEquals(EXPECTED_OUT, textRetention.getStdout(false, ""));
+		assertEquals(EXPECTED_ERR, textRetention.getStderr(false, ""));
+		assertEquals(EXIT_OK, (int) p.getExitCode());
 		assertEquals(EndStatus.CORRECTLY_DONE, p.getEndStatus());
 
-		assertEquals(DemoExecIOText.exitOk, (int) p.getExitCode());
+		assertEquals(DemoExecIOText.EXIT_OK, (int) p.getExitCode());
 	}
 
 	@Test
 	void testMaxExecTime() throws Exception {
 		final var ept = prepareBuilder(DemoExecLongSleep.class);
 
-		ept.setExecutionTimeLimiter(DemoExecLongSleep.MAX_DURATION, TimeUnit.MILLISECONDS, scheduledThreadPool);
+		ept.setExecutionTimeLimiter(MAX_DURATION, MILLISECONDS, scheduledThreadPool);
 
 		final var startTime = System.currentTimeMillis();
 		final var result = ept.start().waitForEnd();
 
 		final var duration = System.currentTimeMillis() - startTime;
 
-		MatcherAssert.assertThat(duration, Matchers.lessThan(DemoExecLongSleep.MAX_DURATION
+		MatcherAssert.assertThat(duration, Matchers.lessThan(MAX_DURATION
 															 + 1500)); /** 1500 is a "startup time bonus" */
-		assertEquals(EndStatus.TOO_LONG_EXECUTION_TIME, result.getEndStatus());
+		assertEquals(TOO_LONG_EXECUTION_TIME, result.getEndStatus());
 
 		assertTrue(result.isTooLongTime());
 		assertFalse(result.isCorrectlyDone());
@@ -185,13 +193,13 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 
 		scheduledThreadPool.schedule(() -> {
 			result.kill();
-		}, DemoExecLongSleep.MAX_DURATION, TimeUnit.MILLISECONDS);
+		}, MAX_DURATION, MILLISECONDS);
 
 		result.waitForEnd();
 
 		final var duration = System.currentTimeMillis() - startTime;
 
-		MatcherAssert.assertThat(duration, Matchers.lessThan(DemoExecLongSleep.MAX_DURATION
+		MatcherAssert.assertThat(duration, Matchers.lessThan(MAX_DURATION
 															 + 1500)); /** 1500 is a "startup time bonus" */
 		assertEquals(EndStatus.KILLED, result.getEndStatus());
 
@@ -310,7 +318,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	}
 
 	@Test
-	void testCheckExecutionOk() throws InterruptedException, ExecutionException, IOException {
+	void testCheckExecutionOk() throws IOException {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
 				DemoExecExitCode.class.getName());
 		parameters.addParameters("0");
@@ -321,7 +329,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	}
 
 	@Test
-	void testCheckExecutionError() throws InterruptedException, ExecutionException, IOException {
+	void testCheckExecutionError() throws IOException {
 		final var parameters = Parameters.of("-cp", System.getProperty("java.class.path"),
 				DemoExecExitCode.class.getName());
 		parameters.addParameters("1");
@@ -337,7 +345,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	}
 
 	@Test
-	void testStdInInjection() throws IOException, InterruptedException, ExecutionException {
+	void testStdInInjection() throws IOException, InterruptedException {
 		final var ept = prepareBuilder(DemoExecStdinInjection.class);
 		ept.setExecutionTimeLimiter(500, TimeUnit.MILLISECONDS, scheduledThreadPool);
 
@@ -349,7 +357,7 @@ public class ProcesslauncherLifecycleITTest {// NOSONAR
 	}
 
 	@Test
-	void testDirectStandardOutputStdErrRetention() throws IOException, InterruptedException, ExecutionException {
+	void testDirectStandardOutputStdErrRetention() throws IOException, InterruptedException {
 		final var ept = prepareBuilder(DemoExecLongStdOutErr.class);
 		ept.setExecutionTimeLimiter(500, TimeUnit.MILLISECONDS, scheduledThreadPool);
 

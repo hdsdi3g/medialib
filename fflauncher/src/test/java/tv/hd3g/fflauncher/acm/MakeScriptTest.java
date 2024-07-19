@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tv.hd3g.fflauncher.acm.InputAudioChannelSelector.IN_CH0;
 import static tv.hd3g.fflauncher.acm.InputAudioChannelSelector.IN_CH1;
@@ -59,7 +58,7 @@ class MakeScriptTest {
 		IntStream.range(0, 4).forEach(pos -> content.add(createAudioGeneratedFile(pos)));
 		final var inStreams = IntStream.range(0, 8)
 				.mapToObj(pos -> new InputAudioStream(MONO, pos, 0))
-				.collect(toUnmodifiableList());
+				.toList();
 
 		content.add("# createMerge");
 		final var fileToSplit = createMerge(content, inStreams);

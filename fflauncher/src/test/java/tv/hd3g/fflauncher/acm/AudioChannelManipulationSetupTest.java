@@ -16,7 +16,6 @@
  */
 package tv.hd3g.fflauncher.acm;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -374,7 +373,7 @@ class AudioChannelManipulationSetupTest {
 		assertEquals(fileIndex, outStream.getFileIndex());
 		assertEquals(streamIndex, outStream.getStreamIndex());
 		assertEquals(layout, outStream.getLayout());
-		return outStream.getChannels().stream().sorted().collect(toUnmodifiableList());
+		return outStream.getChannels().stream().sorted().toList();
 	}
 
 }

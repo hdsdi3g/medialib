@@ -16,13 +16,12 @@
  */
 package tv.hd3g.processlauncher;
 
+import static org.apache.commons.collections4.CollectionUtils.isEqualCollection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -51,34 +50,28 @@ class CapturedStdOutErrTextRetentionTest {
 	@Test
 	void testGetStdoutLines() {
 		var lines = Arrays.asList("Out 0", "Out 1", "", "Out 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStdoutLines(true).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStdoutLines(true).toList()));
 
 		lines = Arrays.asList("Out 0", "Out 1", "Out 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStdoutLines(false).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStdoutLines(false).toList()));
 	}
 
 	@Test
 	void testGetStderrLines() {
 		var lines = Arrays.asList("Err 0", "Err 1", "", "Err 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStderrLines(true).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStderrLines(true).toList()));
 
 		lines = Arrays.asList("Err 0", "Err 1", "Err 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStderrLines(false).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStderrLines(false).toList()));
 	}
 
 	@Test
 	void testGetStdouterrLines() {
 		var lines = Arrays.asList("Out 0", "Err 0", "Out 1", "Err 1", "", "", "Out 3", "Err 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStdouterrLines(true).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStdouterrLines(true).toList()));
 
 		lines = Arrays.asList("Out 0", "Err 0", "Out 1", "Err 1", "Out 3", "Err 3");
-		assertTrue(CollectionUtils.isEqualCollection(lines, capText.getStdouterrLines(false).collect(Collectors
-		        .toList())));
+		assertTrue(isEqualCollection(lines, capText.getStdouterrLines(false).toList()));
 	}
 
 	@Test

@@ -52,11 +52,11 @@ class CaptureStandardOutputTextTest {
 
 		final var textLinesStdOut = Arrays.asList("Line 1", "Line 2", "", "\tline 4");
 		final var processInputStreamOut = new ByteArrayInputStream(textLinesStdOut.stream().collect(
-		        Collectors.joining("\n")).getBytes());
+				Collectors.joining("\n")).getBytes());
 
 		final var textLinesStdErr = Arrays.asList("Line 5", "Line 6", "", "\tline 8");
 		final var processInputStreamErr = new ByteArrayInputStream(textLinesStdErr.stream().collect(
-		        Collectors.joining("\r\n")).getBytes());
+				Collectors.joining("\r\n")).getBytes());
 
 		final var source = Mockito.mock(ProcesslauncherLifecycle.class);
 		final var launcher = Mockito.mock(Processlauncher.class);
@@ -71,10 +71,14 @@ class CaptureStandardOutputTextTest {
 		assertEquals(textLinesStdOut.size() + textLinesStdErr.size(), capturedlines.size());
 		assertTrue(capturedlines.stream().anyMatch(le -> le.source().equals(source)));
 
-		final var capturedlinesOut = capturedlines.stream().filter(le -> le.stdErr() == false).map(
-		        LineEntry::line).collect(Collectors.toList());
-		final var capturedlinesErr = capturedlines.stream().filter(LineEntry::stdErr).map(LineEntry::line)
-		        .collect(Collectors.toList());
+		final var capturedlinesOut = capturedlines.stream()
+				.filter(le -> le.stdErr() == false)
+				.map(LineEntry::line)
+				.toList();
+		final var capturedlinesErr = capturedlines.stream()
+				.filter(LineEntry::stdErr)
+				.map(LineEntry::line)
+				.toList();
 
 		assertTrue(CollectionUtils.isEqualCollection(textLinesStdOut, capturedlinesOut));
 		assertTrue(CollectionUtils.isEqualCollection(textLinesStdErr, capturedlinesErr));

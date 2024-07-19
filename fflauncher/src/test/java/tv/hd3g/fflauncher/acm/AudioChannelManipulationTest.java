@@ -24,22 +24,22 @@ import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class AudioChannelManipulationTest {
-	final static InputAudioStream inMono0 = new InputAudioStream(MONO, 0, 1);
-	final static InputAudioStream inMono1 = new InputAudioStream(MONO, 0, 2);
-	final static InputAudioStream inMono2 = new InputAudioStream(MONO, 0, 3);
-	final static InputAudioStream inMono3 = new InputAudioStream(MONO, 0, 4);
-	final static InputAudioStream inStereo = new InputAudioStream(STEREO, 1, 0);
-	final static OutputAudioStream outStreamMono0 = new OutputAudioStream(MONO, 0, 0)
+	static final InputAudioStream inMono0 = new InputAudioStream(MONO, 0, 1);
+	static final InputAudioStream inMono1 = new InputAudioStream(MONO, 0, 2);
+	static final InputAudioStream inMono2 = new InputAudioStream(MONO, 0, 3);
+	static final InputAudioStream inMono3 = new InputAudioStream(MONO, 0, 4);
+	static final InputAudioStream inStereo = new InputAudioStream(STEREO, 1, 0);
+	static final OutputAudioStream outStreamMono0 = new OutputAudioStream(MONO, 0, 0)
 			.mapChannel(inStereo, IN_CH0);
-	final static OutputAudioStream outStreamMono1 = new OutputAudioStream(MONO, 0, 1)
+	static final OutputAudioStream outStreamMono1 = new OutputAudioStream(MONO, 0, 1)
 			.mapChannel(inStereo, IN_CH1);
-	final static OutputAudioStream outStreamStereo0 = new OutputAudioStream(STEREO, 1, 0)
+	static final OutputAudioStream outStreamStereo0 = new OutputAudioStream(STEREO, 1, 0)
 			.mapChannel(inMono1, IN_CH0)
 			.mapChannel(inMono0, IN_CH0);
-	final static OutputAudioStream outStreamStereo1 = new OutputAudioStream(STEREO, 2, 1)
+	static final OutputAudioStream outStreamStereo1 = new OutputAudioStream(STEREO, 2, 1)
 			.mapChannel(inMono2, IN_CH0)
 			.mapChannel(inMono3, IN_CH0);
-	final static OutputAudioStream outStreamSimpleMono = new OutputAudioStream(MONO, 0, 1)
+	static final OutputAudioStream outStreamSimpleMono = new OutputAudioStream(MONO, 0, 1)
 			.mapChannel(inMono0, IN_CH0);
 
 	@Test
@@ -135,12 +135,12 @@ class AudioChannelManipulationTest {
 
 	@Test
 	void testACMSandbox_split_duplicate() {
-		final var outStreamMono0 = new OutputAudioStream(MONO, 0, 0)
+		final var o = new OutputAudioStream(MONO, 0, 0)
 				.mapChannel(inStereo, IN_CH0);
 		final var outStreamMono0Again = new OutputAudioStream(MONO, 0, 1)
 				.mapChannel(inStereo, IN_CH0);
 
-		final var acm = new AudioChannelManipulation(List.of(outStreamMono0, outStreamMono0Again));
+		final var acm = new AudioChannelManipulation(List.of(o, outStreamMono0Again));
 		assertEquals(2, acm.getToSplitFilterList().size());
 		final var splitFilter0 = acm.getToSplitFilterList().get(0).toFilter();
 		assertEquals("channelsplit", splitFilter0.getFilterName());
@@ -154,7 +154,7 @@ class AudioChannelManipulationTest {
 
 		assertTrue(acm.getMergeJoinList().isEmpty());
 		assertTrue(acm.getStreamRemapFilterMap().isEmpty());
-		assertEquals(List.of(outStreamMono0, outStreamMono0Again), acm.getAllOutputStreams());
+		assertEquals(List.of(o, outStreamMono0Again), acm.getAllOutputStreams());
 	}
 
 	@Test

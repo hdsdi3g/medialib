@@ -18,10 +18,10 @@ package tv.hd3g.processlauncher.demo;
 
 public class DemoExecSimple {
 
-	public static final String expected = "HELLO";
+	public static final String EXPECTED = "HELLO";
 
 	public static void main(final String[] args) {
-		System.out.println(expected);
+		System.out.println(EXPECTED);
 	}
 
 }

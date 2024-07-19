@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -104,7 +103,7 @@ class ParametersTest {
 	}
 
 	@Test
-	void testInjectParamsAroundVariable() throws IOException {
+	void testInjectParamsAroundVariable() {
 		var p = Parameters.bulk("-before <%myvar%> -after");
 
 		p.injectParamsAroundVariable("myvar", Arrays.asList("-addedbefore", "1"), Arrays.asList("-addedafter", "2"));
@@ -113,15 +112,15 @@ class ParametersTest {
 		p = Parameters.bulk("-before <%myvar%> <%myvar%> -after");
 		p.injectParamsAroundVariable("myvar", Arrays.asList("-addedbefore", "1"), Arrays.asList("-addedafter", "2"));
 		assertEquals(
-		        "-before -addedbefore 1 <%myvar%> -addedafter 2 -addedbefore 1 <%myvar%> -addedafter 2 -after", p
-		                .toString());
+				"-before -addedbefore 1 <%myvar%> -addedafter 2 -addedbefore 1 <%myvar%> -addedafter 2 -after", p
+						.toString());
 
 		p = Parameters.bulk("-before <%myvar1%> <%myvar2%> -after");
 		p.injectParamsAroundVariable("myvar1", Arrays.asList("-addedbefore", "1"), Arrays.asList("-addedafter", "2"));
 		p.injectParamsAroundVariable("myvar2", Arrays.asList("-addedbefore", "3"), Arrays.asList("-addedafter", "4"));
 		assertEquals(
-		        "-before -addedbefore 1 <%myvar1%> -addedafter 2 -addedbefore 3 <%myvar2%> -addedafter 4 -after", p
-		                .toString());
+				"-before -addedbefore 1 <%myvar1%> -addedafter 2 -addedbefore 3 <%myvar2%> -addedafter 4 -after", p
+						.toString());
 	}
 
 	@Test
@@ -154,28 +153,28 @@ class ParametersTest {
 	void testOfArray() {
 		assertEquals(0, Parameters.of().count());
 		assertEquals(List.of("a", "b c"),
-		        Parameters.of("a", "", "b c").getParameters());
+				Parameters.of("a", "", "b c").getParameters());
 	}
 
 	@Test
 	void testOfCollection() {
 		assertEquals(0, Parameters.of(List.of()).count());
 		assertEquals(List.of("a", "b c"),
-		        Parameters.of(List.of("a", "", "b c")).getParameters());
+				Parameters.of(List.of("a", "", "b c")).getParameters());
 	}
 
 	@Test
 	void testBulkArray() {
 		assertEquals(0, Parameters.bulk().count());
 		assertEquals(List.of("a", "b", "c", "d e"),
-		        Parameters.bulk("a", "", "b c", "\"d e\"").getParameters());
+				Parameters.bulk("a", "", "b c", "\"d e\"").getParameters());
 	}
 
 	@Test
 	void testBulkCollection() {
 		assertEquals(0, Parameters.bulk(List.of()).count());
 		assertEquals(List.of("a", "b", "c", "d e"),
-		        Parameters.bulk(List.of("a", "", "b c", "\"d e\"")).getParameters());
+				Parameters.bulk(List.of("a", "", "b c", "\"d e\"")).getParameters());
 	}
 
 }

@@ -31,12 +31,12 @@ import org.mockito.Mockito;
 
 class CapturedStdOutErrToPrintStreamTest {
 
-	private static final String execName = "launchedexec";
+	private static final String EXEC_NAME = "launchedexec";
 	private final Processlauncher launcher;
 
 	CapturedStdOutErrToPrintStreamTest() {
 		launcher = Mockito.mock(Processlauncher.class);
-		Mockito.when(launcher.getExecutableName()).thenReturn(execName);
+		Mockito.when(launcher.getExecutableName()).thenReturn(EXEC_NAME);
 	}
 
 	private long pid;
@@ -48,7 +48,7 @@ class CapturedStdOutErrToPrintStreamTest {
 	private ProcesslauncherLifecycle source;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		pid = Math.floorMod(Math.abs(new Random().nextLong()), 1000L);
 		outStreamContent = new ByteArrayOutputStream();
 		errStreamContent = new ByteArrayOutputStream();

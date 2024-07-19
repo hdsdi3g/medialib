@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 
 class SimpleParametersTest {
 
-	private static final String testChaoticLine = "-aa 1  -single --cc 3 -U  \"dsfdsf sdf s  -e foo\" -g 2 42 -f=f -h=i;j,k:l -m Ah! -l \"u \" m ";
+	private static final String TEST_CHAOTIC_LINE = "-aa 1  -single --cc 3 -U  \"dsfdsf sdf s  -e foo\" -g 2 42 -f=f -h=i;j,k:l -m Ah! -l \"u \" m ";
 
 	@Nested
 	class Simple {
@@ -42,14 +42,14 @@ class SimpleParametersTest {
 
 		@Test
 		void testParams() {
-			pu = new SimpleParameters(testChaoticLine);
+			pu = new SimpleParameters(TEST_CHAOTIC_LINE);
 
 			assertEquals("-", pu.getParametersKeysStartsWith());
 			assertFalse(pu.getParameters().isEmpty());
 
 			final var actual = pu.toString();
 			pu = new SimpleParameters();
-			pu.addBulkParameters(testChaoticLine);
+			pu.addBulkParameters(TEST_CHAOTIC_LINE);
 			assertEquals(actual, pu.toString());
 
 			final var compare = Arrays.asList("-aa", "1", "-single", "--cc", "3", "-U", "dsfdsf sdf s  -e foo",

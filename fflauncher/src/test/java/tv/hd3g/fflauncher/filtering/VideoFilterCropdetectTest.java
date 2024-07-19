@@ -30,7 +30,7 @@ class VideoFilterCropdetectTest {
 	VideoFilterCropdetect f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new VideoFilterCropdetect();
 	}
 

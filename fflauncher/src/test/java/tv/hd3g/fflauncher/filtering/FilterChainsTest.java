@@ -23,8 +23,8 @@ import tv.hd3g.processlauncher.cmdline.Parameters;
 
 class FilterChainsTest {
 
-	static final String longChain = "split [main][tmp]; [tmp] crop=iw:ih/2:0:0, vflip [flip]; foobar='my text, with: [c]omas !'; [main][flip] overlay=0:H/2";
-	static final String condensedChain = "split[main][tmp];[tmp]crop=iw:ih/2:0:0,vflip[flip];foobar='my text, with: [c]omas !';[main][flip]overlay=0:H/2";
+	static final String LONG_CHAIN = "split [main][tmp]; [tmp] crop=iw:ih/2:0:0, vflip [flip]; foobar='my text, with: [c]omas !'; [main][flip] overlay=0:H/2";
+	static final String CONDENSED_CHAIN = "split[main][tmp];[tmp]crop=iw:ih/2:0:0,vflip[flip];foobar='my text, with: [c]omas !';[main][flip]overlay=0:H/2";
 
 	FilterChains filterChains;
 	String rawNewFilter;
@@ -32,7 +32,7 @@ class FilterChainsTest {
 
 	@BeforeEach
 	void init() {
-		filterChains = new FilterChains(longChain);
+		filterChains = new FilterChains(LONG_CHAIN);
 		rawNewFilter = "newaddedfiler";
 		newFilter = new Filter(rawNewFilter);
 	}
@@ -45,7 +45,7 @@ class FilterChainsTest {
 
 	@Test
 	void testFilterChainString() {
-		assertEquals(condensedChain, filterChains.toString());
+		assertEquals(CONDENSED_CHAIN, filterChains.toString());
 	}
 
 	@Test
@@ -173,7 +173,7 @@ class FilterChainsTest {
 		Mockito.when(ffbase.getInternalParameters()).thenReturn(parameters);
 
 		filterChains.pushFilterChainTo("-fparam", ffbase);
-		assertEquals("-fparam " + condensedChain, parameters.toString());
+		assertEquals("-fparam " + CONDENSED_CHAIN, parameters.toString());
 	}
 
 	@Test
@@ -183,7 +183,7 @@ class FilterChainsTest {
 		Mockito.when(ffbase.getParametersVariables()).thenReturn(parameterVars);
 
 		filterChains.setFilterChainToVar("fparam", ffbase);
-		assertEquals(condensedChain, parameterVars.get("fparam").toString());
+		assertEquals(CONDENSED_CHAIN, parameterVars.get("fparam").toString());
 	}
 
 	@Test
@@ -191,24 +191,24 @@ class FilterChainsTest {
 		final var conversionTool = Mockito.mock(ConversionTool.class);
 		final var parameters = new Parameters();
 		Mockito.when(conversionTool.getInternalParameters()).thenReturn(parameters);
-		parameters.addParameters("-f", longChain, "-f", "foo:bar");
+		parameters.addParameters("-f", LONG_CHAIN, "-f", "foo:bar");
 
 		final var chain = FilterChains.parse("-f", conversionTool);
 		assertNotNull(chain);
 		assertEquals(2, chain.size());
-		assertEquals(condensedChain, chain.get(0).toString());
+		assertEquals(CONDENSED_CHAIN, chain.get(0).toString());
 		assertEquals("foo:bar", chain.get(1).toString());
 	}
 
 	@Test
 	void testParseStringParameters() {
 		final var parameters = new Parameters();
-		parameters.addParameters("-f", longChain, "-f", "foo:bar");
+		parameters.addParameters("-f", LONG_CHAIN, "-f", "foo:bar");
 
 		final var chain = FilterChains.parse("-f", parameters);
 		assertNotNull(chain);
 		assertEquals(2, chain.size());
-		assertEquals(condensedChain, chain.get(0).toString());
+		assertEquals(CONDENSED_CHAIN, chain.get(0).toString());
 		assertEquals("foo:bar", chain.get(1).toString());
 	}
 
@@ -224,12 +224,12 @@ class FilterChainsTest {
 		final var conversionTool = Mockito.mock(ConversionTool.class);
 		final var parameters = new Parameters();
 		Mockito.when(conversionTool.getReadyToRunParameters()).thenReturn(parameters);
-		parameters.addParameters("-f", longChain, "-f", "foo:bar");
+		parameters.addParameters("-f", LONG_CHAIN, "-f", "foo:bar");
 
 		final var chain = FilterChains.parseFromReadyToRunParameters("-f", conversionTool);
 		assertNotNull(chain);
 		assertEquals(2, chain.size());
-		assertEquals(condensedChain, chain.get(0).toString());
+		assertEquals(CONDENSED_CHAIN, chain.get(0).toString());
 		assertEquals("foo:bar", chain.get(1).toString());
 	}
 

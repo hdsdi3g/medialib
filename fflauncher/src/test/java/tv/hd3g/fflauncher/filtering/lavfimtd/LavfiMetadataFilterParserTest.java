@@ -36,7 +36,7 @@ class LavfiMetadataFilterParserTest {
 
 	LavfiMetadataFilterParser p;
 
-	final static String RAW_LINES_OK = """
+	static final String RAW_LINES_OK = """
 			frame:0 pts:7 pts_time:0.007
 			timecode=00:00:00:00
 			lavfi.black_start=0.007

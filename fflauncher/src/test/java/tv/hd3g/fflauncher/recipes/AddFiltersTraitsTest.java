@@ -123,7 +123,7 @@ class AddFiltersTraitsTest {
 	class FilterAvailable {
 
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			when(vfFunction.apply(any())).thenReturn(true);
 			when(afFunction.apply(any())).thenReturn(true);
 		}
@@ -240,7 +240,7 @@ class AddFiltersTraitsTest {
 	class FilterNotAvailable {
 
 		@BeforeEach
-		void init() throws Exception {
+		void init() {
 			when(vfFunction.apply(any())).thenReturn(false);
 			when(afFunction.apply(any())).thenReturn(false);
 		}
@@ -339,7 +339,7 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddOptionalFilter_audio() {
-			final var fSupplier = new AtomicReference<FilterSupplier>();
+			fSupplier = new AtomicReference<>();
 			assertFalse(f.addOptionalFilter(audioFilterSupplier, filter -> fSupplier.set(filter)));
 			assertNull(fSupplier.get());
 			verify(afFunction, times(1)).apply(audioFilterSupplier);
@@ -347,7 +347,7 @@ class AddFiltersTraitsTest {
 
 		@Test
 		void testAddOptionalFilter_video() {
-			final var fSupplier = new AtomicReference<FilterSupplier>();
+			fSupplier = new AtomicReference<>();
 			assertFalse(f.addOptionalFilter(videoFilterSupplier, filter -> fSupplier.set(filter)));
 			assertNull(fSupplier.get());
 			verify(vfFunction, times(1)).apply(videoFilterSupplier);

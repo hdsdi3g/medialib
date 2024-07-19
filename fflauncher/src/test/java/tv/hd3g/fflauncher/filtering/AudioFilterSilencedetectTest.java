@@ -26,7 +26,7 @@ class AudioFilterSilencedetectTest {
 	AudioFilterSilencedetect f;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		f = new AudioFilterSilencedetect();
 	}
 

@@ -46,7 +46,7 @@ class ProcesslauncherBuilderTest {
 	}
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		pb = new ProcesslauncherBuilder(execFile, Arrays.asList("p"));
 	}
 
@@ -94,12 +94,12 @@ class ProcesslauncherBuilderTest {
 		try {
 			pb.setWorkingDirectory(new File("./DontExists"));
 			Assertions.fail();
-		} catch (final IOException e) {
+		} catch (final IOException e) {// NOSONAR S108
 		}
 		try {
 			pb.setWorkingDirectory(execFile);
 			Assertions.fail();
-		} catch (final IOException e) {
+		} catch (final IOException e) {// NOSONAR S108
 		}
 	}
 
@@ -174,7 +174,7 @@ class ProcesslauncherBuilderTest {
 	@Test
 	void testGetFullCommandLine() {
 		assertEquals(ProcesslauncherBuilder.addQuotesIfSpaces.apply(execFile.getAbsolutePath()) + " p", pb
-		        .getFullCommandLine());
+				.getFullCommandLine());
 	}
 
 	@Test

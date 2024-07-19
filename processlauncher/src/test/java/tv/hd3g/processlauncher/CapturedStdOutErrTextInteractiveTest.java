@@ -29,7 +29,7 @@ import org.mockito.Mockito;
 class CapturedStdOutErrTextInteractiveTest {
 
 	@Test
-	void test() throws Exception {
+	void test() {
 		final var source = Mockito.mock(ProcesslauncherLifecycle.class);
 		Mockito.when(source.isRunning()).thenReturn(true);
 
@@ -50,7 +50,6 @@ class CapturedStdOutErrTextInteractiveTest {
 		final var csoeti = new CapturedStdOutErrTextInteractive(interactive);
 		final var added = new LineEntry(0, "My text", true, source);
 		csoeti.onText(added);
-		// csoeti.onProcessCloseStream(source, true, CapturedStreams.BOTH_STDOUT_STDERR);
 
 		assertEquals(1, capturedLe.size());
 		assertEquals(added, capturedLe.get(0));

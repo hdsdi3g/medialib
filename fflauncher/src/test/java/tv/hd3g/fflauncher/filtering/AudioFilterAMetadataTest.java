@@ -32,7 +32,7 @@ class AudioFilterAMetadataTest {
 	Mode mode;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		mode = faker.options().option(Mode.class);
 		f = new AudioFilterAMetadata(mode);
 	}

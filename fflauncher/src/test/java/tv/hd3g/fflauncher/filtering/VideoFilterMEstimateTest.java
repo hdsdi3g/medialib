@@ -32,7 +32,7 @@ class VideoFilterMEstimateTest {
 	Method method;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		method = faker.options().option(Method.class);
 		f = new VideoFilterMEstimate();
 	}

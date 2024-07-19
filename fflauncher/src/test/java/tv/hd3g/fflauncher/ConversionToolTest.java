@@ -17,7 +17,6 @@
 package tv.hd3g.fflauncher;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,7 +43,7 @@ import tv.hd3g.processlauncher.cmdline.Parameters;
 class ConversionToolTest {
 
 	@Test
-	void test() throws IOException {
+	void test() {
 		final var ct = new ConversionTool("java");
 		ct.getInternalParameters().addParameters("-firstparam");
 
@@ -178,10 +177,6 @@ class ConversionToolTest {
 		assertFalse(f1.exists());
 		assertFalse(f2.exists());
 		assertFalse(f3.exists());
-		// Flacky on windows
-		/*assertFalse(d1.exists());
-		assertTrue(d1.getParentFile().exists());
-		assertTrue(d1.getParentFile().delete());*/
 	}
 
 	@Nested
@@ -276,7 +271,7 @@ class ConversionToolTest {
 						throw new UncheckedIOException(e);
 					}
 				})
-				.collect(toUnmodifiableList());
+				.toList();
 
 		ct.addInputSource(files.get(0), "IN0");
 		ct.addInputSource(files.get(1), "IN1", List.of());
@@ -291,7 +286,7 @@ class ConversionToolTest {
 		ct.setFixIOParametredVars(PREPEND_PARAM_AT_START, APPEND_PARAM_AT_END);
 
 		final var p = ct.getReadyToRunParameters();
-		final var filesNames = files.stream().map(File::getPath).collect(Collectors.toUnmodifiableList());
+		final var filesNames = files.stream().map(File::getPath).toList();
 
 		final var params = new ArrayList<>();
 		for (var pos = 0; pos < 10; pos++) {

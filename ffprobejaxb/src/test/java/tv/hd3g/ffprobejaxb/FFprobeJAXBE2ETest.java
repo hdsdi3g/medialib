@@ -69,7 +69,7 @@ class FFprobeJAXBE2ETest {
 			}
 		}
 
-		void preCheck() throws Exception {
+		void preCheck() {
 			assertThat(ffprobe).isNotNull();
 			assertThat(ffprobe.getXmlContent()).isEqualTo(xmlContent);
 

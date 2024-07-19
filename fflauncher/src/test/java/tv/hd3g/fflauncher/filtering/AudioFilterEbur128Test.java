@@ -43,7 +43,7 @@ class AudioFilterEbur128Test {
 	Scale scale;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		framelog = faker.options().option(Framelog.class);
 		peaks = unmodifiableSortedSet(new TreeSet<>(Set.of(faker.options().option(Peak.class))));
 		gauge = faker.options().option(Gauge.class);

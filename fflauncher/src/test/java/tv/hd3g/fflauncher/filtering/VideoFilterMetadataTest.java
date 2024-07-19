@@ -34,7 +34,7 @@ class VideoFilterMetadataTest {
 	Function function;
 
 	@BeforeEach
-	void init() throws Exception {
+	void init() {
 		mode = faker.options().option(Mode.class);
 		function = faker.options().option(Function.class);
 		f = new VideoFilterMetadata(mode);
