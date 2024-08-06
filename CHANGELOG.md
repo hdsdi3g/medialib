@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 19.0.0
+
+Create a FFprobe XML progress watcher/handler for FFprobeResultSAX #104
+
 ## 18.0.0
 
 Update starter parent to 21.1.0
