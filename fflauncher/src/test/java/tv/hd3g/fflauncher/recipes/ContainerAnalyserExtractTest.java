@@ -32,8 +32,8 @@ import org.mockito.Mock;
 import tv.hd3g.commons.testtools.Fake;
 import tv.hd3g.commons.testtools.MockToolsExtendsJunit;
 import tv.hd3g.fflauncher.processingtool.FFSourceDefinition;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressConsumer;
 import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
-import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher.ProgressConsumer;
 import tv.hd3g.processlauncher.LineEntry;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.processingtool.CallbackWatcher;
@@ -53,7 +53,7 @@ class ContainerAnalyserExtractTest {
 	@Mock
 	FFprobeXMLProgressWatcher progressWatcher;
 	@Mock
-	ProgressConsumer progressConsumer;
+	FFprobeXMLProgressConsumer fFprobeXMLProgressConsumer;
 	@Mock
 	ProcesslauncherLifecycle lifeCycle;
 	@Mock
@@ -79,7 +79,7 @@ class ContainerAnalyserExtractTest {
 
 	@Test
 	void testSetProgressWatcher_compute() {
-		when(progressWatcher.createProgress(cae)).thenReturn(progressConsumer);
+		when(progressWatcher.createProgress(cae)).thenReturn(fFprobeXMLProgressConsumer);
 		cae.setProgressWatcher(progressWatcher);
 		verify(progressWatcher, times(1)).createProgress(cae);
 
@@ -93,8 +93,8 @@ class ContainerAnalyserExtractTest {
 		assertEquals(fullCommandLine, result.ffprobeCommandLine());
 		assertThat(result.sysOut()).containsExactly(stdOutLine);
 
-		verify(progressConsumer, times(1)).waitForEnd();
-		verify(progressConsumer, times(1)).accept(stdOutLine);
+		verify(fFprobeXMLProgressConsumer, times(1)).waitForEnd();
+		verify(fFprobeXMLProgressConsumer, times(1)).accept(stdOutLine);
 		verify(lifeCycle, atLeastOnce()).getFullCommandLine();
 	}
 

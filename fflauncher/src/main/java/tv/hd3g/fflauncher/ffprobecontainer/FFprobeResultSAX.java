@@ -42,8 +42,10 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.enums.ChannelLayout;
+import tv.hd3g.fflauncher.progress.FFProbeXMLProgressHandler;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.processlauncher.InputStreamConsumer;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
@@ -78,6 +80,9 @@ public class FFprobeResultSAX extends DefaultHandler implements
 	private FFprobeVideoFrameConst videoConst;
 	private FFprobeAudioFrameConst audioConst;
 
+	@Setter
+	private FFProbeXMLProgressHandler progressHandler;
+
 	public FFprobeResultSAX() {
 		notFoundKeysAfterWarn = new HashSet<>();
 		packets = new ArrayList<>();
@@ -110,6 +115,10 @@ public class FFprobeResultSAX extends DefaultHandler implements
 			onPacket(attributes);
 		} else if (qName.equals("frame")) {
 			onFrame(attributes);
+		}
+
+		if (progressHandler != null) {
+			progressHandler.startElement(uri, localName, qName, attributes);
 		}
 	}
 
@@ -359,6 +368,20 @@ public class FFprobeResultSAX extends DefaultHandler implements
 
 	public float getAttrFloatValue(final Attributes attributes, final String keyName, final float orDefault) {
 		return getAttrFloatValue(attributes, keyName).orElse(orDefault);
+	}
+
+	@Override
+	public void endDocument() throws SAXException {
+		if (progressHandler != null) {
+			progressHandler.endDocument();
+		}
+	}
+
+	@Override
+	public void endElement(final String uri, final String localName, final String qName) throws SAXException {
+		if (progressHandler != null) {
+			progressHandler.endElement(uri, localName, qName);
+		}
 	}
 
 }

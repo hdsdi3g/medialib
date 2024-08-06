@@ -18,6 +18,7 @@ package tv.hd3g.fflauncher.recipes;
 
 import tv.hd3g.fflauncher.ffprobecontainer.FFprobeResultSAX;
 import tv.hd3g.fflauncher.processingtool.FFSourceDefinition;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.processingtool.DirectStdoutGetStderrWatcher;
 
@@ -36,6 +37,12 @@ public class ContainerAnalyserProcess extends
 
 	public ContainerAnalyserProcess(final String execName) {
 		this(execName, new FFprobeResultSAX(), new DirectStdoutGetStderrWatcher());
+	}
+
+	@Override
+	public void setProgressWatcher(final FFprobeXMLProgressWatcher progressWatcher) {
+		super.setProgressWatcher(progressWatcher);
+		progressWatcher.createHandler(this).ifPresent(ffprobeResultSAX::setProgressHandler);
 	}
 
 	@Override

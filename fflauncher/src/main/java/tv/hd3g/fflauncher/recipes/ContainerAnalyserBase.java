@@ -18,9 +18,8 @@ package tv.hd3g.fflauncher.recipes;
 
 import static tv.hd3g.fflauncher.FFprobe.FFPrintFormat.XML;
 
-import java.time.Duration;
+import java.util.Objects;
 
-import lombok.Setter;
 import tv.hd3g.fflauncher.FFprobe;
 import tv.hd3g.fflauncher.processingtool.FFprobeToolBuilder;
 import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
@@ -28,26 +27,16 @@ import tv.hd3g.processlauncher.processingtool.ExecutorWatcher;
 
 public abstract class ContainerAnalyserBase<T, W extends ExecutorWatcher> extends FFprobeToolBuilder<T, W> {
 
-	@Setter
-	protected FFprobeXMLProgressWatcher progressWatcher;
-
 	protected ContainerAnalyserBase(final String execName, final W watcher) {
 		super(new FFprobe(execName), watcher);
 		ffprobe.setHidebanner();
 		ffprobe.setShowFrames();
 		ffprobe.setShowPackets();
 		ffprobe.setPrintFormat(XML);
-		progressWatcher = emptyWatcher;
 	}
 
-	static final FFprobeXMLProgressWatcher emptyWatcher = new FFprobeXMLProgressWatcher(
-			Duration.ZERO,
-			Thread::new,
-			i -> {
-			},
-			x -> {
-			},
-			i -> {
-			});
+	public void setProgressWatcher(final FFprobeXMLProgressWatcher progressWatcher) {
+		Objects.requireNonNull(progressWatcher, "\"progressWatcher\" can't to be null");
+	}
 
 }

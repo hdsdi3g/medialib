@@ -16,15 +16,14 @@
  */
 package tv.hd3g.fflauncher.recipes;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import tv.hd3g.fflauncher.processingtool.FFSourceDefinition;
+import tv.hd3g.fflauncher.progress.FFprobeXMLProgressConsumer;
 import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher;
-import tv.hd3g.fflauncher.progress.FFprobeXMLProgressWatcher.ProgressConsumer;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 import tv.hd3g.processlauncher.processingtool.CallbackWatcher;
 
@@ -32,7 +31,7 @@ import tv.hd3g.processlauncher.processingtool.CallbackWatcher;
 public class ContainerAnalyserExtract extends ContainerAnalyserBase<ContainerAnalyserExtractResult, CallbackWatcher> {
 
 	private final LinkedList<String> stdOutLines;
-	private ProgressConsumer progressConsumer;
+	private FFprobeXMLProgressConsumer fFprobeXMLProgressConsumer;
 
 	public ContainerAnalyserExtract(final String execName) {
 		super(execName, new CallbackWatcher());
@@ -42,8 +41,8 @@ public class ContainerAnalyserExtract extends ContainerAnalyserBase<ContainerAna
 			log.trace("Line: {}", line);
 			if (lineEntry.stdErr() == false) {
 				stdOutLines.add(line);
-				if (progressConsumer != null) {
-					progressConsumer.accept(line);
+				if (fFprobeXMLProgressConsumer != null) {
+					fFprobeXMLProgressConsumer.accept(line);
 				}
 			}
 		});
@@ -52,14 +51,15 @@ public class ContainerAnalyserExtract extends ContainerAnalyserBase<ContainerAna
 	@Override
 	public void setProgressWatcher(final FFprobeXMLProgressWatcher progressWatcher) {
 		super.setProgressWatcher(progressWatcher);
-		progressConsumer = requireNonNull(progressWatcher, "\"progressWatcher\" can't to be null").createProgress(this);
+		fFprobeXMLProgressConsumer = Objects.requireNonNull(progressWatcher, "\"progressWatcher\" can't to be null")
+				.createProgress(this);
 	}
 
 	@Override
 	protected ContainerAnalyserExtractResult compute(final FFSourceDefinition sourceOrigin,
 													 final ProcesslauncherLifecycle lifeCycle) {
-		Optional.ofNullable(progressConsumer)
-				.ifPresent(ProgressConsumer::waitForEnd);
+		Optional.ofNullable(fFprobeXMLProgressConsumer)
+				.ifPresent(FFprobeXMLProgressConsumer::waitForEnd);
 		return new ContainerAnalyserExtractResult(stdOutLines.stream().toList(), lifeCycle.getFullCommandLine());
 	}
 

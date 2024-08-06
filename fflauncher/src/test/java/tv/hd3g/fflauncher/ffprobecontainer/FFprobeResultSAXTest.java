@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -42,8 +43,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 
 import net.datafaker.Faker;
+import tv.hd3g.fflauncher.progress.FFProbeXMLProgressHandler;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserProcessResult;
 import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
@@ -67,21 +70,24 @@ class FFprobeResultSAXTest {
 	ProcesslauncherLifecycle source;
 	@Mock
 	Object session;
+	@Mock
+	FFProbeXMLProgressHandler progressHandler;
 
 	@BeforeEach
 	void init() throws Exception {
 		openMocks(this).close();
 		s = new FFprobeResultSAX();
+		s.setProgressHandler(progressHandler);
 		when(source.toString()).thenReturn(faker.numerify("source###"));
 	}
 
 	@AfterEach
 	void end() {
-		verifyNoMoreInteractions(source, session);
+		verifyNoMoreInteractions(source, session, progressHandler);
 	}
 
 	@Test
-	void testFull() {
+	void testFull() throws SAXException {
 		s.onProcessStart(IOUtils.toInputStream(XML, UTF_8), source);
 		r = s.getResult(null);
 		assertNotNull(r);
@@ -121,6 +127,10 @@ class FFprobeResultSAXTest {
 
 		assertEquals(List.of(), r.olderAudioConsts());
 		assertEquals(List.of(), r.olderVideoConsts());
+
+		verify(progressHandler, times(6)).startElement(any(), any(), any(), any());
+		verify(progressHandler, times(6)).endElement(any(), any(), any());
+		verify(progressHandler, times(1)).endDocument();
 	}
 
 	@Test
@@ -130,7 +140,7 @@ class FFprobeResultSAXTest {
 	}
 
 	@Test
-	void testEmpty() {
+	void testEmpty() throws SAXException {
 		final var testXML = """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<a><b>
@@ -153,10 +163,14 @@ class FFprobeResultSAXTest {
 		assertNull(r.videoConst());
 		assertEquals(List.of(), r.olderAudioConsts());
 		assertEquals(List.of(), r.olderVideoConsts());
+
+		verify(progressHandler, times(7)).startElement(any(), any(), any(), any());
+		verify(progressHandler, times(7)).endElement(any(), any(), any());
+		verify(progressHandler, times(1)).endDocument();
 	}
 
 	@Test
-	void testUpdConsts() {
+	void testUpdConsts() throws SAXException {
 		final var testXML = """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<a><b>
@@ -191,6 +205,10 @@ class FFprobeResultSAXTest {
 						1920, 1080, "yuv422i", "16:9", true, true,
 						"cinema", "bt2020", "bt2020", "bt2020")),
 				r.olderVideoConsts());
+
+		verify(progressHandler, times(6)).startElement(any(), any(), any(), any());
+		verify(progressHandler, times(6)).endElement(any(), any(), any());
+		verify(progressHandler, times(1)).endDocument();
 	}
 
 	@Nested

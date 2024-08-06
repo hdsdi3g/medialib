@@ -44,9 +44,6 @@ class ContainerAnalyserBaseTest {
 			throw new UnsupportedOperationException();
 		}
 
-		FFprobeXMLProgressWatcher getProgressWatcher() {
-			return progressWatcher;
-		}
 	}
 
 	@Mock
@@ -63,13 +60,6 @@ class ContainerAnalyserBaseTest {
 	void init() {
 		cab = new CAB(execName, executorWatcher);
 		cab.setProgressWatcher(watcher);
-	}
-
-	@Test
-	void testGetWatcher() {
-		assertEquals(watcher, cab.getProgressWatcher());
-		cab.setProgressWatcher(null);
-		assertEquals(null, cab.getProgressWatcher());
 	}
 
 	@Test

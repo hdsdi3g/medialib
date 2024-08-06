@@ -14,10 +14,6 @@
  * Copyright (C) hdsdi3g for hd3g.tv 2024
  *
  */
-/**
- *
- */
-
 package tv.hd3g.fflauncher.progress;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +86,6 @@ class FFprobeXMLProgressWatcherTest {
 		programDuration = Duration.ofMinutes(1);
 		w = new FFprobeXMLProgressWatcher(
 				programDuration,
-				threadFactory,
 				onStartCallback,
 				progressCallback,
 				onEndCallback);
@@ -112,7 +107,7 @@ class FFprobeXMLProgressWatcherTest {
 		when(threadFactory.newThread(any())).thenReturn(thread);
 		when(thread.getState()).thenReturn(State.NEW, State.RUNNABLE);
 
-		final var progress = w.createProgress(session);
+		final var progress = w.createProgress(session, threadFactory);
 		assertThat(progress).isNotNull();
 
 		progress.accept("");
@@ -124,11 +119,10 @@ class FFprobeXMLProgressWatcherTest {
 
 	@Test
 	void testRunProgress() {
-
 		when(threadFactory.newThread(any())).thenReturn(thread);
 		when(thread.getState()).thenReturn(State.NEW, State.RUNNABLE);
 
-		final var progress = w.createProgress(session);
+		final var progress = w.createProgress(session, threadFactory);
 		assertThat(progress).isNotNull();
 		xml.lines().forEach(progress::accept);
 
@@ -152,14 +146,32 @@ class FFprobeXMLProgressWatcherTest {
 		programDuration = Duration.ZERO;
 		w = new FFprobeXMLProgressWatcher(
 				programDuration,
-				threadFactory,
 				onStartCallback,
 				progressCallback,
 				onEndCallback);
 
-		final var progress = w.createProgress(session);
+		final var progress = w.createProgress(session, threadFactory);
 		assertThat(progress).isNotNull();
 		xml.lines().forEach(progress::accept);
+	}
+
+	@Test
+	void testCreateHandler() {
+		final var handler = w.createHandler(session);
+		assertThat(handler).isNotEmpty();
+	}
+
+	@Test
+	void testCreateHandler_noProgramDuration() {
+		programDuration = Duration.ZERO;
+		w = new FFprobeXMLProgressWatcher(
+				programDuration,
+				onStartCallback,
+				progressCallback,
+				onEndCallback);
+
+		final var handler = w.createHandler(session);
+		assertThat(handler).isEmpty();
 	}
 
 }
