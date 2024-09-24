@@ -18,7 +18,6 @@ package tv.hd3g.fflauncher.filtering;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
 public interface FilterAddArgumentTrait {
 
@@ -40,13 +39,9 @@ public interface FilterAddArgumentTrait {
 	 * map with toString
 	 */
 	default void addArgument(final String key, final Collection<?> values, final String join) {
-		getArguments().add(new FilterArgument(key, values, join));
-	}
-
-	/**
-	 * map with toString
-	 */
-	default void addArgument(final String key, final Stream<?> values, final String join) {
+		if (values.isEmpty()) {
+			return;
+		}
 		getArguments().add(new FilterArgument(key, values, join));
 	}
 

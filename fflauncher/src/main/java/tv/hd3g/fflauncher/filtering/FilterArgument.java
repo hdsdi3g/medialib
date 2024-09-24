@@ -16,9 +16,12 @@
  */
 package tv.hd3g.fflauncher.filtering;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
+
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class FilterArgument {
@@ -45,7 +48,8 @@ public class FilterArgument {
 	 * map with toString
 	 */
 	public FilterArgument(final String key, final Collection<?> values, final String join) {
-		this(key, values.stream(), join);
+		this(key, Optional.ofNullable(values).stream()
+				.flatMap(Collection::stream), join);
 	}
 
 	/**
@@ -53,9 +57,11 @@ public class FilterArgument {
 	 */
 	public FilterArgument(final String key, final Stream<?> values, final String join) {
 		this.key = key;
-		value = values
-		        .map(Object::toString)
-		        .collect(Collectors.joining(join));
+
+		value = Optional.ofNullable(values).stream()
+				.flatMap(identity())
+				.map(Object::toString)
+				.collect(joining(join));
 	}
 
 	public FilterArgument(final String key) {

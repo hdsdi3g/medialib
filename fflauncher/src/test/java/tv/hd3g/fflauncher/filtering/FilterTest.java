@@ -19,9 +19,8 @@ package tv.hd3g.fflauncher.filtering;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.CH3_0_BACK;
-import static tv.hd3g.fflauncher.enums.ChannelLayout.CH5_0_SIDE;
-import static tv.hd3g.fflauncher.enums.ChannelLayout.DOWNMIX;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.MONO;
 import static tv.hd3g.fflauncher.enums.ChannelLayout.QUAD;
 
@@ -154,13 +153,13 @@ class FilterTest {
 	@Test
 	void testHashCode() {
 		assertEquals(new Filter("[i]overlay=\'w[:]o[h]\'[o]").hashCode(),
-		        new Filter("[i]overlay=\'w[:]o[h]\'[o]").hashCode());
+				new Filter("[i]overlay=\'w[:]o[h]\'[o]").hashCode());
 	}
 
 	@Test
 	void testEquals() {
 		assertEquals(new Filter("[i]overlay=\'w[:]o[h]\'[o]"),
-		        new Filter("[i]overlay=\'w[:]o[h]\'[o]"));
+				new Filter("[i]overlay=\'w[:]o[h]\'[o]"));
 	}
 
 	@Test
@@ -249,14 +248,10 @@ class FilterTest {
 		}
 
 		@Test
-		void testFilterArgument_stream() {
-			final var list = List.of(CH5_0_SIDE, DOWNMIX);
-			f.addArgument(key, list.stream(), "~");
-			assertEquals(1, f.getArguments().size());
-
-			final var filterArgument = f.getArguments().get(0);
-			assertEquals(key, filterArgument.getKey());
-			assertEquals(CH5_0_SIDE.toString() + "~" + DOWNMIX.toString(), filterArgument.getValue());
+		void testFilterArgument_emptyCollection() {
+			f.addArgument(key, List.of(), "*");
+			assertTrue(f.getArguments().isEmpty());
 		}
+
 	}
 }
