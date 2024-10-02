@@ -1,5 +1,11 @@
 # All Medialib projects upgrades needs
 
+## 19.1.0
+
+Create ImageSnapshotExtractor from video file with ffmpeg #95
+
+Update parent version to 22.0.0 (maintenance version)
+
 ## 19.0.0
 
 Create a FFprobe XML progress watcher/handler for FFprobeResultSAX #104
