@@ -47,7 +47,7 @@ public class ProgressBlock {
 	 * =======
 	 * [bitrate=N/A,
 	 * total_size=N/A,
-	 * out_time_us=1582993,
+	 * out_time_us=N/A,
 	 * out_time_ms=1582993,
 	 * out_time=00:00:01.582993,
 	 * dup_frames=0,
@@ -62,24 +62,14 @@ public class ProgressBlock {
 				.reduce((l, r) -> r)
 				.orElse(-1);
 
-		items = lines.stream().skip(lastIndexOfProgress + 1l)
-				.collect(toUnmodifiableMap(this::splitLeft, this::splitRight));
-	}
-
-	private String splitLeft(final String line) {
-		final var pos = line.indexOf("=");
-		if (pos < 1) {
-			throw new IllegalArgumentException("Invalid entry: \"" + line + "\"");
-		}
-		return line.substring(0, pos);
-	}
-
-	private String splitRight(final String line) {
-		final var pos = line.indexOf("=");
-		if (pos + 1 == line.length()) {
-			throw new IllegalArgumentException("Invalid entry: \"" + line + "\"");
-		}
-		return line.substring(pos + 1, line.length());
+		items = lines.stream()
+				.skip(lastIndexOfProgress + 1l)
+				.filter(line -> line.indexOf("=") > 0
+								&& line.endsWith("=") == false
+								&& line.toUpperCase().endsWith("N/A") == false)
+				.collect(toUnmodifiableMap(
+						line -> line.substring(0, line.indexOf("=")),
+						line -> line.substring(line.indexOf("=") + 1, line.length())));
 	}
 
 	public boolean isEnd() {
@@ -95,15 +85,11 @@ public class ProgressBlock {
 	}
 
 	public Optional<Float> getBitrate() {
-		return Optional.ofNullable(items.get("bitrate"))
-				.filter(b -> b.equalsIgnoreCase("N/A") == false)
-				.map(Float::valueOf);
+		return Optional.ofNullable(items.get("bitrate")).map(Float::valueOf);
 	}
 
 	public Optional<Long> getTotalSize() {
-		return Optional.ofNullable(items.get("total_size"))
-				.filter(b -> b.equalsIgnoreCase("N/A") == false)
-				.map(Long::valueOf);
+		return Optional.ofNullable(items.get("total_size")).map(Long::valueOf);
 	}
 
 	public int getDupFrames() {

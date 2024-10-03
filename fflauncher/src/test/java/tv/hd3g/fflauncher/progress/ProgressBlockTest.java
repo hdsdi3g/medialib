@@ -16,10 +16,10 @@
  */
 package tv.hd3g.fflauncher.progress;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -29,6 +29,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ProgressBlockTest {
 
@@ -183,20 +185,14 @@ class ProgressBlockTest {
 		assertTrue(bDual.isEnd());
 	}
 
-	@Test
-	void testBadBlocks_left() {
+	@ParameterizedTest
+	@ValueSource(strings = { "dup_frames", "dup_frames=", "=5", "dup_frames=n/a", "dup_frames=N/A" })
+	void testBadBlocks(final String line) {
 		final var lines = List.of(
-				"dup_frames",
+				line,
 				"progress=continue");
-		assertThrows(IllegalArgumentException.class, () -> new ProgressBlock(lines));
-	}
 
-	@Test
-	void testBadBlocks_right() {
-		final var lines = List.of(
-				"dup_frames=",
-				"progress=continue");
-		assertThrows(IllegalArgumentException.class, () -> new ProgressBlock(lines));
+		assertThat(new ProgressBlock(lines)).hasToString("ProgressBlock [items={progress=continue}]");
 	}
 
 }
