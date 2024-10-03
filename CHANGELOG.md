@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 19.1.1
+
+Bug fix: Correct N/A progress on FFprogressBlock and Correct NPE if MeasuredWav is empty or missing results
+
 ## 19.1.0
 
 Create ImageSnapshotExtractor from video file with ffmpeg #95
