@@ -127,6 +127,13 @@ class SampleCapture implements InputStreamConsumer {
 	}
 
 	MeasuredWav getMeasuredWav() {
+		for (var pos = measuredWavEntriesList.length - 1; pos >= 0; pos--) {
+			if (measuredWavEntriesList[pos] == null) {
+				log.debug("Cancel MeasuredWav: no result at {}/{}", pos, measuredWavEntriesList.length);
+				return null;
+			}
+		}
+
 		return new MeasuredWav(List.of(measuredWavEntriesList));
 	}
 
