@@ -16,7 +16,18 @@
  */
 package tv.hd3g.fflauncher;
 
+import static org.apache.commons.lang3.StringUtils.leftPad;
+
+import java.time.Duration;
+
 public interface TemporalProcessTraits extends InternalParametersSupplier {
+
+	static String positionToFFmpegPosition(final Duration pos) {// TODO test
+		return leftPad(String.valueOf(pos.toHoursPart()), 2, "0") + ":" +
+			   leftPad(String.valueOf(pos.toMinutesPart()), 2, "0") + ":" +
+			   leftPad(String.valueOf(pos.toSecondsPart()), 2, "0") + "." +
+			   leftPad(String.valueOf(pos.toMillisPart()), 3, "0");
+	}
 
 	/**
 	 * When used as an output option (before an output url), stop writing the output after its duration reaches duration.
@@ -35,9 +46,22 @@ public interface TemporalProcessTraits extends InternalParametersSupplier {
 	}
 
 	/**
-	 * When used as an output option (before an output url), decodes but discards input until the timestamps reach position.
+	 * When used as an output option (before an output url), stop writing the output after its duration reaches duration.
+	 * duration must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
+	 **/
+	default void addDuration(final Duration duration) {
+		// XXX getInternalParameters().addParameters("-t", duration);
+	}
+
+	/**
+	 * Stop writing the output or reading the input at position.
 	 * position must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
 	 */
+	default void addToDuration(final Duration position) {
+		// XXX getInternalParameters().addParameters("-to", position);
+	}
+
+	@Deprecated
 	default void addStartPosition(final String position) {
 		getInternalParameters().addParameters("-ss", position);
 	}
