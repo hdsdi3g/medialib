@@ -20,6 +20,7 @@ import static tv.hd3g.fflauncher.enums.FFLogLevel.WARNING;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext.getFromFilter;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,9 +55,9 @@ public abstract class MediaAnalyserBase<O, T> extends
 	@Setter
 	protected FFprobeJAXB ffprobeResult;
 	@Setter
-	protected String pgmFFDuration;
+	protected Duration pgmFFDuration;
 	@Setter
-	protected String pgmFFStartTime;
+	protected Duration pgmFFStartTime;
 
 	protected MediaAnalyserBase(final String execName,
 								final FFAbout about,
@@ -105,10 +106,11 @@ public abstract class MediaAnalyserBase<O, T> extends
 		ffmpeg.setNostats();
 		ffmpeg.setLogLevel(WARNING, false, true);
 
+		final var startTime = Optional.ofNullable(pgmFFStartTime).orElse(Duration.ZERO);
 		if (source != null) {
-			ffmpeg.addSimpleInputSource(source);
+			ffmpeg.addSimpleInputSource(source, startTime);
 		} else if (sourceFile != null) {
-			ffmpeg.addSimpleInputSource(sourceFile);
+			ffmpeg.addSimpleInputSource(sourceFile, startTime);
 		} else {
 			throw new IllegalArgumentException("No source are set");
 		}
@@ -137,11 +139,8 @@ public abstract class MediaAnalyserBase<O, T> extends
 
 		ffmpeg.addSimpleOutputDestination("-", "null");
 
-		if (pgmFFDuration != null && pgmFFDuration.isEmpty() == false) {
+		if (pgmFFDuration != null && pgmFFDuration.isPositive()) {
 			ffmpeg.addDuration(pgmFFDuration);
-		}
-		if (pgmFFStartTime != null && pgmFFStartTime.isEmpty() == false) {
-			ffmpeg.addStartPosition(pgmFFStartTime);
 		}
 
 		return ffmpeg;

@@ -27,6 +27,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static tv.hd3g.fflauncher.TemporalProcessTraits.ffmpegDurationToDuration;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext.getFromFilter;
 
 import java.io.File;
@@ -91,9 +92,7 @@ class MediaAnalyserBaseTest {
 	String sourceName;
 	@Fake
 	String filterName;
-	@Fake
 	String pgmFFDuration;
-	@Fake
 	String pgmFFStartTime;
 
 	MAB mab;
@@ -101,6 +100,8 @@ class MediaAnalyserBaseTest {
 	@BeforeEach
 	void init() {
 		mab = new MAB(execName, about, watcher);
+		pgmFFDuration = "1s";
+		pgmFFStartTime = "1s";
 	}
 
 	@Test
@@ -146,13 +147,12 @@ class MediaAnalyserBaseTest {
 		mab.addFilterSiti(f -> {
 		});
 		mab.setSource(new File(sourceName));
-		mab.setPgmFFDuration(pgmFFDuration);
-		mab.setPgmFFStartTime(pgmFFStartTime);
+		mab.setPgmFFDuration(ffmpegDurationToDuration(pgmFFDuration));
+		mab.setPgmFFStartTime(ffmpegDurationToDuration(pgmFFStartTime));
 
 		final var result = mab.getParametersProvider(sourceOrigin).getInternalParameters().toString();
 		assertEquals(
-				"<%IN_AUTOMATIC_0%> -loglevel level+warning -nostats -hide_banner -af astats=metadata=1:measure_perchannel=all:measure_overall=none -vf siti -t "
-					 + pgmFFDuration + " -ss " + pgmFFStartTime,
+				"<%IN_AUTOMATIC_0%> -loglevel level+warning -nostats -hide_banner -af astats=metadata=1:measure_perchannel=all:measure_overall=none -vf siti -t 00:00:01",
 				result);
 
 		verify(about, atLeast(1)).isFilterIsAvaliable(any());

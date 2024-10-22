@@ -16,15 +16,18 @@
  */
 package tv.hd3g.fflauncher;
 
+import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
+import static tv.hd3g.fflauncher.TemporalProcessTraits.positionToFFmpegPosition;
 
 import java.awt.Point;
 import java.io.File;
+import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import tv.hd3g.fflauncher.filtering.Filter;
+import tv.hd3g.processlauncher.cmdline.Parameters;
 
 public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalParametersSupplier {
 
@@ -37,9 +40,25 @@ public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalP
 		requireNonNull(sourceName, "\"sourceName\" can't to be null");
 
 		if (sourceOptions == null) {
-			addSimpleInputSource(sourceName, Collections.emptyList());
+			addSimpleInputSource(sourceName, List.of());
 		} else {
 			addSimpleInputSource(sourceName, Arrays.stream(sourceOptions).toList());
+		}
+	}
+
+	default void addSimpleInputSource(final String sourceName,
+									  final Duration startTime,
+									  final String... sourceOptions) {
+		requireNonNull(sourceName, "\"sourceName\" can't to be null");
+		requireNonNull(startTime, "\"startTime\" can't to be null");
+
+		if (sourceOptions == null) {
+			addSimpleInputSource(sourceName, "-ss", positionToFFmpegPosition(startTime));
+		} else {
+			final var sp = new Parameters();
+			sp.addParameters("-ss", positionToFFmpegPosition(startTime));
+			sp.addParameters(sourceOptions);
+			addSimpleInputSource(sourceName, sp.getParameters());
 		}
 	}
 
@@ -52,9 +71,25 @@ public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalP
 		requireNonNull(file, "\"file\" can't to be null");
 
 		if (sourceOptions == null) {
-			addSimpleInputSource(file, Collections.emptyList());
+			addSimpleInputSource(file, List.of());
 		} else {
-			addSimpleInputSource(file, Arrays.stream(sourceOptions).toList());
+			addSimpleInputSource(file, stream(sourceOptions).toList());
+		}
+	}
+
+	default void addSimpleInputSource(final File file,
+									  final Duration startTime,
+									  final String... sourceOptions) {
+		requireNonNull(file, "\"sourceName\" can't to be null");
+		requireNonNull(startTime, "\"startTime\" can't to be null");
+
+		if (sourceOptions == null) {
+			addSimpleInputSource(file, "-ss", positionToFFmpegPosition(startTime));
+		} else {
+			final var sp = new Parameters();
+			sp.addParameters("-ss", positionToFFmpegPosition(startTime));
+			sp.addParameters(sourceOptions);
+			addSimpleInputSource(file, sp.getParameters());
 		}
 	}
 
