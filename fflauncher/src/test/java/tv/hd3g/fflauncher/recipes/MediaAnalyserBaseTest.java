@@ -27,6 +27,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static tv.hd3g.fflauncher.TemporalProcessTraits.ffmpegDurationToDuration;
 import static tv.hd3g.fflauncher.recipes.MediaAnalyserSessionFilterContext.getFromFilter;
 
 import java.io.File;
@@ -146,8 +147,8 @@ class MediaAnalyserBaseTest {
 		mab.addFilterSiti(f -> {
 		});
 		mab.setSource(new File(sourceName));
-		mab.setPgmFFDuration(pgmFFDuration);
-		mab.setPgmFFStartTime(pgmFFStartTime);
+		mab.setPgmFFDuration(ffmpegDurationToDuration(pgmFFDuration));
+		mab.setPgmFFStartTime(ffmpegDurationToDuration(pgmFFStartTime));
 
 		final var result = mab.getParametersProvider(sourceOrigin).getInternalParameters().toString();
 		assertEquals(

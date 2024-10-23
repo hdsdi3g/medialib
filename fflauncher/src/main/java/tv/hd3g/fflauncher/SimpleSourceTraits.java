@@ -16,6 +16,7 @@
  */
 package tv.hd3g.fflauncher;
 
+import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static tv.hd3g.fflauncher.TemporalProcessTraits.positionToFFmpegPosition;
 
@@ -30,8 +31,6 @@ import tv.hd3g.fflauncher.filtering.Filter;
 import tv.hd3g.processlauncher.cmdline.Parameters;
 
 public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalParametersSupplier {
-
-	// TODO add start time
 
 	/**
 	 * Define cmd var name like &lt;%IN_AUTOMATIC_n%&gt; with "n" the # of setted sources.
@@ -75,7 +74,7 @@ public interface SimpleSourceTraits extends InputSourceProviderTraits, InternalP
 		if (sourceOptions == null) {
 			addSimpleInputSource(file, Collections.emptyList());
 		} else {
-			addSimpleInputSource(file, Arrays.stream(sourceOptions).toList());
+			addSimpleInputSource(file, stream(sourceOptions).toList());
 		}
 	}
 
