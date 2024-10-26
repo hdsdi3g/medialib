@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 20.0.0
+
+Correct FFmpeg start time and duration impl on input source and MediaAnalyser #114
+
 ## 19.1.1
 
 Bug fix: Correct N/A progress on FFprogressBlock and Correct NPE if MeasuredWav is empty or missing results
