@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 21.0.0
+
+Update pom to parent starter v23 (Java 25) #117, update GH actions, update commons-lang3.
+
 ## 20.0.0
 
 Correct FFmpeg start time and duration impl on input source and MediaAnalyser #114
