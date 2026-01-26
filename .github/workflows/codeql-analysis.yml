@@ -1,42 +1,45 @@
-name: "CodeQL"
+name: "CodeQL on Java and Node"
 
 on:
   push:
-    branches: [master]
+    branches: [ "master" ]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [master]
+    branches: [ "master" ]
   schedule:
-    - cron: '0 0 * * 4'
+    - cron: '30 23 * * 6'
 
 jobs:
   analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
+    name: Analyze (${{ matrix.language }})
+    runs-on: 'ubuntu-latest'
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
     strategy:
       fail-fast: false
-      matrix:
-        language: ['java']
-        # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
-    permissions:
-       security-events: write
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v4
       with:
-         languages: ${{ matrix.language }}
-    - name: Set up JDK 21
-      uses: actions/setup-java@v3
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+    - name: Set up JDK 25
+      uses: actions/setup-java@v4
       with:
-        java-version: 21
+        java-version: 25
         distribution: 'temurin'
         cache: 'maven'
-    - run: mvn -B clean package -Dgpg.skip=true -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true
+    - name: Build with Maven
+      run: mvn -B clean package -Dgpg.skip=true -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true --file pom.xml
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{matrix.language}}"
