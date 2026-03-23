@@ -158,6 +158,42 @@ public class Parameters extends SimpleParameters {
 		return varName;
 	}
 
+	/**
+	 * @return this
+	 */
+	public Parameters directInjectVariable(final String varName,
+										   final String value) {
+		Objects.requireNonNull(varName);
+		final var replaceTo = value == null ? "" : value.trim().replace("\\", "\\\\");
+		final var varNameWithTags = startVarTag + varName + endVarTag;
+
+		final var parameters = getParameters();
+
+		for (var pos = 0; pos < parameters.size(); pos++) {
+			final var content = parameters.get(pos);
+			if (content.contains(varNameWithTags)) {
+				parameters.set(pos, content.replace(varNameWithTags, replaceTo));
+			}
+		}
+
+		return this;
+	}
+
+	public Parameters directInjectVariable(final String varName,
+										   final String value,
+										   final String... entries) {
+		if (entries.length % 2 != 0) {
+			throw new IllegalArgumentException("Invalid entries");
+		}
+
+		directInjectVariable(varName, value);
+		for (var pos = 0; pos < entries.length; pos = pos + 2) {
+			directInjectVariable(entries[pos], entries[pos + 1]);
+		}
+
+		return this;
+	}
+
 	public Parameters duplicate() {
 		final var newInstance = new Parameters();
 		newInstance.setVarTags(startVarTag, endVarTag);

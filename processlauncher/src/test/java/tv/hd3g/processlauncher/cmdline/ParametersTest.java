@@ -21,14 +21,25 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tv.hd3g.processlauncher.cmdline.Parameters.bulk;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import tv.hd3g.commons.testtools.Fake;
+import tv.hd3g.commons.testtools.MockToolsExtendsJunit;
+
+@ExtendWith(MockToolsExtendsJunit.class)
 class ParametersTest {
+
+	@Fake
+	String varName;
+	@Fake
+	String varContent;
 
 	@Test
 	void test() {
@@ -175,6 +186,52 @@ class ParametersTest {
 		assertEquals(0, Parameters.bulk(List.of()).count());
 		assertEquals(List.of("a", "b", "c", "d e"),
 				Parameters.bulk(List.of("a", "", "b c", "\"d e\"")).getParameters());
+	}
+
+	@Test
+	void testDirectInjectVariable() {
+		assertEquals("a b c", bulk("a b c").toString());
+		assertEquals("a b c", bulk("a b c").directInjectVariable(varName, varContent).toString());
+		assertEquals("a " + varContent + " c", bulk("a <%" + varName + "%> c")
+				.directInjectVariable(varName, varContent).toString());
+		assertEquals("a %" + varContent + "! c", bulk("a %<%" + varName + "%>! c")
+				.directInjectVariable(varName, varContent).toString());
+
+		varContent = " " + varContent + " space ";
+		assertEquals("a " + varContent.trim() + " c", bulk("a <%" + varName + "%> c")
+				.directInjectVariable(varName, varContent).toString());
+	}
+
+	@Test
+	void testDirectInjectVariable_valueBackslash() {
+		varContent = "start" + "\\" + varContent;
+
+		final var expectedValue = varContent.replace("\\", "\\\\");
+		assertEquals("a " + expectedValue + " c", bulk("a <%" + varName + "%> c")
+				.directInjectVariable(varName, varContent).toString());
+		assertEquals("a %" + expectedValue + "! c", bulk("a %<%" + varName + "%>! c")
+				.directInjectVariable(varName, varContent).toString());
+	}
+
+	@Test
+	void testDirectInjectVariables() {
+		final var varName2 = varName + "B";
+		final var varContent2 = varContent + "B";
+
+		assertEquals("a " + varContent + " c", bulk("a <%" + varName + "%> c")
+				.directInjectVariable(
+						varName, varContent,
+						varName2, varContent2).toString());
+
+		final var varName3 = varName + "C";
+		final var varContent3 = varContent + "C";
+
+		assertEquals("a " + varContent + " " + varContent + "B " + varContent + "C c",
+				bulk("a <%" + varName + "%> <%" + varName2 + "%> <%" + varName3 + "%> c")
+						.directInjectVariable(
+								varName, varContent,
+								varName2, varContent2,
+								varName3, varContent3).toString());
 	}
 
 }
