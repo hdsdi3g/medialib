@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 21.1.0
+
+Add directInjectVariable on ProcessLaucher Parameters #119
+
 ## 21.0.0
 
 Update pom to parent starter v23 (Java 25) #117, update GH actions, update commons-lang3.
