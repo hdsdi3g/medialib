@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 21.1.1
+
+BUG: Force to wait to end closed streams on ProcesslauncherLifecycle waitForEnd #121
+
 ## 21.1.0
 
 Add directInjectVariable on ProcessLaucher Parameters #119
