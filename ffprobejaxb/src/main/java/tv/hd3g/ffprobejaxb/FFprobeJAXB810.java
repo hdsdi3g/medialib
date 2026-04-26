@@ -19,17 +19,18 @@ package tv.hd3g.ffprobejaxb;
 import java.util.List;
 import java.util.Optional;
 
-import org.ffmpeg.ffprobe436.ChapterType;
-import org.ffmpeg.ffprobe436.FfprobeType;
-import org.ffmpeg.ffprobe436.LibraryVersionType;
-import org.ffmpeg.ffprobe436.PacketSideDataType;
-import org.ffmpeg.ffprobe436.PixelFormatComponentType;
-import org.ffmpeg.ffprobe436.PixelFormatFlagsType;
-import org.ffmpeg.ffprobe436.PixelFormatType;
-import org.ffmpeg.ffprobe436.ProgramType;
-import org.ffmpeg.ffprobe436.StreamType;
-import org.ffmpeg.ffprobe436.StreamsType;
-import org.ffmpeg.ffprobe436.TagType;
+import org.ffmpeg.ffprobe810.ChapterType;
+import org.ffmpeg.ffprobe810.FfprobeType;
+import org.ffmpeg.ffprobe810.LibraryVersionType;
+import org.ffmpeg.ffprobe810.PacketSideDataType;
+import org.ffmpeg.ffprobe810.PixelFormatComponentType;
+import org.ffmpeg.ffprobe810.PixelFormatFlagsType;
+import org.ffmpeg.ffprobe810.PixelFormatType;
+import org.ffmpeg.ffprobe810.ProgramType;
+import org.ffmpeg.ffprobe810.StreamType;
+import org.ffmpeg.ffprobe810.StreamsType;
+import org.ffmpeg.ffprobe810.TagType;
+import org.ffmpeg.ffprobe810.TagsType;
 
 import tv.hd3g.ffprobejaxb.data.FFProbeChapter;
 import tv.hd3g.ffprobejaxb.data.FFProbeError;
@@ -43,11 +44,11 @@ import tv.hd3g.ffprobejaxb.data.FFProbeProgramVersion;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 import tv.hd3g.ffprobejaxb.data.FFProbeStreamDisposition;
 
-public class FFprobeJAXB436 extends FFprobeJAXB {
+public class FFprobeJAXB810 extends FFprobeJAXB {
 
     private FfprobeType ffprobe;
 
-    protected FFprobeJAXB436(final String xmlContent) {
+    protected FFprobeJAXB810(final String xmlContent) {
         super(xmlContent);
     }
 
@@ -93,8 +94,8 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                 .map(e -> new FFProbeError(e.getCode(), e.getString()));
     }
 
-    private static List<FFProbeKeyValue> getTags(final List<TagType> tagList) {
-        return tagList.stream()
+    private static List<FFProbeKeyValue> getTags(final TagsType tagsType) {
+        return getSubList(tagsType, TagType.class)
                 .map(t -> new FFProbeKeyValue(t.getKey(), t.getValue()))
                 .toList();
     }
@@ -103,7 +104,7 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
     public Optional<FFProbeFormat> getFormat() {
         return Optional.ofNullable(ffprobe.getFormat())
                 .map(f -> new FFProbeFormat(
-                        getTags(f.getTag()),
+                        getTags(f.getTags()),
                         f.getFilename(),
                         f.getNbStreams(),
                         f.getNbPrograms(),
@@ -116,11 +117,20 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                         getNonNull(f.getProbeScore())));
     }
 
+    private static List<FFProbeKeyValue> getChapterTags(final ChapterType c) {
+        return c.getTags().stream()
+                .flatMap(t -> Optional.ofNullable(t.getTag())
+                        .stream()
+                        .flatMap(List::stream))
+                .map(t -> new FFProbeKeyValue(t.getKey(), t.getValue()))
+                .toList();
+    }
+
     @Override
     public List<FFProbeChapter> getChapters() {
         return getSubList(ffprobe.getChapters(), ChapterType.class)
                 .map(c -> new FFProbeChapter(
-                        getTags(c.getTag()),
+                        getChapterTags(c),
                         c.getId(),
                         c.getTimeBase(),
                         c.getStart(),
@@ -145,43 +155,25 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                         d.getCleanEffects() == 1,
                         d.getAttachedPic() == 1,
                         d.getTimedThumbnails() == 1,
-                        /**
-                         * getNonDiegetic
-                         */
-                        false,
-                        /**
-                         * getCaptions
-                         */
-                        false,
-                        /**
-                         * Descriptions
-                         */
-                        false,
-                        /**
-                         * Metadata
-                         */
-                        false,
-                        /**
-                         * Dependent
-                         */
-                        false,
-                        /**
-                         * StillImage
-                         */
-                        false,
-                        /**
-                         * Multilayer
-                         */
-                        false))
+                        d.getNonDiegetic() == 1,
+                        d.getCaptions() == 1,
+                        d.getDescriptions() == 1,
+                        d.getMetadata() == 1,
+                        d.getDependent() == 1,
+                        d.getStillImage() == 1,
+                        d.getMultilayer() == 1))
                 .orElseGet(FFProbeStreamDisposition::getByNames);
     }
 
     private static List<FFProbePacketSideData> getSideDataList(final StreamType s) {
         return getSubList(s.getSideDataList(), PacketSideDataType.class)
                 .map(sdl -> new FFProbePacketSideData(
-                        List.of(),
-                        sdl.getSideDataType(),
-                        getNonNull(sdl.getSideDataSize())))
+                        sdl.getSideDatum().stream().map(sd -> new FFProbeKeyValue(
+                                sd.getKey(),
+                                sd.getValue()))
+                                .toList(),
+                        sdl.getType(),
+                        0))
                 .toList();
     }
 
@@ -189,7 +181,7 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
         return getSubList(streamsType, StreamType.class)
                 .map(s -> new FFProbeStream( // NOSONAR 5612
                         getDispositions(s),
-                        getTags(s.getTag()),
+                        getTags(s.getTags()),
                         getSideDataList(s),
                         s.getIndex(),
                         s.getCodecName(),
@@ -199,18 +191,15 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                         s.getCodecTag(),
                         s.getCodecTagString(),
                         s.getExtradata(),
-                        /** ExtradataSize */
-                        0,
+                        s.getExtradataSize() != null ? s.getExtradataSize() : 0,
                         s.getExtradataHash(),
-                        /** mime_codec_string */
-                        null,
+                        s.getMimeCodecString(),
                         getNonNull(s.getWidth()),
                         getNonNull(s.getHeight()),
                         getNonNull(s.getCodedWidth()),
                         getNonNull(s.getCodedHeight()),
                         getNonNull(s.isClosedCaptions()),
-                        /** FilmGrain */
-                        false,
+                        getNonNull(s.isFilmGrain()),
                         s.getHasBFrames() != null && s.getHasBFrames() > 0,
                         s.getSampleAspectRatio(),
                         s.getDisplayAspectRatio(),
@@ -228,10 +217,7 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                         getNonNull(s.getChannels()),
                         s.getChannelLayout(),
                         getNonNull(s.getBitsPerSample()),
-                        /**
-                         * InitialPadding
-                         */
-                        0,
+                        getNonNull(s.getInitialPadding()),
                         s.getId(),
                         s.getRFrameRate(),
                         s.getAvgFrameRate(),
@@ -253,7 +239,7 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
     public List<FFProbeProgram> getPrograms() {
         return getSubList(ffprobe.getPrograms(), ProgramType.class)
                 .map(p -> new FFProbeProgram(
-                        getTags(p.getTag()),
+                        getTags(p.getTags()),
                         getStreams(p.getStreams()),
                         p.getProgramId(),
                         p.getProgramNum(),
@@ -296,5 +282,4 @@ public class FFprobeJAXB436 extends FFprobeJAXB {
                 })
                 .toList();
     }
-
 }

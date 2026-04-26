@@ -23,32 +23,33 @@ import javax.xml.bind.JAXBException;
 
 public enum FFprobeXSDVersion {
 
-	V700("org.ffmpeg.ffprobe700", org.ffmpeg.ffprobe700.FfprobeType.class, FFprobeJAXB700::new),
-	V436("org.ffmpeg.ffprobe436", org.ffmpeg.ffprobe436.FfprobeType.class, FFprobeJAXB436::new);
+    V810("org.ffmpeg.ffprobe810", org.ffmpeg.ffprobe810.FfprobeType.class, FFprobeJAXB810::new),
+    V700("org.ffmpeg.ffprobe700", org.ffmpeg.ffprobe700.FfprobeType.class, FFprobeJAXB700::new),
+    V436("org.ffmpeg.ffprobe436", org.ffmpeg.ffprobe436.FfprobeType.class, FFprobeJAXB436::new);
 
-	private final String contextPath;
-	private final Function<String, FFprobeJAXB> makeJAXBRef;
-	private final Class<?> classJAXB;
+    private final String contextPath;
+    private final Function<String, FFprobeJAXB> makeJAXBRef;
+    private final Class<?> classJAXB;
 
-	FFprobeXSDVersion(final String contextPath,
-					  final Class<?> classJAXB,
-					  final Function<String, FFprobeJAXB> makeJAXBRef) {
-		this.contextPath = contextPath;
-		this.classJAXB = classJAXB;
-		this.makeJAXBRef = makeJAXBRef;
-	}
+    FFprobeXSDVersion(final String contextPath,
+                      final Class<?> classJAXB,
+                      final Function<String, FFprobeJAXB> makeJAXBRef) {
+        this.contextPath = contextPath;
+        this.classJAXB = classJAXB;
+        this.makeJAXBRef = makeJAXBRef;
+    }
 
-	public JAXBContext createInstance() throws JAXBException {
-		return JAXBContext.newInstance(contextPath);
-	}
+    public JAXBContext createInstance() throws JAXBException {
+        return JAXBContext.newInstance(contextPath);
+    }
 
-	public FFprobeJAXB make(final String xmlContent, final Object rawJAXB) {
-		final var result = makeJAXBRef.apply(xmlContent);
-		result.setJAXB(rawJAXB);
-		return result;
-	}
+    public FFprobeJAXB make(final String xmlContent, final Object rawJAXB) {
+        final var result = makeJAXBRef.apply(xmlContent);
+        result.setJAXB(rawJAXB);
+        return result;
+    }
 
-	public Class<?> getClassJAXB() {
-		return classJAXB;
-	}
+    public Class<?> getClassJAXB() {
+        return classJAXB;
+    }
 }
