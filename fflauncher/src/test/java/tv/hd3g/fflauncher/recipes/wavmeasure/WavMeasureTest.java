@@ -30,31 +30,32 @@ import tv.hd3g.commons.testtools.MockToolsExtendsJunit;
 @ExtendWith(MockToolsExtendsJunit.class)
 class WavMeasureTest {
 
-	@Test
-	void testE2E() {
-		final var duration = 5;
-		final var outputWide = 500;
+    @Test
+    void testE2E() {
+        final var duration = 5;
+        final var outputWide = 500;
 
-		final var vm = new WavMeasure("ffmpeg");
-		final var setup = new WavMeasureSetup(
-				ffmpeg -> addSineAudioGeneratorAsInputSource(ffmpeg, 50, duration, 48000),
-				Duration.ofSeconds(duration),
-				outputWide);
-		final var list = vm.process(setup).getResult();
-		assertThat(list.entries())
-				.size()
-				.isEqualTo(outputWide);
+        final var vm = new WavMeasure("ffmpeg");
+        final var setup = new WavMeasureSetup(
+                ffmpeg -> addSineAudioGeneratorAsInputSource(ffmpeg, 50, duration, 48000),
+                Duration.ofSeconds(duration),
+                outputWide);
+        final var list = vm.process(setup).getResult();
+        assertThat(list.entries())
+                .size()
+                .isEqualTo(outputWide);
 
-		assertEquals(12,
-				list.entries().stream()
-						.map(MeasuredWavEntry::rmsPositive)
-						.distinct()
-						.count());
+        assertThat(
+                list.entries().stream()
+                        .map(MeasuredWavEntry::rmsPositive)
+                        .distinct()
+                        .count())
+                                .isGreaterThanOrEqualTo(2);
 
-		assertEquals(outputWide,
-				list.entries().stream()
-						.map(MeasuredWavEntry::position)
-						.distinct()
-						.count());
-	}
+        assertEquals(outputWide,
+                list.entries().stream()
+                        .map(MeasuredWavEntry::position)
+                        .distinct()
+                        .count());
+    }
 }

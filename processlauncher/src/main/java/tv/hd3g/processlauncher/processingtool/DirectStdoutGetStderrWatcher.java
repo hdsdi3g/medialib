@@ -32,36 +32,36 @@ import tv.hd3g.processlauncher.ProcesslauncherLifecycle;
 
 public class DirectStdoutGetStderrWatcher implements ExecutorWatcher {
 
-	@Setter
-	private InputStreamConsumer stdOutConsumer;
-	@Getter
-	private final CapturedStdOutErrTextRetention stdErrtextRetention;
-	protected Predicate<String> filterOutErrorLines;
+    @Setter
+    private InputStreamConsumer stdOutConsumer;
+    @Getter
+    private final CapturedStdOutErrTextRetention stdErrtextRetention;
+    protected Predicate<String> filterOutErrorLines;
 
-	public DirectStdoutGetStderrWatcher() {
-		filterOutErrorLines = p -> true;
-		stdErrtextRetention = new CapturedStdOutErrTextRetention();
-	}
+    public DirectStdoutGetStderrWatcher() {
+        filterOutErrorLines = _ -> true;
+        stdErrtextRetention = new CapturedStdOutErrTextRetention();
+    }
 
-	@Override
-	public void setFilterOutErrorLines(final Predicate<String> filterOutErrorLines) {
-		this.filterOutErrorLines = requireNonNull(filterOutErrorLines, "\"filterOutErrorLines\" can't to be null");
-	}
+    @Override
+    public void setFilterOutErrorLines(final Predicate<String> filterOutErrorLines) {
+        this.filterOutErrorLines = requireNonNull(filterOutErrorLines, "\"filterOutErrorLines\" can't to be null");
+    }
 
-	@Override
-	public void setupWatcherRun(final ProcesslauncherBuilder builder) {
-		final var directStreams = new DirectStandardOutputStdErrRetention(stdErrtextRetention, stdOutConsumer);
-		builder.setCaptureStandardOutput(directStreams);
-	}
+    @Override
+    public void setupWatcherRun(final ProcesslauncherBuilder builder) {
+        final var directStreams = new DirectStandardOutputStdErrRetention(stdErrtextRetention, stdOutConsumer);
+        builder.setCaptureStandardOutput(directStreams);
+    }
 
-	@Override
-	public void afterStartProcess(final ProcesslauncherLifecycle lifeCycle) {
-		try {
-			lifeCycle.checkExecution();
-		} catch (final InvalidExecution e) {
-			throw e.injectStdErr(stdErrtextRetention.getStderrLines(false)
-					.filter(filterOutErrorLines)
-					.map(String::trim).collect(Collectors.joining("|")));
-		}
-	}
+    @Override
+    public void afterStartProcess(final ProcesslauncherLifecycle lifeCycle) {
+        try {
+            lifeCycle.checkExecution();
+        } catch (final InvalidExecution e) {
+            throw e.injectStdErr(stdErrtextRetention.getStderrLines(false)
+                    .filter(filterOutErrorLines)
+                    .map(String::trim).collect(Collectors.joining("|")));
+        }
+    }
 }

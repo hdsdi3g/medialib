@@ -31,66 +31,66 @@ import org.mockito.Mockito;
 
 class CapturedStdOutErrToPrintStreamTest {
 
-	private static final String EXEC_NAME = "launchedexec";
-	private final Processlauncher launcher;
+    private static final String EXEC_NAME = "launchedexec";
+    private final Processlauncher launcher;
 
-	CapturedStdOutErrToPrintStreamTest() {
-		launcher = Mockito.mock(Processlauncher.class);
-		Mockito.when(launcher.getExecutableName()).thenReturn(EXEC_NAME);
-	}
+    CapturedStdOutErrToPrintStreamTest() {
+        launcher = Mockito.mock(Processlauncher.class);
+        Mockito.when(launcher.getExecutableName()).thenReturn(EXEC_NAME);
+    }
 
-	private long pid;
-	private CapturedStdOutErrToPrintStream capture;
-	private PrintStream printStreamStdOut;
-	private PrintStream printStreamStdErr;
-	private ByteArrayOutputStream outStreamContent;
-	private ByteArrayOutputStream errStreamContent;
-	private ProcesslauncherLifecycle source;
+    private long pid;
+    private CapturedStdOutErrToPrintStream capture;
+    private PrintStream printStreamStdOut;
+    private PrintStream printStreamStdErr;
+    private ByteArrayOutputStream outStreamContent;
+    private ByteArrayOutputStream errStreamContent;
+    private ProcesslauncherLifecycle source;
 
-	@BeforeEach
-	void setUp() {
-		pid = Math.floorMod(Math.abs(new Random().nextLong()), 1000L);
-		outStreamContent = new ByteArrayOutputStream();
-		errStreamContent = new ByteArrayOutputStream();
-		printStreamStdOut = new PrintStream(outStreamContent);
-		printStreamStdErr = new PrintStream(errStreamContent);
-		capture = new CapturedStdOutErrToPrintStream(printStreamStdOut, printStreamStdErr);
-		source = Mockito.mock(ProcesslauncherLifecycle.class);
-		Mockito.when(source.getLauncher()).thenReturn(launcher);
-		Mockito.when(source.getPID()).thenReturn(Optional.ofNullable(pid));
-	}
+    @BeforeEach
+    void setUp() {
+        pid = Math.floorMod(Math.abs(new Random().nextLong()), 1000L);
+        outStreamContent = new ByteArrayOutputStream();
+        errStreamContent = new ByteArrayOutputStream();
+        printStreamStdOut = new PrintStream(outStreamContent);
+        printStreamStdErr = new PrintStream(errStreamContent);
+        capture = new CapturedStdOutErrToPrintStream(printStreamStdOut, printStreamStdErr);
+        source = Mockito.mock(ProcesslauncherLifecycle.class);
+        Mockito.when(source.getLauncher()).thenReturn(launcher);
+        Mockito.when(source.getPID()).thenReturn(Optional.ofNullable(pid));
+    }
 
-	@Test
-	void testGetFilter() {
-		assertTrue(capture.getFilter().isEmpty());
-	}
+    @Test
+    void testGetFilter() {
+        assertTrue(capture.getFilter().isEmpty());
+    }
 
-	@Test
-	void testSetFilter() {
-		final Predicate<LineEntry> filter = l -> true;
-		capture.setFilter(filter);
-		assertEquals(filter, capture.getFilter().get());
-	}
+    @Test
+    void testSetFilter() {
+        final Predicate<LineEntry> filter = _ -> true;
+        capture.setFilter(filter);
+        assertEquals(filter, capture.getFilter().get());
+    }
 
-	@Test
-	void testOnFilteredText() {
-		capture.setFilter(l -> l.stdErr() == false);
-		capture.onText(new LineEntry(System.currentTimeMillis(), "content", true, source));
-		assertEquals(0, outStreamContent.size());
-		assertEquals(0, errStreamContent.size());
-	}
+    @Test
+    void testOnFilteredText() {
+        capture.setFilter(l -> l.stdErr() == false);
+        capture.onText(new LineEntry(System.currentTimeMillis(), "content", true, source));
+        assertEquals(0, outStreamContent.size());
+        assertEquals(0, errStreamContent.size());
+    }
 
-	@Test
-	void testOnProcessCloseStreamExecOk() {
-		Mockito.when(source.isCorrectlyDone()).thenReturn(true);
-		Mockito.when(source.getEndStatus()).thenReturn(EndStatus.CORRECTLY_DONE);
-		Mockito.when(source.getExitCode()).thenReturn(0);
-		Mockito.when(source.getCPUDuration(null)).thenReturn(1L);
-		Mockito.when(source.getUptime(null)).thenReturn(1L);
+    @Test
+    void testOnProcessCloseStreamExecOk() {
+        Mockito.when(source.isCorrectlyDone()).thenReturn(true);
+        Mockito.when(source.getEndStatus()).thenReturn(EndStatus.CORRECTLY_DONE);
+        Mockito.when(source.getExitCode()).thenReturn(0);
+        Mockito.when(source.getCPUDuration(null)).thenReturn(1L);
+        Mockito.when(source.getUptime(null)).thenReturn(1L);
 
-		assertEquals(0, outStreamContent.size());
-		assertEquals(0, errStreamContent.size());
-		assertEquals(0, errStreamContent.size());
-	}
+        assertEquals(0, outStreamContent.size());
+        assertEquals(0, errStreamContent.size());
+        assertEquals(0, errStreamContent.size());
+    }
 
 }

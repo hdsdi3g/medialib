@@ -26,132 +26,132 @@ import java.util.stream.IntStream;
 
 public class ProgressBlock {
 
-	private final Map<String, String> items;
+    private final Map<String, String> items;
 
-	/**
-	 * CAN BE
-	 * [frame=619,
-	 * fps=30.39,
-	 * stream_0_0_q=-0.0,
-	 * bitrate=N/A,
-	 * total_size=N/A,
-	 * out_time_us=20633313,
-	 * out_time_ms=20633313,
-	 * out_time=00:00:20.633313,
-	 * dup_frames=0,
-	 * drop_frames=0,
-	 * speed=1.01x,
-	 * progress=end]
-	 * =======
-	 * OR JUST
-	 * =======
-	 * [bitrate=N/A,
-	 * total_size=N/A,
-	 * out_time_us=N/A,
-	 * out_time_ms=1582993,
-	 * out_time=00:00:01.582993,
-	 * dup_frames=0,
-	 * drop_frames=0,
-	 * speed=1.58x,
-	 * progress=continue]
-	 */
-	ProgressBlock(final List<String> lines) {
-		final var countTo = lines.get(lines.size() - 1).startsWith("progress=") ? lines.size() - 1 : lines.size();
-		final var lastIndexOfProgress = IntStream.range(0, countTo)
-				.filter(pos -> lines.get(pos).startsWith("progress="))
-				.reduce((l, r) -> r)
-				.orElse(-1);
+    /**
+     * CAN BE
+     * [frame=619,
+     * fps=30.39,
+     * stream_0_0_q=-0.0,
+     * bitrate=N/A,
+     * total_size=N/A,
+     * out_time_us=20633313,
+     * out_time_ms=20633313,
+     * out_time=00:00:20.633313,
+     * dup_frames=0,
+     * drop_frames=0,
+     * speed=1.01x,
+     * progress=end]
+     * =======
+     * OR JUST
+     * =======
+     * [bitrate=N/A,
+     * total_size=N/A,
+     * out_time_us=N/A,
+     * out_time_ms=1582993,
+     * out_time=00:00:01.582993,
+     * dup_frames=0,
+     * drop_frames=0,
+     * speed=1.58x,
+     * progress=continue]
+     */
+    ProgressBlock(final List<String> lines) {
+        final var countTo = lines.get(lines.size() - 1).startsWith("progress=") ? lines.size() - 1 : lines.size();
+        final var lastIndexOfProgress = IntStream.range(0, countTo)
+                .filter(pos -> lines.get(pos).startsWith("progress="))
+                .reduce((_, r) -> r)
+                .orElse(-1);
 
-		items = lines.stream()
-				.skip(lastIndexOfProgress + 1l)
-				.filter(line -> line.indexOf("=") > 0
-								&& line.endsWith("=") == false
-								&& line.toUpperCase().endsWith("N/A") == false)
-				.collect(toUnmodifiableMap(
-						line -> line.substring(0, line.indexOf("=")),
-						line -> line.substring(line.indexOf("=") + 1, line.length())));
-	}
+        items = lines.stream()
+                .skip(lastIndexOfProgress + 1l)
+                .filter(line -> line.indexOf("=") > 0 // NOSONAR 2692
+                                && line.endsWith("=") == false
+                                && line.toUpperCase().endsWith("N/A") == false)
+                .collect(toUnmodifiableMap(
+                        line -> line.substring(0, line.indexOf("=")),
+                        line -> line.substring(line.indexOf("=") + 1, line.length())));
+    }
 
-	public boolean isEnd() {
-		return items.getOrDefault("progress", "continue").equals("end");
-	}
+    public boolean isEnd() {
+        return items.getOrDefault("progress", "continue").equals("end");
+    }
 
-	public Optional<Integer> getFrame() {
-		return Optional.ofNullable(items.get("frame")).map(Integer::valueOf);
-	}
+    public Optional<Integer> getFrame() {
+        return Optional.ofNullable(items.get("frame")).map(Integer::valueOf);
+    }
 
-	public Optional<Float> getFPS() {
-		return Optional.ofNullable(items.get("fps")).map(Float::valueOf);
-	}
+    public Optional<Float> getFPS() {
+        return Optional.ofNullable(items.get("fps")).map(Float::valueOf);
+    }
 
-	public Optional<Float> getBitrate() {
-		return Optional.ofNullable(items.get("bitrate")).map(Float::valueOf);
-	}
+    public Optional<Float> getBitrate() {
+        return Optional.ofNullable(items.get("bitrate")).map(Float::valueOf);
+    }
 
-	public Optional<Long> getTotalSize() {
-		return Optional.ofNullable(items.get("total_size")).map(Long::valueOf);
-	}
+    public Optional<Long> getTotalSize() {
+        return Optional.ofNullable(items.get("total_size")).map(Long::valueOf);
+    }
 
-	public int getDupFrames() {
-		return Integer.valueOf(items.getOrDefault("dup_frames", "0"));
-	}
+    public int getDupFrames() {
+        return Integer.valueOf(items.getOrDefault("dup_frames", "0"));
+    }
 
-	public int getDropFrames() {
-		return Integer.valueOf(items.getOrDefault("drop_frames", "0"));
-	}
+    public int getDropFrames() {
+        return Integer.valueOf(items.getOrDefault("drop_frames", "0"));
+    }
 
-	public Float getSpeedX() {
-		final var speed = items.getOrDefault("speed", "0");
-		if (speed.toLowerCase().endsWith("x")) {
-			return Float.valueOf(speed.substring(0, speed.length() - 1));
-		}
-		try {
-			return Float.valueOf(speed);
-		} catch (final NumberFormatException e) {
-			return 0f;
-		}
-	}
+    public Float getSpeedX() {
+        final var speed = items.getOrDefault("speed", "0");
+        if (speed.toLowerCase().endsWith("x")) {
+            return Float.valueOf(speed.substring(0, speed.length() - 1));
+        }
+        try {
+            return Float.valueOf(speed);
+        } catch (final NumberFormatException _) {
+            return 0f;
+        }
+    }
 
-	public long getOutTimeUs() {
-		return Long.valueOf(items.getOrDefault("out_time_us", "0"));
-	}
+    public long getOutTimeUs() {
+        return Long.valueOf(items.getOrDefault("out_time_us", "0"));
+    }
 
-	public long getOutTimeMs() {
-		return Long.valueOf(items.getOrDefault("out_time_ms", "0"));
-	}
+    public long getOutTimeMs() {
+        return Long.valueOf(items.getOrDefault("out_time_ms", "0"));
+    }
 
-	public Duration getOutTimeDuration() {
-		return Duration.ofMillis(Long.valueOf(items.getOrDefault("out_time_us", "0")) / 1000l);
-	}
+    public Duration getOutTimeDuration() {
+        return Duration.ofMillis(Long.valueOf(items.getOrDefault("out_time_us", "0")) / 1000l);
+    }
 
-	public String getOutTime() {
-		return items.getOrDefault("out_time", "00:00:00.000000");
-	}
+    public String getOutTime() {
+        return items.getOrDefault("out_time", "00:00:00.000000");
+    }
 
-	/**
-	 * stream_0_0_q=-0.0
-	 */
-	private record EntryStreamQ(String k, Float v) {
-		public EntryStreamQ(final String k, final String v) {
-			this(k.substring("stream_".length(),
-					k.lastIndexOf("_")), Float.valueOf(v));
-		}
-	}
+    /**
+     * stream_0_0_q=-0.0
+     */
+    private record EntryStreamQ(String k, Float v) {
+        public EntryStreamQ(final String k, final String v) {
+            this(k.substring("stream_".length(),
+                    k.lastIndexOf("_")), Float.valueOf(v));
+        }
+    }
 
-	public Map<String, Float> getStreamQ() {
-		return items.keySet().stream()
-				.filter(k -> k.startsWith("stream_"))
-				.map(k -> new EntryStreamQ(k, items.get(k)))
-				.collect(toUnmodifiableMap(EntryStreamQ::k, EntryStreamQ::v));
-	}
+    public Map<String, Float> getStreamQ() {
+        return items.keySet().stream()
+                .filter(k -> k.startsWith("stream_"))
+                .map(k -> new EntryStreamQ(k, items.get(k)))
+                .collect(toUnmodifiableMap(EntryStreamQ::k, EntryStreamQ::v));
+    }
 
-	@Override
-	public String toString() {
-		final var builder = new StringBuilder();
-		builder.append("ProgressBlock [items=");
-		builder.append(items);
-		builder.append("]");
-		return builder.toString();
-	}
+    @Override
+    public String toString() {
+        final var builder = new StringBuilder();
+        builder.append("ProgressBlock [items=");
+        builder.append(items);
+        builder.append("]");
+        return builder.toString();
+    }
 
 }

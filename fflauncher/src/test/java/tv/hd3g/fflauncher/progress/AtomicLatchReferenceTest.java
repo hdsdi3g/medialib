@@ -36,105 +36,105 @@ import org.mockito.Mock;
 
 class AtomicLatchReferenceTest {
 
-	@Mock
-	Object object;
-	AtomicLatchReference<Object> alr;
+    @Mock
+    Object object;
+    AtomicLatchReference<Object> alr;
 
-	@BeforeEach
-	void init() throws Exception {
-		openMocks(this).close();
-		alr = new AtomicLatchReference<>();
-	}
+    @BeforeEach
+    void init() throws Exception {
+        openMocks(this).close();
+        alr = new AtomicLatchReference<>();
+    }
 
-	@AfterEach
-	void ends() {
-		verifyNoMoreInteractions(object);
-	}
+    @AfterEach
+    void ends() {
+        verifyNoMoreInteractions(object);
+    }
 
-	@Nested
-	class Simple {
+    @Nested
+    class Simple {
 
-		@Test
-		void testGetEmpty() {
-			assertThrows(IllegalStateException.class, () -> alr.get(1, MILLISECONDS));
-		}
+        @Test
+        void testGetEmpty() {
+            assertThrows(IllegalStateException.class, () -> alr.get(1, MILLISECONDS));
+        }
 
-		@Test
-		void testGetEmpty_interrupted() {
-			final var checked = new AtomicBoolean();
-			final var t = new Thread(() -> {
-				alr.get(1, SECONDS);
-				checked.set(true);
-			});
-			t.start();
-			t.interrupt();
-			assertFalse(checked.get());
-		}
+        @Test
+        void testGetEmpty_interrupted() {
+            final var checked = new AtomicBoolean();
+            final var t = new Thread(() -> {
+                alr.get(1, SECONDS);
+                checked.set(true);
+            });
+            t.start();
+            t.interrupt();
+            assertFalse(checked.get());
+        }
 
-		@Test
-		void testGet_direct() {
-			alr.set(object);
-			assertEquals(object, alr.get(1, MILLISECONDS));
-		}
+        @Test
+        void testGet_direct() {
+            alr.set(object);
+            assertEquals(object, alr.get(1, MILLISECONDS));
+        }
 
-		@Test
-		void testGet_parallel() {
-			final var checked = new AtomicReference<>();
-			final var t = new Thread(() -> {
-				checked.set(alr.get(1, SECONDS));
-			});
-			t.start();
-			alr.set(object);
-			while (t.isAlive()) {
-				Thread.onSpinWait();
-			}
-			assertEquals(object, checked.get());
-		}
-	}
+        @Test
+        void testGet_parallel() {
+            final var checked = new AtomicReference<>();
+            final var t = new Thread(() -> {
+                checked.set(alr.get(1, SECONDS));
+            });
+            t.start();
+            alr.set(object);
+            while (t.isAlive()) {
+                Thread.onSpinWait();
+            }
+            assertEquals(object, checked.get());
+        }
+    }
 
-	@Nested
-	class Callbackmode {
+    @Nested
+    class Callbackmode {
 
-		@Test
-		void testGetEmpty() {
-			final var checked = new AtomicReference<>();
-			alr.get(1, MILLISECONDS, checked::set);
-			assertNull(checked.get());
-		}
+        @Test
+        void testGetEmpty() {
+            final var checked = new AtomicReference<>();
+            alr.get(1, MILLISECONDS, checked::set);
+            assertNull(checked.get());
+        }
 
-		@Test
-		void testGetDirect() {
-			final var checked = new AtomicReference<>();
-			alr.set(object);
-			alr.get(1, MILLISECONDS, checked::set);
-			assertEquals(object, checked.get());
-		}
+        @Test
+        void testGetDirect() {
+            final var checked = new AtomicReference<>();
+            alr.set(object);
+            alr.get(1, MILLISECONDS, checked::set);
+            assertEquals(object, checked.get());
+        }
 
-		@Test
-		void testGetEmpty_interrupted() {
-			final var checked = new AtomicBoolean();
-			final var t = new Thread(() -> {
-				alr.get(1, SECONDS, v -> checked.set(true));
-			});
-			t.start();
-			t.interrupt();
-			assertFalse(checked.get());
-		}
+        @Test
+        void testGetEmpty_interrupted() {
+            final var checked = new AtomicBoolean();
+            final var t = new Thread(() -> {
+                alr.get(1, SECONDS, _ -> checked.set(true));
+            });
+            t.start();
+            t.interrupt();
+            assertFalse(checked.get());
+        }
 
-		@Test
-		void testGet_parallel() {
-			final var checked = new AtomicReference<>();
-			final var t = new Thread(() -> {
-				alr.get(1, SECONDS, checked::set);
-			});
-			t.start();
-			alr.set(object);
-			while (t.isAlive()) {
-				Thread.onSpinWait();
-			}
-			assertEquals(object, checked.get());
-		}
+        @Test
+        void testGet_parallel() {
+            final var checked = new AtomicReference<>();
+            final var t = new Thread(() -> {
+                alr.get(1, SECONDS, checked::set);
+            });
+            t.start();
+            alr.set(object);
+            while (t.isAlive()) {
+                Thread.onSpinWait();
+            }
+            assertEquals(object, checked.get());
+        }
 
-	}
+    }
 
 }

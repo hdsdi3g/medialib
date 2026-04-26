@@ -23,52 +23,52 @@ import java.nio.file.Path;
 import java.util.function.Predicate;
 
 public enum OutputFilePresencePolicy {
-	ALL {
-		@Override
-		public Predicate<File> filter() {
-			return f -> true;
-		}
-	},
-	MUST_EXISTS {
-		@Override
-		public Predicate<File> filter() {
-			return TEST_EXISTS;
-		}
-	},
-	/**
-	 * Implicit MUST_EXISTS
-	 */
-	MUST_BE_A_REGULAR_FILE {
-		@Override
-		public Predicate<File> filter() {
-			return TEST_EXISTS.and(TEST_REGULAR_FILE);
-		}
-	},
-	/**
-	 * Implicit MUST_EXISTS. Check file size if file, or dir content count.
-	 */
-	NOT_EMPTY {
-		@Override
-		public Predicate<File> filter() {
-			return TEST_EXISTS.and(TEST_REGULAR_DIR.and(TEST_NOT_EMPTY_DIR)).or(TEST_REGULAR_FILE.and(
-			        TEST_NOT_EMPTY_FILE));
-		}
-	};
+    ALL {
+        @Override
+        public Predicate<File> filter() {
+            return _ -> true;
+        }
+    },
+    MUST_EXISTS {
+        @Override
+        public Predicate<File> filter() {
+            return TEST_EXISTS;
+        }
+    },
+    /**
+     * Implicit MUST_EXISTS
+     */
+    MUST_BE_A_REGULAR_FILE {
+        @Override
+        public Predicate<File> filter() {
+            return TEST_EXISTS.and(TEST_REGULAR_FILE);
+        }
+    },
+    /**
+     * Implicit MUST_EXISTS. Check file size if file, or dir content count.
+     */
+    NOT_EMPTY {
+        @Override
+        public Predicate<File> filter() {
+            return TEST_EXISTS.and(TEST_REGULAR_DIR.and(TEST_NOT_EMPTY_DIR)).or(TEST_REGULAR_FILE.and(
+                    TEST_NOT_EMPTY_FILE));
+        }
+    };
 
-	private static final Predicate<File> TEST_EXISTS = File::exists;
-	private static final Predicate<File> TEST_REGULAR_FILE = File::isFile;
-	private static final Predicate<File> TEST_REGULAR_DIR = File::isDirectory;
-	private static final Predicate<File> TEST_NOT_EMPTY_FILE = f -> f.length() > 0;
-	private static final Predicate<File> TEST_NOT_HIDDEN = f -> f.isHidden() == false;
-	private static final Predicate<File> TEST_NOT_DOTFILE = f -> f.getName().startsWith(".") == false;
-	private static final Predicate<File> TEST_NOT_EMPTY_DIR = d -> {
-		try {
-			return Files.list(d.toPath()).map(Path::toFile).anyMatch(TEST_NOT_HIDDEN.and(TEST_NOT_DOTFILE));
-		} catch (final IOException e) {
-			return false;
-		}
-	};
+    private static final Predicate<File> TEST_EXISTS = File::exists;
+    private static final Predicate<File> TEST_REGULAR_FILE = File::isFile;
+    private static final Predicate<File> TEST_REGULAR_DIR = File::isDirectory;
+    private static final Predicate<File> TEST_NOT_EMPTY_FILE = f -> f.length() > 0;
+    private static final Predicate<File> TEST_NOT_HIDDEN = f -> f.isHidden() == false;
+    private static final Predicate<File> TEST_NOT_DOTFILE = f -> f.getName().startsWith(".") == false;
+    private static final Predicate<File> TEST_NOT_EMPTY_DIR = d -> {
+        try {
+            return Files.list(d.toPath()).map(Path::toFile).anyMatch(TEST_NOT_HIDDEN.and(TEST_NOT_DOTFILE));
+        } catch (final IOException _) {
+            return false;
+        }
+    };
 
-	public abstract Predicate<File> filter();
+    public abstract Predicate<File> filter();
 
 }

@@ -26,31 +26,31 @@ import java.util.function.Consumer;
 import tv.hd3g.fflauncher.recipes.ContainerAnalyserBase;
 
 public record FFprobeXMLProgressWatcher(Duration programDuration,
-										Consumer<ContainerAnalyserBase<?, ?>> onStartCallback,
-										Consumer<FFprobeXMLProgressEvent> progressCallback,
-										Consumer<ContainerAnalyserBase<?, ?>> onEndCallback) {
+                                        Consumer<ContainerAnalyserBase<?, ?>> onStartCallback,
+                                        Consumer<FFprobeXMLProgressEvent> progressCallback,
+                                        Consumer<ContainerAnalyserBase<?, ?>> onEndCallback) {
 
-	public static record FFprobeXMLProgressEvent(double progress, float speed, Object session) {
-	}
+    public static record FFprobeXMLProgressEvent(double progress, float speed, Object session) {
+    }
 
-	public <T extends ContainerAnalyserBase<?, ?>> FFprobeXMLProgressConsumer createProgress(final T session,
-																							 final ThreadFactory threadFactory) {
-		if (programDuration.isZero() || programDuration.isNegative()) {
-			return t -> {
-			};
-		}
-		return new FFProbeXMLProgressHandler(this, session, Optional.ofNullable(threadFactory));
-	}
+    public <T extends ContainerAnalyserBase<?, ?>> FFprobeXMLProgressConsumer createProgress(final T session,
+                                                                                             final ThreadFactory threadFactory) {
+        if (programDuration.isZero() || programDuration.isNegative()) {
+            return _ -> {
+            };
+        }
+        return new FFProbeXMLProgressHandler(this, session, Optional.ofNullable(threadFactory));
+    }
 
-	public <T extends ContainerAnalyserBase<?, ?>> FFprobeXMLProgressConsumer createProgress(final T session) {
-		return createProgress(session, null);
-	}
+    public <T extends ContainerAnalyserBase<?, ?>> FFprobeXMLProgressConsumer createProgress(final T session) {
+        return createProgress(session, null);
+    }
 
-	public <T extends ContainerAnalyserBase<?, ?>> Optional<FFProbeXMLProgressHandler> createHandler(final T session) {
-		if (programDuration.isZero() || programDuration.isNegative()) {
-			return empty();
-		}
-		return Optional.ofNullable(new FFProbeXMLProgressHandler(this, session, empty()));
-	}
+    public <T extends ContainerAnalyserBase<?, ?>> Optional<FFProbeXMLProgressHandler> createHandler(final T session) {
+        if (programDuration.isZero() || programDuration.isNegative()) {
+            return empty();
+        }
+        return Optional.ofNullable(new FFProbeXMLProgressHandler(this, session, empty()));
+    }
 
 }

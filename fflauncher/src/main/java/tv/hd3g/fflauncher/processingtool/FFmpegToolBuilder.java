@@ -36,61 +36,61 @@ import tv.hd3g.processlauncher.processingtool.ProcessingToolCallback;
  * @param <T> Output produced type
  */
 public abstract class FFmpegToolBuilder<O, T, W extends ExecutorWatcher>
-									   extends ProcessingToolBuilder<O, FFmpeg, T, W> {
+                                       extends ProcessingToolBuilder<O, FFmpeg, T, W> {
 
-	public static final Duration statsPeriod = Duration.ofSeconds(1);
+    public static final Duration statsPeriod = Duration.ofSeconds(1);
 
-	@Getter
-	protected final FFmpeg ffmpeg;
-	private ProgressListener progressListener;
-	private ProgressCallback progressCallback;
+    @Getter
+    protected final FFmpeg ffmpeg;
+    private ProgressListener progressListener;
+    private ProgressCallback progressCallback;
 
-	protected FFmpegToolBuilder(final FFmpeg ffmpeg, final W watcher) {
-		super(ffmpeg.getExecutableName(), watcher);
-		this.ffmpeg = requireNonNull(ffmpeg, "\"ffmpeg\" can't to be null");
-		callbacks.add(new PrepareFFmpeg());
-		callbacks.add(ffmpeg.makeConversionHooks());
-	}
+    protected FFmpegToolBuilder(final FFmpeg ffmpeg, final W watcher) {
+        super(ffmpeg.getExecutableName(), watcher);
+        this.ffmpeg = requireNonNull(ffmpeg, "\"ffmpeg\" can't to be null");
+        callbacks.add(new PrepareFFmpeg());
+        callbacks.add(ffmpeg.makeConversionHooks());
+    }
 
-	public void setProgressListener(final ProgressListener progressListener,
-									final ProgressCallback progressCallback) {
-		this.progressListener = requireNonNull(progressListener, "\"progressListener\" can't to be null");
-		this.progressCallback = requireNonNull(progressCallback, "\"progressCallback\" can't to be null");
-	}
+    public void setProgressListener(final ProgressListener progressListener,
+                                    final ProgressCallback progressCallback) {
+        this.progressListener = requireNonNull(progressListener, "\"progressListener\" can't to be null");
+        this.progressCallback = requireNonNull(progressCallback, "\"progressCallback\" can't to be null");
+    }
 
-	public void resetProgressListener() {
-		progressListener = null;
-		progressCallback = null;
-	}
+    public void resetProgressListener() {
+        progressListener = null;
+        progressCallback = null;
+    }
 
-	private class PrepareFFmpeg implements ProcessingToolCallback {
+    private class PrepareFFmpeg implements ProcessingToolCallback {
 
-		ProgressListenerSession session;
+        ProgressListenerSession session;
 
-		@Override
-		public void prepareParameters(final Parameters parameters) {
-			if (progressListener != null && progressCallback != null) {
-				if (parameters.hasParameters("-progress")) {
-					throw new IllegalArgumentException(
-							"ffmpeg command line as already \"-progress\" option: " + parameters);
-				}
-				parameters.ifHasNotParameter(
-						() -> parameters.prependParameters("-stats_period", String.valueOf(statsPeriod.toSeconds())),
-						"-stats_period");
+        @Override
+        public void prepareParameters(final Parameters parameters) {
+            if (progressListener != null && progressCallback != null) {
+                if (parameters.hasParameters("-progress")) {
+                    throw new IllegalArgumentException(
+                            "ffmpeg command line as already \"-progress\" option: " + parameters);
+                }
+                parameters.ifHasNotParameter(
+                        () -> parameters.prependParameters("-stats_period", String.valueOf(statsPeriod.toSeconds())),
+                        "-stats_period");
 
-				session = progressListener.createSession(progressCallback, statsPeriod);
-				final var port = session.start();
-				parameters.prependParameters("-progress", "tcp://127.0.0.1:" + port);
-			}
-		}
+                session = progressListener.createSession(progressCallback, statsPeriod);
+                final var port = session.start();
+                parameters.prependParameters("-progress", "tcp://127.0.0.1:" + port);
+            }
+        }
 
-		@Override
-		public void beforeRun(final ProcesslauncherBuilder pBuilder) {
-			if (session != null) {
-				pBuilder.addExecutionCallbacker(processlauncherLifecycle -> session.manualClose());
-			}
-		}
+        @Override
+        public void beforeRun(final ProcesslauncherBuilder pBuilder) {
+            if (session != null) {
+                pBuilder.addExecutionCallbacker(_ -> session.manualClose());
+            }
+        }
 
-	}
+    }
 
 }

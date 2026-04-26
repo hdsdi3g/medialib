@@ -21,11 +21,11 @@ import tv.hd3g.fflauncher.SimpleSourceTraits;
 @FunctionalInterface
 public interface FFSourceDefinition {
 
-	void applySourceToFF(SimpleSourceTraits input);
+    void applySourceToFF(SimpleSourceTraits input);
 
-	static FFSourceDefinition noSourceInput() {
-		return input -> {
-		};
-	}
+    static FFSourceDefinition noSourceInput() {
+        return _ -> {
+        };
+    }
 
 }
