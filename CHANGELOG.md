@@ -1,5 +1,11 @@
 # All Medialib projects upgrades needs
 
+## 21.2.0
+
+Set starter version project to 24.0.0 and code clean
+
+Update ffprobe to 8.1.0 #123
+
 ## 21.1.1
 
 BUG: Force to wait to end closed streams on ProcesslauncherLifecycle waitForEnd #121
