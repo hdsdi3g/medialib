@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 21.2.1
+
+Maintenance version: correct JAXB maven deps (replace old jaxb-api by glassfish impls), recompute all ffprobe XSDs, and fix ffprobe test #125
+
 ## 21.2.0
 
 Set starter version project to 24.0.0 and code clean
