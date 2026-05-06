@@ -26,40 +26,41 @@ import java.io.UncheckedIOException;
 
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.ValidationEventHandler;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.ValidationEventHandler;
+
 public interface UnmarshallerTools {
 
-	static <T> T unmarshal(final JAXBContext context,
-						   final Node document,
-						   final ValidationEventHandler handler,
-						   final Class<T> declaredType) throws JAXBException {
-		final var unmarshaller = context.createUnmarshaller();
-		unmarshaller.setEventHandler(handler);
-		return unmarshaller.unmarshal(document, declaredType).getValue();
-	}
+    static <T> T unmarshal(final JAXBContext context,
+                           final Node document,
+                           final ValidationEventHandler handler,
+                           final Class<T> declaredType) throws JAXBException {
+        final var unmarshaller = context.createUnmarshaller();
+        unmarshaller.setEventHandler(handler);
+        return unmarshaller.unmarshal(document, declaredType).getValue();
+    }
 
-	static Node parseXMLDocument(final String xmlContent,
-								 final ErrorHandler errorHandler) throws ParserConfigurationException, SAXException {
-		final var xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();// NOSONAR
-		xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
-		xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_SCHEMA, "");
-		xmlDocumentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-		final var xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
-		xmlDocumentBuilder.setErrorHandler(errorHandler);
+    static Node parseXMLDocument(final String xmlContent,
+                                 final ErrorHandler errorHandler) throws ParserConfigurationException, SAXException {
+        final var xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();// NOSONAR
+        xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
+        xmlDocumentBuilderFactory.setAttribute(ACCESS_EXTERNAL_SCHEMA, "");
+        xmlDocumentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        final var xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
+        xmlDocumentBuilder.setErrorHandler(errorHandler);
 
-		try {
-			return xmlDocumentBuilder.parse(new ByteArrayInputStream(xmlContent.getBytes(UTF_8)));
-		} catch (final IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
+        try {
+            return xmlDocumentBuilder.parse(new ByteArrayInputStream(xmlContent.getBytes(UTF_8)));
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
 }

@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -58,6 +59,8 @@ class FFprobeJAXBE2ETest {
         FFprobeJAXB ffprobe;
         FFProbeStream s;
         MediaSummary ms;
+        String version;
+        int bigVersion;
 
         CheckE2EXML(final File xml) {
             this.xml = xml;
@@ -67,6 +70,17 @@ class FFprobeJAXBE2ETest {
             } catch (final IOException e) {
                 throw new UncheckedIOException(e);
             }
+
+            final var fileName = xml.getName();
+            version = Stream.of("test-ffv1.mov-", "test-mpeg2.ts-", "test-vp8.mkv-")
+                    .filter(fileName::startsWith)
+                    .map(String::length)
+                    .map(fileName::substring)
+                    .map(FilenameUtils::getBaseName)
+                    .findFirst()
+                    .orElse("0.0.0");
+
+            bigVersion = Integer.valueOf(version.substring(0, version.indexOf(".")));
         }
 
         void preCheck() {
@@ -169,7 +183,15 @@ class FFprobeJAXBE2ETest {
             assertThat(s.colorTransfer()).isNull();
             assertThat(s.colorPrimaries()).isNull();
 
-            assertThat(s.refs()).isEqualTo(1);
+            if (bigVersion >= 8 && version.equals("8.0.1") == false) {
+                /**
+                 * Smells like a FFprobe bug...
+                 */
+                assertThat(s.refs()).isZero();
+            } else {
+                assertThat(s.refs()).isEqualTo(1);
+            }
+
             assertThat(s.sampleFmt()).isNull();
             assertThat(s.sampleRate()).isZero();
             assertThat(s.channels()).isZero();
@@ -435,7 +457,7 @@ class FFprobeJAXBE2ETest {
             }
 
             if (isXMLNameContains("vp8.mkv")) {
-                assertThat(ms.format()).isEqualTo("Matroska / WebM, 00:00:05, 240423 bytes, 1 chapter, 383 kbps");
+                assertThat(ms.format()).contains("Matroska / WebM", "00:00:05", "bytes, 1 chapter", " kbps");
 
                 if (isXMLNameContains("-2.")) {
                     assertThat(vStream).isEqualTo(

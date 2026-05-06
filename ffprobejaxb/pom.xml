@@ -28,10 +28,6 @@
             <version>${starter.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
         </dependency>
@@ -67,7 +63,7 @@
                 </executions>
                 <configuration>
                     <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <generatePackage>org.ffmpeg.ffprobe700</generatePackage>
+                    <generatePackage>org.ffmpeg.ffprobe810</generatePackage>
                     <removeOldOutput>true</removeOldOutput>
                     <locale>en</locale>
                     <disableXmlSecurity>false</disableXmlSecurity>
