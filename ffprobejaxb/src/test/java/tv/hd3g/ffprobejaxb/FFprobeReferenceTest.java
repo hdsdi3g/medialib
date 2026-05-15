@@ -17,8 +17,10 @@
 package tv.hd3g.ffprobejaxb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -45,281 +47,290 @@ import tv.hd3g.ffprobejaxb.data.FFProbePixelFormat;
 import tv.hd3g.ffprobejaxb.data.FFProbeProgram;
 import tv.hd3g.ffprobejaxb.data.FFProbeProgramVersion;
 import tv.hd3g.ffprobejaxb.data.FFProbeStream;
-import tv.hd3g.ffprobejaxb.data.FFProbeStreamDisposition;
 
 class FFprobeReferenceTest {
-	static Faker faker = net.datafaker.Faker.instance();
+    static Faker faker = net.datafaker.Faker.instance();
 
-	@Mock
-	FFProbeFormat format;
-	@Mock
-	FFProbeStream stream;
-	@Mock
-	FFProbeStream defaultStream;
-	@Mock
-	FFProbeStreamDisposition disposition;
-	@Mock
-	FFProbeStreamDisposition defaultDisposition;
+    @Mock
+    FFProbeFormat format;
+    @Mock
+    FFProbeStream stream;
+    @Mock
+    FFProbeStream defaultStream;
 
-	class FFprobeReferenceImpl implements FFprobeReference {
+    class FFprobeReferenceImpl implements FFprobeReference {
 
-		@Override
-		public Optional<FFProbeFormat> getFormat() {
-			return Optional.ofNullable(format);
-		}
+        @Override
+        public Optional<FFProbeFormat> getFormat() {
+            return Optional.ofNullable(format);
+        }
 
-		@Override
-		public List<FFProbeStream> getStreams() {
-			return List.of(stream);
-		}
+        @Override
+        public List<FFProbeStream> getStreams() {
+            return List.of(stream);
+        }
 
-		@Override
-		public String getXmlContent() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public String getXmlContent() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public String getXSDVersionReference() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public String getXSDVersionReference() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public List<FFProbeLibraryVersion> getLibraryVersions() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public List<FFProbeLibraryVersion> getLibraryVersions() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public Optional<FFProbeError> getError() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public Optional<FFProbeError> getError() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public List<FFProbeProgram> getPrograms() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public List<FFProbeProgram> getPrograms() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public Optional<FFProbeProgramVersion> getProgramVersion() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public Optional<FFProbeProgramVersion> getProgramVersion() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public List<FFProbeChapter> getChapters() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public List<FFProbeChapter> getChapters() {
+            throw new UnsupportedOperationException();
+        }
 
-		@Override
-		public List<FFProbePixelFormat> getPixelFormats() {
-			throw new UnsupportedOperationException();
-		}
+        @Override
+        public List<FFProbePixelFormat> getPixelFormats() {
+            throw new UnsupportedOperationException();
+        }
 
-	}
+    }
 
-	FFprobeReferenceImpl r;
+    class FFprobeReferenceImplMultiStreams extends FFprobeReferenceImpl {
 
-	@BeforeEach
-	void init() throws Exception {
-		MockitoAnnotations.openMocks(this).close();
-		r = new FFprobeReferenceImpl();
-	}
+        @Override
+        public List<FFProbeStream> getStreams() {
+            return List.of(defaultStream, stream);
+        }
+    }
 
-	@AfterEach
-	void ends() {
-		verifyNoMoreInteractions(format, stream, disposition, defaultStream, defaultDisposition);
-	}
+    FFprobeReferenceImpl r;
 
-	@Test
-	void testGetVideoStreams_empty() {
-		when(stream.codecType()).thenReturn(faker.numerify("type###"));
-		assertThat(r.getVideoStreams()).isEmpty();
-		verify(stream, times(1)).codecType();
-	}
+    @BeforeEach
+    void init() throws Exception {
+        MockitoAnnotations.openMocks(this).close();
+        r = new FFprobeReferenceImpl();
+    }
 
-	@Test
-	void testGetVideoStreams() {
-		when(stream.codecType()).thenReturn("video");
-		final var streams = r.getVideoStreams().toList();
-		assertThat(streams).isEqualTo(List.of(stream));
-		verify(stream, times(1)).codecType();
-	}
+    @AfterEach
+    void ends() {
+        verifyNoMoreInteractions(format, stream, defaultStream);
+    }
 
-	@Test
-	void testGetAudioStreams_empty() {
-		when(stream.codecType()).thenReturn(faker.numerify("type###"));
-		assertThat(r.getAudioStreams()).isEmpty();
-		verify(stream, times(1)).codecType();
-	}
+    @Test
+    void testGetVideoStreams_empty() {
+        when(stream.codecType()).thenReturn(faker.numerify("type###"));
+        assertThat(r.getVideoStreams()).isEmpty();
+        verify(stream, times(1)).codecType();
+    }
 
-	@Test
-	void testGetAudioStreams() {
-		when(stream.codecType()).thenReturn("audio");
-		final var streams = r.getAudioStreams().toList();
-		assertThat(streams).isEqualTo(List.of(stream));
-		verify(stream, times(1)).codecType();
-	}
+    @Test
+    void testGetVideoStreams() {
+        when(stream.codecType()).thenReturn("video");
+        when(stream.width()).thenReturn(1);
+        when(stream.height()).thenReturn(1);
 
-	@Test
-	void testGetFirstVideoStream_empty() {
-		when(stream.codecType()).thenReturn(faker.numerify("type###"));
-		assertThat(r.getFirstVideoStream()).isEmpty();
-		verify(stream, times(1)).codecType();
-	}
+        final var streams = r.getVideoStreams().toList();
+        assertThat(streams).isEqualTo(List.of(stream));
 
-	@Nested
-	class GetFirstVideoStream {
+        verify(stream, times(1)).codecType();
+        verify(stream, times(1)).width();
+        verify(stream, times(1)).height();
+        verify(stream, times(1)).isSecondary();
+    }
 
-		@BeforeEach
-		void init() {
-			when(stream.codecType()).thenReturn("video");
-			when(stream.disposition()).thenReturn(disposition);
-		}
+    @Test
+    void testGetAudioStreams_empty() {
+        when(stream.codecType()).thenReturn(faker.numerify("type###"));
+        assertThat(r.getAudioStreams()).isEmpty();
+        verify(stream, times(1)).codecType();
+    }
 
-		@AfterEach
-		void ends() {
-			verify(stream, atLeast(1)).codecType();
-			verify(stream, atMost(4)).disposition();
-			verify(disposition, atMost(1)).attachedPic();
-			verify(disposition, atMost(1)).timedThumbnails();
-			verify(disposition, atMost(1)).stillImage();
-		}
+    @Test
+    void testGetAudioStreams() {
+        when(stream.codecType()).thenReturn("audio");
+        final var streams = r.getAudioStreams().toList();
+        assertThat(streams).isEqualTo(List.of(stream));
+        verify(stream, times(1)).codecType();
+        verify(stream, times(1)).isSecondary();
+    }
 
-		@Test
-		void testGetFirstVideoStream_ok() {
-			assertThat(r.getFirstVideoStream())
-					.isNotEmpty()
-					.contains(stream);
-		}
+    @Test
+    void testGetFirstVideoStream_empty() {
+        when(stream.codecType()).thenReturn(faker.numerify("type###"));
+        assertThat(r.getFirstVideoStream()).isEmpty();
+        verify(stream, times(1)).codecType();
+    }
 
-		@Test
-		void testGetFirstVideoStream_attached() {
-			when(disposition.attachedPic()).thenReturn(true);
-			assertThat(r.getFirstVideoStream()).isEmpty();
-		}
+    @Nested
+    class GetFirstVideoStream {
 
-		@Test
-		void testGetFirstVideoStream_timedThumbnails() {
-			when(disposition.timedThumbnails()).thenReturn(true);
-			assertThat(r.getFirstVideoStream()).isEmpty();
-		}
+        @BeforeEach
+        void init() {
+            when(stream.codecType()).thenReturn("video");
+            when(stream.width()).thenReturn(1);
+            when(stream.height()).thenReturn(1);
 
-		@Test
-		void testGetFirstVideoStream_stillImage() {
-			when(disposition.stillImage()).thenReturn(true);
-			assertThat(r.getFirstVideoStream()).isEmpty();
-		}
+            when(defaultStream.codecType()).thenReturn("video");
+            when(defaultStream.width()).thenReturn(1);
+            when(defaultStream.height()).thenReturn(1);
+            when(defaultStream.isDefault()).thenReturn(true);
+        }
 
-		class FFprobeReferenceImplMultiStreams extends FFprobeReferenceImpl {
+        @AfterEach
+        void ends() {
+            verify(stream, atLeast(1)).codecType();
+            verify(stream, atLeast(1)).width();
+            verify(stream, atLeast(1)).height();
+            verify(stream, atLeast(1)).isSecondary();
+        }
 
-			@Override
-			public List<FFProbeStream> getStreams() {
-				return List.of(defaultStream, stream);
-			}
-		}
+        @Test
+        void testGetFirstVideoStream_ok() {
+            when(stream.codecType()).thenReturn("video");
+            assertThat(r.getFirstVideoStream())
+                    .isNotEmpty()
+                    .contains(stream);
+        }
 
-		@Test
-		void testGetFirstVideoStream_sorted() {
-			r = new FFprobeReferenceImplMultiStreams();
-			when(defaultStream.codecType()).thenReturn("video");
-			when(defaultStream.disposition()).thenReturn(defaultDisposition);
-			when(defaultDisposition.asDefault()).thenReturn(true);
+        @Test
+        void testGetFirstVideoStream_isSecondary() {
+            when(stream.isSecondary()).thenReturn(true);
+            assertThat(r.getFirstVideoStream()).isEmpty();
+            verify(stream, times(1)).isSecondary();
+        }
 
-			assertThat(r.getFirstVideoStream())
-					.isNotEmpty()
-					.contains(defaultStream);
+        @Test
+        void testGetFirstVideoStream_sorted() {
+            r = new FFprobeReferenceImplMultiStreams();
 
-			verify(disposition, atMost(1)).asDefault();
+            assertThat(r.getFirstVideoStream())
+                    .isNotEmpty()
+                    .contains(defaultStream);
 
-			verify(defaultStream, atLeast(1)).codecType();
-			verify(defaultStream, atLeast(1)).disposition();
-			verify(defaultDisposition, atMost(1)).attachedPic();
-			verify(defaultDisposition, atMost(1)).timedThumbnails();
-			verify(defaultDisposition, atMost(1)).stillImage();
-			verify(defaultDisposition, atMost(1)).asDefault();
-		}
-	}
+            verify(defaultStream, atLeast(1)).codecType();
+            verify(defaultStream, atLeast(1)).width();
+            verify(defaultStream, atLeast(1)).height();
+            verify(defaultStream, atLeast(1)).isSecondary();
 
-	final FFProbeKeyValue tc0 = new FFProbeKeyValue("timecode", "00:00:00:00");
-	final FFProbeKeyValue tc1 = new FFProbeKeyValue("timecode", faker.numerify("##:##:##:##"));
+            verify(stream, atLeast(1)).isDefault();
+            verify(defaultStream, atLeast(1)).isDefault();
+        }
+    }
 
-	@Test
-	void testGetTimecode_empty() {
-		assertThat(r.getTimecode(false)).isEmpty();
+    final FFProbeKeyValue tc0 = new FFProbeKeyValue("timecode", "00:00:00:00");
+    final FFProbeKeyValue tc1 = new FFProbeKeyValue("timecode", faker.numerify("##:##:##:##"));
 
-		verify(format, atLeast(1)).tags();
-		verify(stream, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_empty() {
+        assertThat(r.getTimecode(false)).isEmpty();
 
-	@Test
-	void testGetTimecode_format() {
-		when(format.tags()).thenReturn(List.of(tc0));
-		assertThat(r.getTimecode(false))
-				.isNotEmpty()
-				.contains(tc0.value());
+        verify(format, atLeast(1)).tags();
+        verify(stream, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_format() {
+        when(format.tags()).thenReturn(List.of(tc0));
+        assertThat(r.getTimecode(false))
+                .isNotEmpty()
+                .contains(tc0.value());
 
-	@Test
-	void testGetTimecode_stream() {
-		when(stream.tags()).thenReturn(List.of(tc0));
-		assertThat(r.getTimecode(false))
-				.isNotEmpty()
-				.contains(tc0.value());
+        verify(format, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-		verify(stream, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_stream() {
+        when(stream.tags()).thenReturn(List.of(tc0));
+        assertThat(r.getTimecode(false))
+                .isNotEmpty()
+                .contains(tc0.value());
 
-	@Test
-	void testGetTimecode_format_empty() {
-		when(format.tags()).thenReturn(List.of(tc0));
-		assertThat(r.getTimecode(true)).isEmpty();
+        verify(format, atLeast(1)).tags();
+        verify(stream, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_format_empty() {
+        when(format.tags()).thenReturn(List.of(tc0));
+        assertThat(r.getTimecode(true)).isEmpty();
 
-	@Test
-	void testGetTimecode_stream_empty() {
-		when(stream.tags()).thenReturn(List.of(tc0));
-		assertThat(r.getTimecode(true)).isEmpty();
+        verify(format, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-		verify(stream, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_stream_empty() {
+        when(stream.tags()).thenReturn(List.of(tc0));
+        assertThat(r.getTimecode(true)).isEmpty();
 
-	@Test
-	void testGetTimecode_format_value() {
-		when(format.tags()).thenReturn(List.of(tc1));
-		assertThat(r.getTimecode(false))
-				.isNotEmpty()
-				.contains(tc1.value());
+        verify(format, atLeast(1)).tags();
+        verify(stream, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_format_value() {
+        when(format.tags()).thenReturn(List.of(tc1));
+        assertThat(r.getTimecode(false))
+                .isNotEmpty()
+                .contains(tc1.value());
 
-	@Test
-	void testGetTimecode_stream_value() {
-		when(stream.tags()).thenReturn(List.of(tc1));
-		assertThat(r.getTimecode(false))
-				.isNotEmpty()
-				.contains(tc1.value());
+        verify(format, atLeast(1)).tags();
+    }
 
-		verify(format, atLeast(1)).tags();
-		verify(stream, atLeast(1)).tags();
-	}
+    @Test
+    void testGetTimecode_stream_value() {
+        when(stream.tags()).thenReturn(List.of(tc1));
+        assertThat(r.getTimecode(false))
+                .isNotEmpty()
+                .contains(tc1.value());
 
-	@Test
-	void testGetDuration_empty() {
-		assertThat(r.getDuration()).isEmpty();
-		verify(format, atLeast(1)).duration();
-	}
+        verify(format, atLeast(1)).tags();
+        verify(stream, atLeast(1)).tags();
+    }
 
-	@Test
-	void testGetDuration() {
-		final var duration = Math.abs(faker.random().nextFloat());
-		when(format.duration()).thenReturn(duration);
-		assertThat(r.getDuration()).contains(Duration.ofMillis(Math.round(duration * 1000)));
-		verify(format, atLeast(1)).duration();
-	}
+    @Test
+    void testGetDuration_empty() {
+        assertThat(r.getDuration()).isEmpty();
+        verify(format, atLeast(1)).duration();
+    }
+
+    @Test
+    void testGetDuration() {
+        final var duration = Math.abs(faker.random().nextFloat());
+        when(format.duration()).thenReturn(duration);
+        assertThat(r.getDuration()).contains(Duration.ofMillis(Math.round(duration * 1000)));
+        verify(format, atLeast(1)).duration();
+    }
+
+    @Test
+    void testIsDefaultStreamIsSuitable() {
+        r = new FFprobeReferenceImplMultiStreams();
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        when(defaultStream.isDefault()).thenReturn(true);
+        assertTrue(r.isDefaultStreamIsSuitable());
+
+        when(stream.isDefault()).thenReturn(true);
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        verify(stream, atLeastOnce()).isDefault();
+        verify(defaultStream, atLeastOnce()).isDefault();
+    }
 
 }

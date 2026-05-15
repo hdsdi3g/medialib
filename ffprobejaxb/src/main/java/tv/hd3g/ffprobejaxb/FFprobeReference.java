@@ -16,6 +16,9 @@
  */
 package tv.hd3g.ffprobejaxb;
 
+import static java.lang.Boolean.compare;
+import static java.util.stream.Stream.concat;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -34,72 +37,100 @@ import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 public interface FFprobeReference {
 
-	Optional<FFProbeFormat> getFormat();
+    Optional<FFProbeFormat> getFormat();
 
-	List<FFProbeStream> getStreams();
+    List<FFProbeStream> getStreams();
 
-	String getXmlContent();
+    String getXmlContent();
 
-	String getXSDVersionReference();
+    String getXSDVersionReference();
 
-	List<FFProbeLibraryVersion> getLibraryVersions();
+    List<FFProbeLibraryVersion> getLibraryVersions();
 
-	Optional<FFProbeError> getError();
+    Optional<FFProbeError> getError();
 
-	List<FFProbeProgram> getPrograms();
+    List<FFProbeProgram> getPrograms();
 
-	Optional<FFProbeProgramVersion> getProgramVersion();
+    Optional<FFProbeProgramVersion> getProgramVersion();
 
-	List<FFProbeChapter> getChapters();
+    List<FFProbeChapter> getChapters();
 
-	List<FFProbePixelFormat> getPixelFormats();
+    List<FFProbePixelFormat> getPixelFormats();
 
-	Predicate<FFProbeStream> filterVideoStream = streamType -> streamType.codecType().equals("video");
-	Predicate<FFProbeStream> filterAudioStream = streamType -> streamType.codecType().equals("audio");
-	Predicate<FFProbeStream> filterDataStream = streamType -> streamType.codecType().equals("data");
+    /**
+     * Only primary streams
+     */
+    Predicate<FFProbeStream> filterVideoStream = streamType -> streamType.codecType().equals("video")
+                                                               && streamType.width() > 0
+                                                               && streamType.height() > 0
+                                                               && streamType.isSecondary() == false;
+    /**
+     * Only primary streams
+     */
+    Predicate<FFProbeStream> filterAudioStream = streamType -> streamType.codecType().equals("audio")
+                                                               && streamType.isSecondary() == false;
+    /**
+     * Only primary streams
+     */
+    Predicate<FFProbeStream> filterDataStream = streamType -> streamType.codecType().equals("data")
+                                                              && streamType.isSecondary() == false;
+    Predicate<FFProbeStream> filterSecondaryStream = streamType -> streamType.isSecondary() == true;
 
-	default Stream<FFProbeStream> getVideoStreams() {
-		return getStreams().stream().filter(filterVideoStream);
-	}
+    /**
+     * Only primary streams, and width/height greater than zero
+     */
+    default Stream<FFProbeStream> getVideoStreams() {
+        return getStreams().stream().filter(filterVideoStream);
+    }
 
-	default Stream<FFProbeStream> getAudioStreams() {
-		return getStreams().stream().filter(filterAudioStream);
-	}
+    /**
+     * Only primary streams
+     */
+    default Stream<FFProbeStream> getAudioStreams() {
+        return getStreams().stream().filter(filterAudioStream);
+    }
 
-	default Optional<FFProbeStream> getFirstVideoStream() {
-		return getVideoStreams()
-				.filter(vs -> vs.disposition().attachedPic() == false)
-				.filter(vs -> vs.disposition().timedThumbnails() == false)
-				.filter(vs -> vs.disposition().stillImage() == false)
-				.sorted((l, r) -> Boolean.compare(r.disposition().asDefault(), l.disposition().asDefault()))
-				.findFirst();
-	}
+    default boolean isDefaultStreamIsSuitable() {
+        return getStreams().stream()
+                .map(FFProbeStream::isDefault)
+                .distinct()
+                .count() == 2l;
+    }
 
-	/**
-	 * @param discard0TC if true, don't return "00:00:00:00" values (return empty).
-	 */
-	default Optional<String> getTimecode(final boolean discard0TC) {
-		return Stream.concat(
-				getFormat()
-						.stream()
-						.map(FFProbeFormat::tags),
-				getStreams()
-						.stream()
-						.map(FFProbeStream::tags))
-				.flatMap(List::stream)
-				.filter(t -> "timecode".equals(t.key()))
-				.map(FFProbeKeyValue::value)
-				.findFirst()
-				.filter(tc -> (tc.equals("00:00:00:00") && discard0TC ? false : true));
-	}
+    /**
+     * Get only from primaries streams
+     */
+    default Optional<FFProbeStream> getFirstVideoStream() {
+        return getVideoStreams()
+                .sorted((l, r) -> compare(r.isDefault(), l.isDefault()))
+                .findFirst();
+    }
 
-	default Optional<Duration> getDuration() {
-		return getFormat()
-				.map(FFProbeFormat::duration)
-				.filter(d -> d > 0d)
-				.map(d -> d * 1000d)
-				.map(Math::round)
-				.map(Duration::ofMillis);
-	}
+    /**
+     * @param discard0TC if true, don't return "00:00:00:00" values (return empty).
+     */
+    default Optional<String> getTimecode(final boolean discard0TC) {
+        return concat(
+                getFormat()
+                        .stream()
+                        .map(FFProbeFormat::tags),
+                getStreams()
+                        .stream()
+                        .map(FFProbeStream::tags))
+                                .flatMap(List::stream)
+                                .filter(t -> "timecode".equals(t.key()))
+                                .map(FFProbeKeyValue::value)
+                                .findFirst()
+                                .filter(tc -> (tc.equals("00:00:00:00") && discard0TC ? false : true));
+    }
+
+    default Optional<Duration> getDuration() {
+        return getFormat()
+                .map(FFProbeFormat::duration)
+                .filter(d -> d > 0d)
+                .map(d -> d * 1000d)
+                .map(Math::round)
+                .map(Duration::ofMillis);
+    }
 
 }

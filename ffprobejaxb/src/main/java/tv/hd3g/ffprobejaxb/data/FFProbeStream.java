@@ -17,6 +17,7 @@
 package tv.hd3g.ffprobejaxb.data;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * StreamType
@@ -73,5 +74,20 @@ public record FFProbeStream(FFProbeStreamDisposition disposition,
                             int nbFrames,
                             int nbReadFrames,
                             int nbReadPackets) {
+
+    public boolean isDefault() {
+        return Optional.ofNullable(disposition)
+                .map(FFProbeStreamDisposition::asDefault)
+                .orElse(false);
+    }
+
+    public boolean isSecondary() {
+        if (disposition == null) {
+            return false;
+        }
+        return disposition.attachedPic()
+               || disposition.stillImage()
+               || disposition.timedThumbnails();
+    }
 
 }
