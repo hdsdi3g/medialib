@@ -85,56 +85,50 @@ public abstract class FFprobeJAXB implements FFprobeReference {
 
         final Map<FFprobeXSDVersion, List<ValidationEvent>> eventsByXSDVersion = new EnumMap<>(FFprobeXSDVersion.class);
         JAXBException lastJAXBException = null;
-        List<ValidationEvent> lastEvents;
-        FFprobeJAXB jaxbReference = null;
         for (final var xsdVersion : FFprobeXSDVersion.values()) {
-            final var events = new ConcurrentLinkedQueue<ValidationEvent>();
-
             try {
                 log.debug("Try to load JAXB {}", xsdVersion.name());
+                final var events = new ConcurrentLinkedQueue<ValidationEvent>();
                 final var ffRef = UnmarshallerTools.unmarshal(
                         xsdVersion.createInstance(),
                         document,
                         events::add,
                         xsdVersion.getClassJAXB());
 
-                lastEvents = events.stream().toList();
-                eventsByXSDVersion.put(xsdVersion, lastEvents);
-
                 if (events.isEmpty()) {
-                    jaxbReference = xsdVersion.make(xmlContent, ffRef);
+                    return xsdVersion.make(xmlContent, ffRef);
                 }
+
+                eventsByXSDVersion.put(xsdVersion, events.stream().toList());
             } catch (final JAXBException e) {
                 log.debug("Can't load JAXB", e);
                 lastJAXBException = e;
             }
         }
 
-        if (jaxbReference == null) {
-            if (lastJAXBException != null) {
-                throw new UncheckedIOException(new IOException(lastJAXBException));
-            }
-
-            eventsByXSDVersion.getOrDefault(FFprobeXSDVersion.values()[0], List.of())
-                    .forEach(e -> {
-                        final var locator = e.getLocator();
-                        log.error(
-                                "JAXB {} says: {} [s{}] at line {}, column {} offset {} node: {}, object {}",
-                                FFprobeXSDVersion.values()[0].name(),
-                                e.getMessage(),
-                                e.getSeverity(),
-                                locator.getLineNumber(),
-                                locator.getColumnNumber(),
-                                locator.getOffset(),
-                                locator.getNode(),
-                                locator.getObject(),
-                                e.getLinkedException());
-                    });
-            throw new IllegalArgumentException(
-                    "Can't properly load ffprobe JAXB. You should update ffprobe.xsd ref and/or check XML document");
+        if (lastJAXBException != null) {
+            throw new UncheckedIOException(new IOException(lastJAXBException));
         }
 
-        return jaxbReference;
+        eventsByXSDVersion.forEach((version, events) -> {
+            events.forEach(e -> {
+                final var locator = e.getLocator();
+                log.error(
+                        "JAXB {} says: {} [s{}] at line {}, column {} offset {} node: {}, object {}",
+                        version,
+                        e.getMessage(),
+                        e.getSeverity(),
+                        locator.getLineNumber(),
+                        locator.getColumnNumber(),
+                        locator.getOffset(),
+                        locator.getNode(),
+                        locator.getObject(),
+                        e.getLinkedException());
+            });
+        });
+
+        throw new IllegalArgumentException(
+                "Can't properly load ffprobe JAXB. You should update ffprobe.xsd ref and/or check XML document");
     }
 
     @SuppressWarnings("unchecked")
