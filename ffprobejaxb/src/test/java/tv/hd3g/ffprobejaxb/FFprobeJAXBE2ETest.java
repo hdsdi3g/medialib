@@ -441,23 +441,25 @@ class FFprobeJAXBE2ETest {
             final var aStream = ms.streams().get(1);
 
             if (isXMLNameContains("mpeg2.ts")) {
-                assertThat(ms.format()).isEqualTo("MPEG-TS (MPEG-2 Transport Stream), 00:00:05, 2 MB, 1 program");
+                assertThat(ms.format()).startsWith("MPEG-TS (MPEG-2 Transport Stream), 00:00:05, 1 program, 4");
+                assertThat(ms.format()).endsWith(" kbps");
                 assertThat(vStream).isEqualTo(
                         "video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV");
                 assertThat(aStream).isEqualTo(
-                        "audio: mp2 stereo @ 48000 Hz [256 kbps]");
+                        "audio: mp2 stereo @ 48 kHz [256 kbps]");
             }
 
             if (isXMLNameContains("ffv1.mov")) {
-                assertThat(ms.format()).isEqualTo("QuickTime / MOV, 00:00:05, 6 MB");
+                assertThat(ms.format()).isEqualTo("QuickTime / MOV, 00:00:05, 10 Mbps");
                 assertThat(vStream).isEqualTo(
-                        "video: ffv1 352×288 @ 25 fps [8568 kbps] yuv420p default");
+                        "video: ffv1 352×288 @ 25 fps [8568 kbps] yuv420p");
                 assertThat(aStream).isEqualTo(
-                        "audio: pcm_s16le stereo @ 48000 Hz [1536 kbps] default");
+                        "audio: pcm_s16le stereo @ 48 kHz");
             }
 
             if (isXMLNameContains("vp8.mkv")) {
-                assertThat(ms.format()).contains("Matroska / WebM", "00:00:05", "bytes, 1 chapter", " kbps");
+                assertThat(ms.format()).startsWith("Matroska / WebM, 00:00:05, 1 chapter, 3");
+                assertThat(ms.format()).endsWith(" kbps");
 
                 if (isXMLNameContains("-2.")) {
                     assertThat(vStream).isEqualTo(
@@ -468,7 +470,7 @@ class FFprobeJAXBE2ETest {
                 }
 
                 assertThat(aStream).isEqualTo(
-                        "audio: aac LC stereo @ 48000 Hz");
+                        "audio: aac LC stereo @ 48 kHz");
             }
         }
 
