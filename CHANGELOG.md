@@ -1,5 +1,13 @@
 # All Medialib projects upgrades needs
 
+## 21.3.0
+
+FFprobeJAXB upgrade and fixes:
+
+  - Correct ffprobe XML loading (it was use the lower parser version) #127
+  - Get video and audio streams will ensure that is not "secondary" streams like attachedPic/stillImage/timedThumbnails; check "video" streams has non 0 width/height; compute isDefaultStreamIsSuitable #127
+  - Correct MediaSummary: only display "default" if relevent, remove file size, always display container bitrate (if avaliable), display at end secondary streams, remove sampleFmt for audio, simplify classic audio sample rates (32, 44.1, 48, 96 kHz) #127
+
 ## 21.2.1
 
 Maintenance version: correct JAXB maven deps (replace old jaxb-api by glassfish impls), recompute all ffprobe XSDs, and fix ffprobe test #125
