@@ -320,6 +320,9 @@ class FFprobeReferenceTest {
 
     @Test
     void testIsDefaultStreamIsSuitable() {
+        when(stream.codecName()).thenReturn("codecname");
+        when(defaultStream.codecName()).thenReturn("codecname");
+
         r = new FFprobeReferenceImplMultiStreams();
         assertFalse(r.isDefaultStreamIsSuitable());
 
@@ -331,6 +334,52 @@ class FFprobeReferenceTest {
 
         verify(stream, atLeastOnce()).isDefault();
         verify(defaultStream, atLeastOnce()).isDefault();
+
+        verify(stream, atLeastOnce()).codecName();
+        verify(stream, atLeastOnce()).codecType();
+        verify(defaultStream, atLeastOnce()).codecName();
+        verify(defaultStream, atLeastOnce()).codecType();
+    }
+
+    @Test
+    void testIsDefaultStreamIsSuitable_withData() {
+        when(stream.codecName()).thenReturn("codecname");
+        when(defaultStream.codecName()).thenReturn("codecname");
+        when(stream.codecType()).thenReturn("data");
+
+        r = new FFprobeReferenceImplMultiStreams();
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        when(defaultStream.isDefault()).thenReturn(true);
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        when(stream.isDefault()).thenReturn(true);
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        verify(stream, atLeastOnce()).codecType();
+        verify(defaultStream, atLeastOnce()).isDefault();
+        verify(defaultStream, atLeastOnce()).codecName();
+        verify(defaultStream, atLeastOnce()).codecType();
+    }
+
+    @Test
+    void testIsDefaultStreamIsSuitable_withNoCodecName() {
+        when(defaultStream.codecName()).thenReturn("codecname");
+
+        r = new FFprobeReferenceImplMultiStreams();
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        when(defaultStream.isDefault()).thenReturn(true);
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        when(stream.isDefault()).thenReturn(true);
+        assertFalse(r.isDefaultStreamIsSuitable());
+
+        verify(stream, atLeastOnce()).codecType();
+        verify(stream, atLeastOnce()).codecName();
+        verify(defaultStream, atLeastOnce()).isDefault();
+        verify(defaultStream, atLeastOnce()).codecName();
+        verify(defaultStream, atLeastOnce()).codecType();
     }
 
 }

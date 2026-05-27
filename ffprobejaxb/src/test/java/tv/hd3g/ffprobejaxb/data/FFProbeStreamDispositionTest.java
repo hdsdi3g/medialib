@@ -27,48 +27,71 @@ import org.junit.jupiter.api.Test;
 
 class FFProbeStreamDispositionTest {
 
-	FFProbeStreamDisposition d;
+    FFProbeStreamDisposition d;
 
-	@Test
-	void test() {
-		d = FFProbeStreamDisposition.getByNames("default");
-		assertNotNull(d);
-		assertTrue(d.asDefault());
-		assertFalse(d.forced());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+    @Test
+    void testDefault() {
+        d = FFProbeStreamDisposition.getByNames("default");
+        assertNotNull(d);
+        assertTrue(d.asDefault());
+        assertFalse(d.forced());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+    }
 
-		d = FFProbeStreamDisposition.getByNames("asdefault");
-		assertNotNull(d);
-		assertTrue(d.asDefault());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+    @Test
+    void testAsdefault() {
 
-		d = FFProbeStreamDisposition.getByNames("asDefault");
-		assertNotNull(d);
-		assertTrue(d.asDefault());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+        d = FFProbeStreamDisposition.getByNames("asdefault");
+        assertNotNull(d);
+        assertTrue(d.asDefault());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+    }
 
-		d = FFProbeStreamDisposition.getByNames("default", "forced");
-		assertNotNull(d);
-		assertTrue(d.asDefault());
-		assertTrue(d.forced());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default", "forced"));
+    @Test
+    void testAsDefault() {
 
-		d = FFProbeStreamDisposition.getByNames("hearingImpaired");
-		assertNotNull(d);
-		assertFalse(d.asDefault());
-		assertTrue(d.hearingImpaired());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
+        d = FFProbeStreamDisposition.getByNames("asDefault");
+        assertNotNull(d);
+        assertTrue(d.asDefault());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default"));
+    }
 
-		d = FFProbeStreamDisposition.getByNames("hearingimpaired");
-		assertNotNull(d);
-		assertFalse(d.asDefault());
-		assertTrue(d.hearingImpaired());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
+    @Test
+    void test() {
 
-		d = FFProbeStreamDisposition.getByNames("hearing_impaired");
-		assertNotNull(d);
-		assertFalse(d.asDefault());
-		assertTrue(d.hearingImpaired());
-		assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
-	}
+        d = FFProbeStreamDisposition.getByNames("default", "forced");
+        assertNotNull(d);
+        assertTrue(d.asDefault());
+        assertTrue(d.forced());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("default", "forced"));
+    }
+
+    @Test
+    void testHearingImpaired() {
+        d = FFProbeStreamDisposition.getByNames("hearingImpaired");
+        assertNotNull(d);
+        assertFalse(d.asDefault());
+        assertTrue(d.hearingImpaired());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
+    }
+
+    @Test
+    void testHearingimpaired() {
+
+        d = FFProbeStreamDisposition.getByNames("hearingimpaired");
+        assertNotNull(d);
+        assertFalse(d.asDefault());
+        assertTrue(d.hearingImpaired());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
+    }
+
+    @Test
+    void testHearing_impaired() {
+
+        d = FFProbeStreamDisposition.getByNames("hearing_impaired");
+        assertNotNull(d);
+        assertFalse(d.asDefault());
+        assertTrue(d.hearingImpaired());
+        assertThat(d.resumeDispositions().toList()).hasSameElementsAs(List.of("hearing impaired"));
+    }
 }

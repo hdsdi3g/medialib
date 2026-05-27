@@ -60,20 +60,21 @@ public interface FFprobeReference {
     /**
      * Only primary streams
      */
-    Predicate<FFProbeStream> filterVideoStream = streamType -> streamType.codecType().equals("video")
+    Predicate<FFProbeStream> filterVideoStream = streamType -> "video".equals(streamType.codecType())
                                                                && streamType.width() > 0
                                                                && streamType.height() > 0
                                                                && streamType.isSecondary() == false;
     /**
      * Only primary streams
      */
-    Predicate<FFProbeStream> filterAudioStream = streamType -> streamType.codecType().equals("audio")
+    Predicate<FFProbeStream> filterAudioStream = streamType -> "audio".equals(streamType.codecType())
                                                                && streamType.isSecondary() == false;
     /**
      * Only primary streams
      */
-    Predicate<FFProbeStream> filterDataStream = streamType -> streamType.codecType().equals("data")
+    Predicate<FFProbeStream> filterDataStream = streamType -> "data".equals(streamType.codecType())
                                                               && streamType.isSecondary() == false;
+
     Predicate<FFProbeStream> filterSecondaryStream = streamType -> streamType.isSecondary() == true;
 
     /**
@@ -92,6 +93,8 @@ public interface FFprobeReference {
 
     default boolean isDefaultStreamIsSuitable() {
         return getStreams().stream()
+                .filter(s -> "data".equals(s.codecType()) == false)
+                .filter(s -> s.codecName() != null)
                 .map(FFProbeStream::isDefault)
                 .distinct()
                 .count() == 2l;

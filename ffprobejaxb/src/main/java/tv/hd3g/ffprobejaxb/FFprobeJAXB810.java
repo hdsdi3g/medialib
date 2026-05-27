@@ -189,7 +189,7 @@ public class FFprobeJAXB810 extends FFprobeJAXB {
                         s.getProfile(),
                         s.getCodecType(),
                         s.getCodecTag(),
-                        s.getCodecTagString(),
+                        getCodecTagString(s.getCodecTagString()),
                         s.getExtradata(),
                         s.getExtradataSize() != null ? s.getExtradataSize() : 0,
                         s.getExtradataHash(),
@@ -204,12 +204,12 @@ public class FFprobeJAXB810 extends FFprobeJAXB {
                         s.getSampleAspectRatio(),
                         s.getDisplayAspectRatio(),
                         s.getPixFmt(),
-                        getNonNull(s.getLevel()),
-                        s.getColorRange(),
-                        s.getColorSpace(),
-                        s.getColorTransfer(),
-                        s.getColorPrimaries(),
-                        s.getChromaLocation(),
+                        getLevelTag(getNonNull(s.getLevel())),
+                        removeUnknown(s.getColorRange()),
+                        removeUnknown(s.getColorSpace()),
+                        removeUnknown(s.getColorTransfer()),
+                        removeUnknown(s.getColorPrimaries()),
+                        removeUnknown(s.getChromaLocation()),
                         s.getFieldOrder(),
                         getNonNull(s.getRefs()),
                         s.getSampleFmt(),
@@ -232,6 +232,7 @@ public class FFprobeJAXB810 extends FFprobeJAXB {
                         getNonNull(s.getNbFrames()),
                         getNonNull(s.getNbReadFrames()),
                         getNonNull(s.getNbReadPackets())))
+                .filter(filterOutNoCodecType)
                 .toList();
     }
 

@@ -16,6 +16,7 @@
  */
 package tv.hd3g.ffprobejaxb;
 
+import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -47,7 +49,7 @@ public record MediaSummary(String format, List<String> streams) {
         final var chapters = source.getChapters();
 
         final var formatEntries = new ArrayList<String>();
-        formatEntries.add(format.formatLongName());
+        formatEntries.add(upperCase1st(removeParenthesisContent(format.formatLongName())));
         formatEntries.add(computeDuration(format));
         source.getTimecode(true)
                 .map(t -> "TCIN: " + t)
@@ -98,20 +100,21 @@ public record MediaSummary(String format, List<String> streams) {
     static String getAudioSummary(final FFProbeStream s, final boolean isDefaultStreamIsSuitable) {
         final var entries = new ArrayList<String>();
 
-        entries.add(s.codecType() + ": " + s.codecName());
+        entries.add(s.codecType() + ": " + upperCase1st(getCodecLongName(s)));
 
         getValue(s.profile()).ifPresent(entries::add);
 
+        final var channelLayout = getChannelLayout(s.channelLayout());
         if (s.channels() > 2) {
-            if (s.channelLayout() != null) {
-                entries.add(s.channelLayout() + " (" + s.channels() + " channels)");
+            if (channelLayout != null) {
+                entries.add(channelLayout + " (" + s.channels() + " tracks)");
             } else {
-                entries.add(s.channels() + " channels");
+                entries.add(s.channels() + " tracks");
             }
-        } else if (s.channelLayout() != null) {
-            entries.add(s.channelLayout());
+        } else if (channelLayout != null) {
+            entries.add(channelLayout);
         } else if (s.channels() == 2) {
-            entries.add("2 channels");
+            entries.add("2 tracks");
         } else {
             entries.add("mono");
         }
@@ -155,13 +158,19 @@ public record MediaSummary(String format, List<String> streams) {
     static String getVideoSummary(final FFProbeStream s, final boolean isDefaultStreamIsSuitable) {// NOSONAR 3776
         final var entries = new ArrayList<String>();
 
-        entries.add(s.codecType() + ": " + s.codecName());
+        entries.add(s.codecType() + ": " + upperCase1st(getCodecLongName(s)));
 
         if (s.width() > 0 && s.height() > 0) {
             entries.add(s.width() + "×" + s.height());
         }
 
-        final var profile = getValue(s.profile()).filter(p -> p.equals("0") == false);
+        final var profile = getValue(s.profile())
+                .filter(p -> p.equals("0") == false)
+                /**
+                 * Remove Codec name from profile name ("JPEG 2000 digital cinema 2K" => "Digital cinema 2K")
+                 */
+                .map(p -> upperCase1st(p.replace(getCodecLongName(s), "").trim()));
+
         final var level = Optional.ofNullable(s.level()).orElse(0);
         if (profile.isPresent()) {
             if (level > 0) {
@@ -177,23 +186,17 @@ public record MediaSummary(String format, List<String> streams) {
             entries.add("with B frames");
         }
 
-        final var frameRate = getValue(s.avgFrameRate()).map(b -> {
-            final var pos = b.indexOf("/");
-            if (pos == -1) {
-                return b;
-            } else {
-                final var l = Double.valueOf(b.substring(0, pos));
-                final var r = Double.valueOf(b.substring(pos + 1));
-                final var df = new DecimalFormat();
-                df.setDecimalFormatSymbols(symbols);
-                df.setMaximumFractionDigits(3);
-                df.setMinimumFractionDigits(0);
-                df.setGroupingUsed(false);
-                return df.format(l / r);
-            }
-        }).orElse("?");
-
-        entries.add("@ " + frameRate + " fps");
+        s.getComputedAvgFrameRate()
+                .or(s::getComputedRFrameRate)
+                .map(frm -> {
+                    final var df = new DecimalFormat();
+                    df.setDecimalFormatSymbols(symbols);
+                    df.setMaximumFractionDigits(3);
+                    df.setMinimumFractionDigits(0);
+                    df.setGroupingUsed(false);
+                    return df.format(frm);
+                })
+                .ifPresent(frameRate -> entries.add("@ " + frameRate + " fps"));
 
         Optional.ofNullable(s.bitRate()).ifPresent(b -> {
             final var bitrateKbps = (double) b / 1000d;
@@ -220,8 +223,23 @@ public record MediaSummary(String format, List<String> streams) {
         return entries.stream().collect(joining(" "));
     }
 
-    /*
-    * */
+    /**
+     * @return "5.1(side)" => "5.1/side", or null if null
+     */
+    public static String getChannelLayout(final String channelLayout) {
+        if (channelLayout == null) {
+            return null;
+        }
+
+        if (channelLayout.contains("(") && channelLayout.endsWith(")")) {
+            final var parPos = channelLayout.indexOf("(");
+            final var left = channelLayout.substring(0, parPos);
+            final var right = channelLayout.substring(parPos + 1, channelLayout.length() - 1);
+            return left + "/" + right;
+        }
+
+        return channelLayout;
+    }
 
     public static String getLevelTag(final String videoCodec, final int rawLevel) {
         return switch (videoCodec) {
@@ -340,6 +358,77 @@ public record MediaSummary(String format, List<String> streams) {
         return entries.stream().collect(Collectors.joining("/"));
     }
 
+    public static final Map<String, String> WELL_KNOWN_CODECS_NAMES = Map.ofEntries(
+            Map.entry("dvvideo", "DV"),
+            Map.entry("dvcp", "DV/DVCPro"),
+            Map.entry("dv5p", "DVCPro 50"),
+            Map.entry("avc1", "h264"),
+            Map.entry("mpeg2video", "MPEG2"),
+            Map.entry("mx5p", "MPEG2/4:2:2"),
+            Map.entry("wmv3", "WMV9"),
+            Map.entry("wmav2", "WMA9"),
+            Map.entry("apch", "Apple ProRes 422 HQ"),
+            Map.entry("apcn", "Apple ProRes 422"),
+            Map.entry("apcs", "Apple ProRes 422 LT"),
+            Map.entry("apco", "Apple ProRes 422 Proxy"),
+            Map.entry("ap4h", "Apple ProRes 4444"),
+            Map.entry("mp2", "MPEG/L2"),
+            Map.entry("ac3", "Dolby Digital/AC-3"),
+            Map.entry("pcm_s16le", "PCM 16 bits"),
+            Map.entry("pcm_s16be", "PCM 16 bits/BE"),
+            Map.entry("pcm_s24le", "PCM 24 bits"),
+            Map.entry("pcm_s24be", "PCM 24 bits/BE"));
+
+    public static String getCodecLongName(final FFProbeStream s) {
+        return Stream.of(
+                Optional.ofNullable(s.codecTagString())
+                        .filter(WELL_KNOWN_CODECS_NAMES::containsKey)
+                        .map(WELL_KNOWN_CODECS_NAMES::get)
+                        .stream(),
+                Optional.ofNullable(s.codecName())
+                        .filter(WELL_KNOWN_CODECS_NAMES::containsKey)
+                        .map(WELL_KNOWN_CODECS_NAMES::get)
+                        .stream(),
+                Optional.ofNullable(s.codecLongName())
+                        .map(MediaSummary::removeParenthesisContent)
+                        .stream(),
+                Optional.ofNullable(s.codecName()).stream())
+                .flatMap(identity())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static String removeParenthesisContent(final String value) {
+        if (value == null
+            || value.contains("(") == false
+            || value.contains(")") == false) {
+            return value;
+        }
+
+        final var posOpen = value.indexOf("(");
+        final var posClose = value.indexOf(")", posOpen);
+        if (posClose == -1) {
+            return value;
+        }
+
+        if (posClose + 1 == value.length()) {
+            return value.substring(0, posOpen).trim();
+        }
+        return value.substring(0, posOpen) + value.substring(posClose + 1, value.length()).trim();
+    }
+
+    /**
+     * @return "aa" => "Aa"
+     */
+    public static String upperCase1st(final String name) {
+        if (name == null) {
+            return name;
+        } else if (name.length() == 1) {
+            return name.toUpperCase();
+        }
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
     static void addZeros(final int value, final StringBuilder sbTime) {
         if (value < 10) {
             sbTime.append("0");
@@ -362,10 +451,9 @@ public record MediaSummary(String format, List<String> streams) {
         return source.getStreams().stream()
                 .filter(not(filterVideoStream))
                 .filter(not(filterAudioStream))
+                .filter(s -> s.codecName() != null)
                 .map(s -> {
-                    final var name = getValue(s.codecName())
-                            .or(() -> getValue(s.codecTagString()))
-                            .orElse("");
+                    final var name = s.codecName();
 
                     if (s.isSecondary()) {
                         final var disposition = s.disposition();

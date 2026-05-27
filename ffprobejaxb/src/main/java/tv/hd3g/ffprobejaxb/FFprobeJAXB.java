@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.w3c.dom.Node;
@@ -38,12 +39,15 @@ import org.xml.sax.SAXParseException;
 
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.ValidationEvent;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 public abstract class FFprobeJAXB implements FFprobeReference {
     private static final Logger log = LoggerFactory.getLogger(FFprobeJAXB.class);
 
     private static final String LOADED_XML = "Loaded XML: {}";
     private final String xmlContent;
+
+    protected static final Predicate<FFProbeStream> filterOutNoCodecType = s -> s.codecType() != null;
 
     protected FFprobeJAXB(final String xmlContent) {
         this.xmlContent = xmlContent;
@@ -110,22 +114,20 @@ public abstract class FFprobeJAXB implements FFprobeReference {
             throw new UncheckedIOException(new IOException(lastJAXBException));
         }
 
-        eventsByXSDVersion.forEach((version, events) -> {
-            events.forEach(e -> {
-                final var locator = e.getLocator();
-                log.error(
-                        "JAXB {} says: {} [s{}] at line {}, column {} offset {} node: {}, object {}",
-                        version,
-                        e.getMessage(),
-                        e.getSeverity(),
-                        locator.getLineNumber(),
-                        locator.getColumnNumber(),
-                        locator.getOffset(),
-                        locator.getNode(),
-                        locator.getObject(),
-                        e.getLinkedException());
-            });
-        });
+        eventsByXSDVersion.forEach((version, events) -> events.forEach(e -> {
+            final var locator = e.getLocator();
+            log.error(
+                    "JAXB {} says: {} [s{}] at line {}, column {} offset {} node: {}, object {}",
+                    version,
+                    e.getMessage(),
+                    e.getSeverity(),
+                    locator.getLineNumber(),
+                    locator.getColumnNumber(),
+                    locator.getOffset(),
+                    locator.getNode(),
+                    locator.getObject(),
+                    e.getLinkedException());
+        }));
 
         throw new IllegalArgumentException(
                 "Can't properly load ffprobe JAXB. You should update ffprobe.xsd ref and/or check XML document");
@@ -165,6 +167,20 @@ public abstract class FFprobeJAXB implements FFprobeReference {
         return getMediaSummary().toString();
     }
 
+    static String getCodecTagString(final String value) {
+        if (value == null || value.equals("[0][0][0][0]")) {
+            return null;
+        }
+        return value;
+    }
+
+    static int getLevelTag(final int value) {
+        if (value < 0) {
+            return 0;
+        }
+        return value;
+    }
+
     static boolean getNonNull(final Boolean value) {
         if (value == null) {
             return false;
@@ -192,4 +208,12 @@ public abstract class FFprobeJAXB implements FFprobeReference {
         }
         return value;
     }
+
+    static String removeUnknown(final String value) {
+        if ("unknown".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return value;
+    }
+
 }

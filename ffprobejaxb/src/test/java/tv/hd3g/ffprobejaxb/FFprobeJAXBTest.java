@@ -16,6 +16,7 @@
  */
 package tv.hd3g.ffprobejaxb;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.UncheckedIOException;
@@ -24,21 +25,42 @@ import org.junit.jupiter.api.Test;
 
 class FFprobeJAXBTest {
 
-	@Test
-	void testFoolishXML() {
-		assertThrows(UncheckedIOException.class,
-				() -> FFprobeJAXB.load(">not an XML<"));
-	}
+    @Test
+    void testFoolishXML() {
+        assertThrows(UncheckedIOException.class,
+                () -> FFprobeJAXB.load(">not an XML<"));
+    }
 
-	@Test
-	void testBuggyFFprobeXML() {
-		assertThrows(IllegalArgumentException.class,
-				() -> FFprobeJAXB.load(
-						"""
-								<?xml version="1.0" encoding="UTF-8"?>
-								<ffprobe>
-								    <disposition default="1"/>
-								</ffprobe>
-								"""));
-	}
+    @Test
+    void testBuggyFFprobeXML() {
+        assertThrows(IllegalArgumentException.class,
+                () -> FFprobeJAXB.load(
+                        """
+                                <?xml version="1.0" encoding="UTF-8"?>
+                                <ffprobe>
+                                    <disposition default="1"/>
+                                </ffprobe>
+                                """));
+    }
+
+    @Test
+    void testGetCodecTagString() {
+        assertThat(FFprobeJAXB.getCodecTagString(null)).isNull();
+        assertThat(FFprobeJAXB.getCodecTagString("foo")).isEqualTo("foo");
+        assertThat(FFprobeJAXB.getCodecTagString("[0][0][0][0]")).isNull();
+    }
+
+    @Test
+    void testGetLevelTag() {
+        assertThat(FFprobeJAXB.getLevelTag(0)).isZero();
+        assertThat(FFprobeJAXB.getLevelTag(-99)).isZero();
+        assertThat(FFprobeJAXB.getLevelTag(99)).isEqualTo(99);
+    }
+
+    @Test
+    void testRemoveUnknown() {
+        assertThat(FFprobeJAXB.removeUnknown("foo")).isEqualTo("foo");
+        assertThat(FFprobeJAXB.removeUnknown("unknown")).isNull();
+        assertThat(FFprobeJAXB.removeUnknown(null)).isNull();
+    }
 }

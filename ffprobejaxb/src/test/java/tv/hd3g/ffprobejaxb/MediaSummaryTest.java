@@ -19,18 +19,69 @@ package tv.hd3g.ffprobejaxb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
+import static tv.hd3g.ffprobejaxb.MediaSummary.getChannelLayout;
+import static tv.hd3g.ffprobejaxb.MediaSummary.getCodecLongName;
+import static tv.hd3g.ffprobejaxb.MediaSummary.removeParenthesisContent;
+import static tv.hd3g.ffprobejaxb.MediaSummary.upperCase1st;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import net.datafaker.Faker;
+import tv.hd3g.ffprobejaxb.data.FFProbeStream;
 
 class MediaSummaryTest {
     static Faker faker = net.datafaker.Faker.instance();
 
     MediaSummary ms;
+
+    @Test
+    void testGetCodecLongName() {
+        final var s = Mockito.mock(FFProbeStream.class);
+
+        when(s.codecTagString()).thenReturn("atag");
+        when(s.codecName()).thenReturn("codec");
+        assertThat(getCodecLongName(s)).isEqualTo("codec");
+
+        when(s.codecLongName()).thenReturn("codec long name (Codec name)");
+        assertThat(getCodecLongName(s)).isEqualTo("codec long name");
+
+        when(s.codecName()).thenReturn("pcm_s24le");
+        assertThat(getCodecLongName(s)).isEqualTo("PCM 24 bits");
+
+        when(s.codecTagString()).thenReturn("apch");
+        assertThat(getCodecLongName(s)).isEqualTo("Apple ProRes 422 HQ");
+    }
+
+    @Test
+    void testRemoveParenthesisContent() {
+        assertThat(removeParenthesisContent(null)).isNull();
+        assertThat(removeParenthesisContent("test(value")).isEqualTo("test(value");
+        assertThat(removeParenthesisContent("test)value")).isEqualTo("test)value");
+        assertThat(removeParenthesisContent("test)(value")).isEqualTo("test)(value");
+        assertThat(removeParenthesisContent("test(value)")).isEqualTo("test");
+        assertThat(removeParenthesisContent("test(value) ")).isEqualTo("test");
+        assertThat(removeParenthesisContent("test (value) nope")).isEqualTo("test nope");
+    }
+
+    @Test
+    void testUpperCase1st() {
+        assertThat(upperCase1st(null)).isNull();
+        assertThat(upperCase1st("d")).isEqualTo("D");
+        assertThat(upperCase1st("demo")).isEqualTo("Demo");
+    }
+
+    @Test
+    void testGetChannelLayout() {
+        assertThat(getChannelLayout(null)).isNull();
+        assertThat(getChannelLayout("te(s)t")).isEqualTo("te(s)t");
+        assertThat(getChannelLayout("test)")).isEqualTo("test)");
+        assertThat(getChannelLayout("test(demo)")).isEqualTo("test/demo");
+    }
 
     @Test
     void testCreate() {
@@ -61,8 +112,14 @@ class MediaSummaryTest {
                                     <tag key="handler_name" value="Time Code Media Handler"/>
                                     <tag key="timecode" value="30:00:00:00"/>
                                 </stream>
+                                <stream index="3" codec_type="data" codec_name="subtitle">
+                                    <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+                                    <tag key="creation_time" value="2019-11-03T15:08:36.000000Z"/>
+                                    <tag key="language" value="eng"/>
+                                    <tag key="handler_name" value="Subtitle Foo Bar"/>
+                                    <tag key="timecode" value="30:00:00:00"/>
+                                </stream>
                             </streams>
-
                             <format filename="Test.mov" nb_streams="3" nb_programs="0" format_name="mov,mp4,m4a,3gp,3g2,mj2" format_long_name="QuickTime / MOV" start_time="0.000000" duration="50.000000" size="487700244" bit_rate="78032039" probe_score="100">
                                 <tag key="major_brand" value="qt  "/>
                                 <tag key="minor_version" value="537199360"/>
@@ -76,9 +133,9 @@ class MediaSummaryTest {
 
         assertEquals("QuickTime / MOV, 00:00:50, TCIN: 10:00:00:00, 78 Mbps", ms.format());
         assertEquals(List.of(
-                "video: prores 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/colRange:TV/colSpace:SMPTE170M/colTransfer:BT709/colPrimaries:BT470BG",
-                "audio: pcm_s16le stereo @ 48 kHz",
-                "data: tmcd (Time Code Media Handler)"),
+                "video: Apple ProRes 422 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/colRange:TV/colSpace:SMPTE170M/colTransfer:BT709/colPrimaries:BT470BG",
+                "audio: PCM 16 bits stereo @ 48 kHz",
+                "data: subtitle (Subtitle Foo Bar)"),
                 ms.streams());
     }
 
@@ -156,7 +213,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile layout (8 channels) @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile layout (8 tracks) @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -170,7 +227,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile layout (8 channels) @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile layout (8 tracks) @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -184,7 +241,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile layout (8 channels) @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile layout (8 tracks) @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -198,7 +255,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile 8 channels @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile 8 tracks @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -212,7 +269,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile layout @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile layout @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -226,7 +283,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile 2 channels @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile 2 tracks @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -240,7 +297,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name profile mono @ 48 kHz [1000 kbps]",
+        assertEquals("type: Name profile mono @ 48 kHz [1000 kbps]",
                 MediaSummary.getAudioSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -254,7 +311,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: pcm_FOOBAR profile layout (8 channels) @ 48 kHz",
+        assertEquals("type: Pcm_FOOBAR profile layout (8 tracks) @ 48 kHz",
                 MediaSummary.getAudioSummary(s, false));
     }
 
@@ -273,7 +330,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name 2×3 profile/L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
+        assertEquals("type: Name 2×3 Profile/L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
                 MediaSummary.getVideoSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -289,7 +346,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
+        assertEquals("type: Name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
                 MediaSummary.getVideoSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -305,7 +362,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
+        assertEquals("type: Name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
                 MediaSummary.getVideoSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -321,7 +378,7 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
+        assertEquals("type: Name 2×3 L10 with B frames @ 25 fps [1000 kbps] (100 frms)",
                 MediaSummary.getVideoSummary(s, false));
 
         s = FFprobeJAXB.load(
@@ -337,7 +394,55 @@ class MediaSummaryTest {
                         """)
                 .getStreams().stream().findFirst().orElseThrow();
 
-        assertEquals("type: name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
+        assertEquals("type: Name 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
+                MediaSummary.getVideoSummary(s, false));
+
+        s = FFprobeJAXB.load(
+                """
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <ffprobe>
+                            <streams>
+                                <stream index="0" codec_name="name" codec_long_name="Foo Bar" codec_type="type" bit_rate="1000000"
+                                width="2" height="3" has_b_frames="1" nb_frames="100" avg_frame_rate="25"
+                                />
+                            </streams>
+                        </ffprobe>
+                        """)
+                .getStreams().stream().findFirst().orElseThrow();
+
+        assertEquals("type: Foo Bar 2×3 with B frames @ 25 fps [1000 kbps] (100 frms)",
+                MediaSummary.getVideoSummary(s, false));
+
+        s = FFprobeJAXB.load(
+                """
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <ffprobe>
+                            <streams>
+                                <stream index="0" codec_name="name" codec_long_name="Foo Bar" profile="foo-bar" codec_type="type" bit_rate="1000000"
+                                width="2" height="3" has_b_frames="1" nb_frames="100" avg_frame_rate="25"
+                                />
+                            </streams>
+                        </ffprobe>
+                        """)
+                .getStreams().stream().findFirst().orElseThrow();
+
+        assertEquals("type: Foo Bar 2×3 Foo-bar with B frames @ 25 fps [1000 kbps] (100 frms)",
+                MediaSummary.getVideoSummary(s, false));
+
+        s = FFprobeJAXB.load(
+                """
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <ffprobe>
+                            <streams>
+                                <stream index="0" codec_name="name" codec_long_name="Foo Bar" profile="Foo Bar Profile" codec_type="type" bit_rate="1000000"
+                                width="2" height="3" has_b_frames="1" nb_frames="100" avg_frame_rate="25"
+                                />
+                            </streams>
+                        </ffprobe>
+                        """)
+                .getStreams().stream().findFirst().orElseThrow();
+
+        assertEquals("type: Foo Bar 2×3 Profile with B frames @ 25 fps [1000 kbps] (100 frms)",
                 MediaSummary.getVideoSummary(s, false));
     }
 
@@ -348,7 +453,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" pix_fmt="pix"
+                                <stream index="0" codec_type="other" codec_name="name" pix_fmt="pix"
                         		color_range="range" color_space="space" color_transfer="transfert" color_primaries="primaries" />
                             </streams>
                         </ffprobe>
@@ -363,7 +468,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" pix_fmt="pix"
+                                <stream index="0" codec_type="other" codec_name="name" pix_fmt="pix"
                         		color_range="range" color_space="space" color_transfer="transfert" />
                             </streams>
                         </ffprobe>
@@ -378,7 +483,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" pix_fmt="pix"
+                                <stream index="0" codec_type="other" codec_name="name" pix_fmt="pix"
                         		color_range="range" color_space="space" />
                             </streams>
                         </ffprobe>
@@ -393,7 +498,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" pix_fmt="pix" color_range="range"  />
+                                <stream index="0" codec_type="other" codec_name="name" pix_fmt="pix" color_range="range"  />
                             </streams>
                         </ffprobe>
                         """)
@@ -407,7 +512,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" pix_fmt="pix" />
+                                <stream index="0" codec_type="other" codec_name="name" pix_fmt="pix" />
                             </streams>
                         </ffprobe>
                         """)
@@ -421,7 +526,7 @@ class MediaSummaryTest {
                         <?xml version="1.0" encoding="UTF-8"?>
                         <ffprobe>
                             <streams>
-                                <stream index="0" />
+                                <stream index="0" codec_type="other" codec_name="name" />
                             </streams>
                         </ffprobe>
                         """)
@@ -564,8 +669,8 @@ class MediaSummaryTest {
 
         assertEquals("Matroska / WebM, 00:01:00, 415 kbps", ms.format());
         assertEquals(List.of(
-                "video: vp9 480×480 Profile 0 @ 29.97 fps yuv420p/colRange:TV/BT709",
-                "audio: opus mono @ 48 kHz"),
+                "video: Google VP9 480×480 Profile 0 @ 29.97 fps yuv420p/colRange:TV/BT709",
+                "audio: Opus mono @ 48 kHz"),
                 ms.streams());
     }
 
@@ -589,7 +694,7 @@ class MediaSummaryTest {
         assertNotNull(ms);
 
         assertEquals("QuickTime / MOV, 00:00:50, 78 Mbps", ms.format());
-        assertEquals(List.of("data: tmcd"), ms.streams());
+        assertThat(ms.streams()).isEmpty();
     }
 
     @Test
@@ -657,13 +762,11 @@ class MediaSummaryTest {
 
         assertEquals("QuickTime / MOV, 00:00:50, TCIN: 30:00:00:00, 78 Mbps", ms.format());
         assertEquals(List.of(
-                "video: prores 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/colRange:TV/colSpace:SMPTE170M/colTransfer:BT709/colPrimaries:BT470BG",
-                "audio: pcm_s16le stereo @ 48 kHz",
+                "video: Apple ProRes 422 720×576 Standard @ 50 fps [76 Mbps] yuv422p10le/colRange:TV/colSpace:SMPTE170M/colTransfer:BT709/colPrimaries:BT470BG",
+                "audio: PCM 16 bits stereo @ 48 kHz",
                 "attached picture (prores 720×576)",
                 "still image (prores 720×576)",
-                "timed thumbnails (prores 720×576)",
-                "data: tmcd (Time Code Media Handler)",
-                "attached picture (tmcd 0×0)"),
+                "timed thumbnails (prores 720×576)"),
                 ms.streams());
     }
 

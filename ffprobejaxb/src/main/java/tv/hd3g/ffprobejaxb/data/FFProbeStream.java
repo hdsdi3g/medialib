@@ -16,12 +16,18 @@
  */
 package tv.hd3g.ffprobejaxb.data;
 
+import static java.lang.Float.parseFloat;
+import static java.util.Optional.empty;
+
 import java.util.List;
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * StreamType
  */
+@Slf4j
 public record FFProbeStream(FFProbeStreamDisposition disposition,
                             List<FFProbeKeyValue> tags,
                             List<FFProbePacketSideData> sideDataList,
@@ -75,6 +81,8 @@ public record FFProbeStream(FFProbeStreamDisposition disposition,
                             int nbReadFrames,
                             int nbReadPackets) {
 
+    private static final String LOG_INVALID_FRAME_RATE = "Invalid frameRate: {}";
+
     public boolean isDefault() {
         return Optional.ofNullable(disposition)
                 .map(FFProbeStreamDisposition::asDefault)
@@ -82,12 +90,66 @@ public record FFProbeStream(FFProbeStreamDisposition disposition,
     }
 
     public boolean isSecondary() {
+        if ("data".equals(codecType) && codecName == null) {
+            return true;
+        }
         if (disposition == null) {
             return false;
         }
         return disposition.attachedPic()
                || disposition.stillImage()
                || disposition.timedThumbnails();
+    }
+
+    public Optional<Float> getComputedRFrameRate() {
+        return parseFrameRate(rFrameRate);
+    }
+
+    public Optional<Float> getComputedAvgFrameRate() {
+        return parseFrameRate(avgFrameRate);
+    }
+
+    /**
+     * @return can be null
+     */
+    static Optional<Float> parseFrameRate(final String rawValue) {
+        if (rawValue == null
+            || rawValue.isBlank()
+            || rawValue.equals("0/0")
+            || rawValue.equals("0")
+            || rawValue.equals("0.0")
+            || rawValue.startsWith("-")) {
+            return empty();
+        }
+
+        if (rawValue.contains("/")) {
+            final var parts = rawValue.split("/");
+            if (parts.length != 2) {
+                log.warn(LOG_INVALID_FRAME_RATE, rawValue);
+                return empty();
+            }
+            try {
+                final var numerator = Integer.parseInt(parts[0]);
+                final var denominator = Integer.parseInt(parts[1]);
+                if (denominator == 0) {
+                    return Optional.ofNullable((float) numerator);
+                } else if (numerator == 0) {
+                    return empty();
+                }
+
+                return Optional.ofNullable((float) numerator / (float) denominator);
+            } catch (final NumberFormatException _) {
+                log.warn(LOG_INVALID_FRAME_RATE, rawValue);
+                return empty();
+            }
+        }
+
+        try {
+            return Optional.ofNullable(parseFloat(rawValue));
+        } catch (final NumberFormatException _) {
+            log.warn(LOG_INVALID_FRAME_RATE, rawValue);
+            return empty();
+        }
     }
 
 }

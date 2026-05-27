@@ -239,7 +239,7 @@ class FFprobeJAXBE2ETest {
                 assertThat(s.codedWidth()).isEqualTo(352);
                 assertThat(s.codedHeight()).isEqualTo(288);
                 assertThat(s.hasBFrames()).isFalse();
-                assertThat(s.level()).isEqualTo(-99);
+                assertThat(s.level()).isZero();
                 assertThat(s.chromaLocation()).isNull();
                 assertThat(s.startPts()).isZero();
                 assertThat(s.startTime()).isEqualTo(0f);
@@ -287,7 +287,7 @@ class FFprobeJAXBE2ETest {
                 assertThat(s.disposition()).isEqualTo(FFProbeStreamDisposition.getByNames());
                 assertThat(s.tags()).contains(new FFProbeKeyValue("AKEY", "avalue"));
                 assertThat(s.codecTag()).isEqualTo("0x0000");
-                assertThat(s.codecTagString()).isEqualTo("[0][0][0][0]");
+                assertThat(s.codecTagString()).isNull();
                 assertThat(s.id()).isNull();
                 assertThat(s.timeBase()).isEqualTo("1/1000");
                 assertThat(s.durationTs()).isZero();
@@ -371,7 +371,7 @@ class FFprobeJAXBE2ETest {
             if (isXMLNameContains("vp8.mkv")) {
                 assertThat(s.id()).isNull();
                 assertThat(s.bitRate()).isZero();
-                assertThat(s.codecTagString()).isEqualTo("[0][0][0][0]");
+                assertThat(s.codecTagString()).isNull();
                 assertThat(s.bitsPerSample()).isZero();
                 assertThat(s.codecLongName()).isEqualTo("AAC (Advanced Audio Coding)");
                 assertThat(s.codecName()).isEqualTo("aac");
@@ -441,20 +441,20 @@ class FFprobeJAXBE2ETest {
             final var aStream = ms.streams().get(1);
 
             if (isXMLNameContains("mpeg2.ts")) {
-                assertThat(ms.format()).startsWith("MPEG-TS (MPEG-2 Transport Stream), 00:00:05, 1 program, 4");
+                assertThat(ms.format()).startsWith("MPEG-TS, 00:00:05, 1 program, 4");
                 assertThat(ms.format()).endsWith(" kbps");
                 assertThat(vStream).isEqualTo(
-                        "video: mpeg2video 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV");
+                        "video: MPEG2 352×288 Main/Main with B frames @ 25 fps yuv420p/colRange:TV");
                 assertThat(aStream).isEqualTo(
-                        "audio: mp2 stereo @ 48 kHz [256 kbps]");
+                        "audio: MPEG/L2 stereo @ 48 kHz [256 kbps]");
             }
 
             if (isXMLNameContains("ffv1.mov")) {
                 assertThat(ms.format()).isEqualTo("QuickTime / MOV, 00:00:05, 10 Mbps");
                 assertThat(vStream).isEqualTo(
-                        "video: ffv1 352×288 @ 25 fps [8568 kbps] yuv420p");
+                        "video: FFmpeg video codec #1 352×288 @ 25 fps [8568 kbps] yuv420p");
                 assertThat(aStream).isEqualTo(
-                        "audio: pcm_s16le stereo @ 48 kHz");
+                        "audio: PCM 16 bits stereo @ 48 kHz");
             }
 
             if (isXMLNameContains("vp8.mkv")) {
@@ -463,14 +463,14 @@ class FFprobeJAXBE2ETest {
 
                 if (isXMLNameContains("-2.")) {
                     assertThat(vStream).isEqualTo(
-                            "video: vp8 352×288 @ 25 fps yuv420p");
+                            "video: On2 VP8 352×288 @ 25 fps yuv420p");
                 } else {
                     assertThat(vStream).isEqualTo(
-                            "video: vp8 352×288 @ 25 fps yuv420p/colRange:TV");
+                            "video: On2 VP8 352×288 @ 25 fps yuv420p/colRange:TV");
                 }
 
                 assertThat(aStream).isEqualTo(
-                        "audio: aac LC stereo @ 48 kHz");
+                        "audio: AAC LC stereo @ 48 kHz");
             }
         }
 

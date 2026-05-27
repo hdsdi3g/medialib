@@ -16,8 +16,10 @@
  */
 package tv.hd3g.ffprobejaxb.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tv.hd3g.ffprobejaxb.data.FFProbeStream.parseFrameRate;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,22 +32,27 @@ class FFProbeStreamTest {
                     <?xml version="1.0" encoding="UTF-8"?>
                     <ffprobe>
                         <streams>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo" r_frame_rate="1/2" avg_frame_rate="6/3">
                                 <disposition default="1" attached_pic="0" timed_thumbnails="0" still_image="0"/>
                             </stream>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo" r_frame_rate="42" avg_frame_rate="63">
                                 <disposition default="0" attached_pic="0" timed_thumbnails="0" still_image="0"/>
                             </stream>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo">
                                 <disposition default="0" attached_pic="1" timed_thumbnails="0" still_image="0"/>
                             </stream>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo">
                                 <disposition default="0" attached_pic="0" timed_thumbnails="1" still_image="0"/>
                             </stream>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo">
                                 <disposition default="0" attached_pic="0" timed_thumbnails="0" still_image="1"/>
                             </stream>
-                            <stream>
+                            <stream codec_type="data" codec_name="foo">
+                            </stream>
+                            <stream codec_type="data">
+                                <disposition default="0" attached_pic="0" timed_thumbnails="0" still_image="0"/>
+                            </stream>
+                            <stream codec_name="foo">
                             </stream>
                         </streams>
                         <format>
@@ -61,6 +68,7 @@ class FFProbeStreamTest {
         assertFalse(source.getStreams().get(3).isDefault());
         assertFalse(source.getStreams().get(4).isDefault());
         assertFalse(source.getStreams().get(5).isDefault());
+        assertFalse(source.getStreams().get(6).isDefault());
     }
 
     @Test
@@ -71,6 +79,37 @@ class FFProbeStreamTest {
         assertTrue(source.getStreams().get(3).isSecondary());
         assertTrue(source.getStreams().get(4).isSecondary());
         assertFalse(source.getStreams().get(5).isSecondary());
+        assertTrue(source.getStreams().get(6).isSecondary());
     }
 
+    @Test
+    void testGetComputedRFrameRate() {
+        assertThat(source.getStreams().get(0).getComputedRFrameRate()).contains(0.5f);
+        assertThat(source.getStreams().get(1).getComputedRFrameRate()).contains(42f);
+    }
+
+    @Test
+    void testGetComputedAvgFrameRate() {
+        assertThat(source.getStreams().get(0).getComputedAvgFrameRate()).contains(2f);
+        assertThat(source.getStreams().get(1).getComputedAvgFrameRate()).contains(63f);
+    }
+
+    @Test
+    void testParseFrameRate() {
+        assertThat(parseFrameRate(null)).isEmpty();
+        assertThat(parseFrameRate("")).isEmpty();
+        assertThat(parseFrameRate(" ")).isEmpty();
+        assertThat(parseFrameRate("0/0")).isEmpty();
+        assertThat(parseFrameRate("0")).isEmpty();
+        assertThat(parseFrameRate("0.0")).isEmpty();
+        assertThat(parseFrameRate("-42")).isEmpty();
+        assertThat(parseFrameRate("4/")).isEmpty();
+        assertThat(parseFrameRate("4/3/2")).isEmpty();
+        assertThat(parseFrameRate("4/0")).contains(4f);
+        assertThat(parseFrameRate("0/5")).isEmpty();
+        assertThat(parseFrameRate("f/d")).isEmpty();
+        assertThat(parseFrameRate("42")).contains(42f);
+        assertThat(parseFrameRate("4.2")).contains(4.2f);
+        assertThat(parseFrameRate("a")).isEmpty();
+    }
 }
