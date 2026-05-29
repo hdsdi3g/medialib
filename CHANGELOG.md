@@ -1,5 +1,9 @@
 # All Medialib projects upgrades needs
 
+## 21.4.0
+
+FFprobeJAXB fix cosmetic entries (codec/format/level, no codec type, no codec name for data streams, codec tag string, frame rate, chanel layout and mediasummary) #129
+
 ## 21.3.0
 
 FFprobeJAXB upgrade and fixes:
